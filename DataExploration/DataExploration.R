@@ -1,4 +1,4 @@
-setwd("~/Documents/amazon/Source Material")
+setwd("~/Documents/amazon/Data")
 
 require(dplyr)
 
@@ -109,7 +109,7 @@ ggplot(NULL, aes(x=Community, y=Predicted)) +
   theme(plot.subtitle = element_text(hjust = 0.5, face = "italic")) +
   theme(panel.border = element_rect(colour = "black", fill=NA, size=1))
 
-
+require(lattice)
 levelplot(Predicted ~ ggPred$x + ggPred$y,
           data = occuPred,
           col.regions = rev(terrain.colors(100)),
@@ -350,7 +350,7 @@ siteCovariate$Habitat <- as.factor(siteCovariate$Habitat)
 
 # unmarked df
 ufo = unmarkedFrameOccu(y, 
-                        siteCovs = siteCovaria te,
+                        siteCovs = siteCovariate,
                         obsCovs = NULL)
 
 plot(ufo)
