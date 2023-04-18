@@ -45,7 +45,7 @@ stations <- read.csv("Stations2018.csv")
 ####################### & FORMAT FOR UNMARKED ##############################
 ############################################################################
 
-species <- peccary # pick which species to proceed with
+species <- paca # pick which species to proceed with
 
 
 # data as matrix
@@ -79,8 +79,8 @@ for(i in 1:ncol(out)){
 
 # unmarked df for single species
 ufo <- unmarkedFrameOccu(combinedTime, # 'y' or 'combinedTime'
-                        siteCovs = siteCovariate,
-                        obsCovs = NULL)
+                         siteCovs = siteCovariate,
+                         obsCovs = NULL)
 
 plot(ufo)
 
@@ -232,85 +232,6 @@ bestMods <- fitList(bestModsList)
 ############################################################################
 
 
-############### COMMUNITY ##################
-# First, set-up a new data frame to predict along a sequence of the covariate.
-# Predicting requires all covariates, so hold the other covariates constant at their mean value
-df <- data.frame(Community = seq(min(siteCovariate$Community), 
-                                 max(siteCovariate$Community), 
-                                 length.out = 100),
-                 Effort = mean(siteCovariate$Effort),
-                 River = mean(siteCovariate$River),
-                 Habitat = as.factor("Upland"), # most common habitat
-                 Hunting = as.factor(1),
-                 Trail.Distance = mean(siteCovariate$Trail.Distance),
-                 OnTrail = as.factor(0) # more common to be off trail
-) 
-
-# Model-averaged prediction of occupancy and confidence interval
-unmarkedPred <- predict(bestMods, type = 'state', new = df, appendData = TRUE)
-
-# Put prediction, confidence interval, and covariate values together in a data frame
-predictionDataFrame <- data.frame(Predicted = unmarkedPred$Predicted,
-                                  lower = unmarkedPred$lower,
-                                  upper = unmarkedPred$upper,
-                                  df)
-
-
-# Plot the relationship
-predictionPlot <- ggplot(predictionDataFrame, aes(x = Community, y = Predicted)) +
-  geom_ribbon(aes(ymin = lower, ymax = upper), fill = 'orange', alpha = 0.5, linetype = "dashed") +
-  geom_path(linewidth = 1) +
-  labs(x = "Distance to community (scaled)", y = "Occupancy probability") +
-  # ggtitle(label = "Collared peccary") +
-  theme_classic() +
-  coord_cartesian(ylim = c(0,1), xlim = c(-1.85, 2.05)) +
-  theme(text = element_text(family = "HelveticaNeue", colour = "black"),
-        axis.text = element_text(colour = "black"),
-        plot.title = element_text(hjust = 0.5),
-        plot.subtitle = element_text(hjust = 0.5, face = 'italic'))
-
-# add an animal
-library(rphylopic)
-# Pecari tajacu
-# Cervus elaphus
-# Cuniculus paca
-
-# Get a single image uuid for a species
-uuid <- get_uuid(name = "Pecari tajacu", n = 1)
-# Get the image for that uuid
-img <- get_phylopic(uuid = uuid)
-
-(peccaryComm <- predictionPlot + 
-  add_phylopic(img, alpha = 1, x = 1.3, y = 0.1, ysize = 0.75))
-
-
-### Occupancy across distance from community
-occupancyAcrossComm <- data.frame(Community = seq(min(siteCovariate$Community), 
-                                                  max(siteCovariate$Community), 
-                                                  length.out = 5),
-                                  Trail.Distance = mean(siteCovariate$Trail.Distance),
-                                  River = mean(siteCovariate$River))
-predict(bestMods, type = 'state', new = occupancyAcrossComm, appendData = TRUE)
-
-### Occupancy across distance from the trail
-occupancyAcrossTD <- data.frame(Trail.Distance = seq(min(siteCovariate$Trail.Distance), 
-                                                  max(siteCovariate$Trail.Distance), 
-                                                  length.out = 5),
-                                  Community = mean(siteCovariate$Community),
-                                  River = mean(siteCovariate$River))
-predict(bestMods, type = 'state', new = occupancyAcrossTD, appendData = TRUE)
-
-### Occupancy across distance from the river
-occupancyAcrossRiver <- data.frame(River = seq(min(siteCovariate$River), 
-                                                     max(siteCovariate$River), 
-                                                     length.out = 5),
-                                Community = mean(siteCovariate$Community),
-                                Trail.Distance = mean(siteCovariate$Trail.Distance))
-predict(bestMods, type = 'state', new = occupancyAcrossRiver, appendData = TRUE)
-
-
-
-
 ############### RIVER ##################
 # First, set-up a new data frame to predict along a sequence of the covariate.
 # Predicting requires all covariates, so hold the other covariates constant at their mean value
@@ -339,7 +260,7 @@ predictionPlot <- ggplot(predictionDataFrame, aes(x = River, y = Predicted)) +
   geom_ribbon(aes(ymin = lower, ymax = upper), fill = 'blue2', alpha = 0.5, linetype = "dashed") +
   geom_path(linewidth = 1) +
   labs(x = "Distance to river (scaled)", y = "Occupancy probability") +
-  # ggtitle(label = "Collared peccary") +
+  # ggtitle(label = "Lowland paca") +
   theme_classic() +
   coord_cartesian(ylim = c(0,1), xlim = c(-1.85, 2.05)) +
   theme(text = element_text(family = "HelveticaNeue", colour = "black"),
@@ -354,11 +275,11 @@ library(rphylopic)
 # Cuniculus paca
 
 # Get a single image uuid for a species
-uuid <- get_uuid(name = "Pecari tajacu", n = 1)
+uuid <- get_uuid(name = "Cuniculus paca", n = 1)
 # Get the image for that uuid
 img <- get_phylopic(uuid = uuid)
 
-(peccaryRiver <- predictionPlot + 
+(pacaRiver <- predictionPlot + 
     add_phylopic(img, alpha = 1, x = 1.3, y = 0.1, ysize = 0.75))
 
 
@@ -391,7 +312,7 @@ predictionPlot <- ggplot(predictionDataFrame, aes(x = Trail.Distance, y = Predic
   geom_ribbon(aes(ymin = lower, ymax = upper), fill = 'green4', alpha = 0.5, linetype = "dashed") +
   geom_path(linewidth = 1) +
   labs(x = "Distance to a trail (scaled)", y = "Occupancy probability") +
-  #ggtitle(label = "Collared peccary") +
+  #ggtitle(label = "Lowland paca") +
   theme_classic() +
   coord_cartesian(ylim = c(0,1), xlim = c(-1.85, 2.05)) +
   theme(text = element_text(family = "HelveticaNeue", colour = "black"),
@@ -406,43 +327,23 @@ library(rphylopic)
 # Cuniculus paca
 
 # Get a single image uuid for a species
-uuid <- get_uuid(name = "Pecari tajacu", n = 1)
+uuid <- get_uuid(name = "Cuniculus paca", n = 1)
 # Get the image for that uuid
 img <- get_phylopic(uuid = uuid)
 
-(peccaryTrail <- predictionPlot + 
+(pacaTrail <- predictionPlot + 
     add_phylopic(img, alpha = 1, x = 1.3, y = 0.1, ysize = 0.75))
 
 # figure panel
 require(ggpubr)
-arranged <- ggarrange(peccaryComm, peccaryRiver, peccaryTrail,
-          #labels = c("A", "B", "C"),
-          ncol = 3, nrow = 1)
-annotate_figure(arranged, top = text_grob("Collared peccary", face = "bold", size = 16))
-
-
-null <- occu(~1 ~1, ufo)
-backTransform(null, type = 'det')
-backTransform(null, type = 'state')
-
-bestModsList[[1]]@formula
-topModels
-
-###### average occupancy and detection across sites
-
-df <- data.frame(Community = siteCovariate$Community,
-                 Effort = siteCovariate$Effort,
-                 River = siteCovariate$River,
-                 Habitat = siteCovariate$Habitat,
-                 Hunting = siteCovariate$Hunting,
-                 Trail.Distance = siteCovariate$Trail.Distance,
-                 OnTrail = siteCovariate$OnTrail) 
+arranged <- ggarrange(grid::nullGrob(), pacaRiver, pacaTrail,
+                      #labels = c("  ", "B", "C"),
+                      ncol = 3, nrow = 1)
+annotate_figure(arranged, top = text_grob("Lowland paca", face = "bold", size = 16))
 
 # Model-averaged prediction of occupancy and confidence interval
 unmarkedPred <- predict(bestMods, type = 'state', new = df, appendData = TRUE)
 mean(unmarkedPred$Predicted); mean(unmarkedPred$SE)
-range(unmarkedPred$Predicted)
 
 unmarkedPred <- predict(bestMods, type = 'det', new = df, appendData = TRUE)
 mean(unmarkedPred$Predicted); mean(unmarkedPred$SE)
-range(unmarkedPred$Predicted)
