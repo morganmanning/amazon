@@ -31,8 +31,8 @@ siteCovariate$Community <- siteCovariate$Community/1000
 siteCovariate$River <- siteCovariate$River/1000
 
 # Read in the animal-specific data
-masterlist<-read.csv("master_species_list_updated_7April2014.csv",h=T) #master list from Beaudrot
-pantheria <- read.delim("PanTHERIA_1-0_WR05_Aug2008.txt", header = TRUE, sep = "\t") # https://esapubs.org/archive/ecol/E090/184/metadata.htm
+masterlist<-read.csv("./FPDistData/master_species_list_updated_7April2014.csv",h=T) #master list from Beaudrot
+pantheria <- read.delim("./FPDistData/PanTHERIA_1-0_WR05_Aug2008.txt", header = TRUE, sep = "\t") # https://esapubs.org/archive/ecol/E090/184/metadata.htm
 
 for ( col in 1:ncol(pantheria)){
   colnames(pantheria)[col] <-  gsub("^.*?\\_", "", colnames(pantheria)[col])
@@ -73,19 +73,19 @@ str(traits)
 
 # check out the animals of interest
 (check <- traits[rownames(traits) == 'Pecari_tajacu' | 
-                   rownames(traits) == 'Cervus_elaphus' | 
+                   rownames(traits) == 'Mazama_gouazoubira' | 
                    rownames(traits) == 'Cuniculus_paca' ,])
 
 # calculate functional distance
 FDist <- as.matrix(gowdis(traits))
 
 
-FDist['Pecari_tajacu','Cervus_elaphus']
+FDist[,c('Pecari_tajacu','Mazama_gouazoubira', 'Cuniculus_paca')]
 
 
 # # Only keep the animals of interest
 # # Collared peccary: Pecari tajacu
-# # Red deer: Cervus elaphus
+# # Brown brocket: Mazama gouazoubira
 # # Paca: Cuniculus
 # studyAnimals <- pantheria[(pantheria$Genus == 'Pecari' & pantheria$Species == 'tajacu') |
 #                             (pantheria$Genus == 'Cervus' & pantheria$Species == 'elaphus') |
@@ -157,13 +157,13 @@ library(vegan)
 library(FD)
 
 #input data
-# mat <- read.delim("mammal_com.csv", sep=",", row.names=1) # doesn't include red deer
-com <- read.delim("species_list.csv", sep="", row.names=1) # Latin names with _ as space
-com <- data.frame(sp = c('Pecari_tajacu', 'Cervus_elaphus', 'Cuniculus_paca'))
+# mat <- read.delim("./FPDistData/mammal_com.csv", sep=",", row.names=1) # doesn't include red deer
+com <- read.delim("./FPDistData/species_list.csv", sep="", row.names=1) # Latin names with _ as space
+com <- data.frame(sp = c('Pecari_tajacu', 'Mazama_gouazoubira', 'Cuniculus_paca'))
 # traits <- read.delim("mammal_traits.csv", sep=",", row.names=1) # doesn't include red deer
 
 #load unresolved phylo
-phylo <- read.nexus("mammalST_MSW05_all.tre")
+phylo <- read.nexus("./FPDistData/mammalST_MSW05_all.tre")
 phylo <- phylo[[1]]
 
 PDist <- cophenetic.phylo(phylo)
@@ -172,8 +172,8 @@ PDist <- cophenetic.phylo(phylo)
 # 
 # 
 # #load resolved phylo
-phylo_res <- read.nexus("FritzTree.rs200k.100trees.tre")
-phylo_names <- read.csv("global_tip_labels_mod.csv")
+phylo_res <- read.nexus("./FPDistData/FritzTree.rs200k.100trees.tre")
+phylo_names <- read.csv("./FPDistData/global_tip_labels_mod.csv")
 phylo_names1 <- as.character(phylo_names$sp)
 # 
 # ### match phylo data with incidence
@@ -230,7 +230,7 @@ phylo_names1 <- as.character(phylo_names$sp)
 # focalSpecies <- data.frame(sp = c('Pecari_tajacu', 'Cervus_elaphus', 'Cuniculus_paca'))
 
 # all combinations of species
-focalSpecies <- c('Pecari_tajacu', 'Cervus_elaphus', 'Cuniculus_paca')
+focalSpecies <- c('Pecari_tajacu', 'Mazama_gouazoubira', 'Cuniculus_paca')
 
 combos <- data.frame(Species1 = rep(focalSpecies, each = length(focalSpecies)),
                      Species2 = rep(focalSpecies, times = length(focalSpecies)))
@@ -285,7 +285,7 @@ for (i in 1:length(focalSpecies)) {
   distances <- FPDistMatrix[rownames(FPDistMatrix)[i],]
   avgDistanceFromOthers <- mean(distances[distances != 0], na.rm = TRUE)
   avgFPDist[[i]] <- rep(avgDistanceFromOthers, times = nrow(siteCovariate))
-  # this will need to be edited when a list of species at each site is recieved
+  # this will need to be edited when a list of species at each site is received
   # make new FPDist matrix for each site with only the species at that site
 }
 

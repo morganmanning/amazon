@@ -1,0 +1,778 @@
+Date,Group,Species,Count,x,y
+1/3/18,Ungulates,White-lipped Peccary,2,-75.73898017,-0.333360633
+1/9/18,Cracid,Spix's Guan,1,-75.75352201,-0.351190517
+1/12/18,Bird,Great Tinamou,1,-75.71036557,-0.360574667
+1/14/18,Bird,Grey-winged Trumpeter,2,-75.70286011,-0.33195301
+1/11/18,Reptile,Tortoise,1,-75.69113281,-0.370897231
+1/9/18,Cracid,Spix's Guan,2,-75.70004556,-0.341806367
+1/10/18,Rodent,Black Agouti,1,-75.66674005,-0.367143571
+1/16/18,Primate,Howler Monkey,1,-75.66486368,-0.521982041
+1/12/18,Cracid,Spix's Guan,1,-75.77181658,-0.373712476
+1/4/18,Reptile,Tortoise,1,-75.63390363,-0.350252102
+1/2/18,Ungulates,White-lipped Peccary,2,-75.73100561,-0.367612779
+1/31/18,Rodent,Lowland Paca,1,-75.73053652,-0.344621612
+1/28/18,Bird,Great Tinamou,1,-75.73428925,-0.344621612
+1/29/18,Ungulates,White-lipped Peccary,1,-75.74930018,-0.299108486
+1/19/18,Ungulates,White-lipped Peccary,2,-75.69723101,-0.361982289
+1/21/18,Armadillo,Nine-banded Armadillo,1,-75.76337293,-0.334768255
+1/22/18,Cracid,Salvin's Currasow,1,-75.74695472,-0.289255129
+1/22/18,Bird,Grey-winged Trumpeter,2,-75.74695472,-0.289255129
+1/17/18,Cracid,Salvin's Currasow,1,-75.67143096,-0.349313687
+1/8/18,Ungulates,White-lipped Peccary,1,-75.75352201,-0.346029235
+1/13/18,Cracid,Salvin's Currasow,1,-75.73944926,-0.324914898
+1/17/18,Ungulates,Collared Peccary,1,-75.6695546,-0.349313687
+1/13/18,Armadillo,Nine-banded Armadillo,1,-75.76806385,-0.332891425
+1/9/18,Ungulates,White-lipped Peccary,1,-75.74226381,-0.291601167
+1/9/18,Cracid,Spix's Guan,1,-75.74226381,-0.291601167
+1/8/18,Rodent,Lowland Paca,1,-75.78542024,-0.323976483
+1/7/18,Ungulates,White-lipped Peccary,1,-75.76618748,-0.334299048
+1/15/18,Cracid,Salvin's Currasow,1,-75.7539911,-0.296293241
+1/13/18,Cracid,Spix's Guan,1,-75.75352201,-0.315530748
+1/25/18,Ungulates,White-lipped Peccary,3,-75.70192192,-0.372774061
+1/21/18,Ungulates,White-lipped Peccary,1,-75.78917298,-0.324914898
+1/21/18,Cracid,Spix's Guan,1,-75.78917298,-0.324914898
+1/24/18,Ungulates,Collared Peccary,2,-75.6860054,-0.339908651
+1/28/18,Ungulates,White-lipped Peccary,1,-75.68878736,-0.338521915
+1/20/18,Ungulates,White-lipped Peccary,1,-75.76337293,-0.353067347
+1/25/18,Cracid,Salvin's Currasow,4,-75.74038744,-0.311777088
+1/28/18,Ungulates,White-lipped Peccary,1,-75.70567466,-0.338521915
+1/20/18,Bird,Grey-winged Trumpeter,1,-75.74475788,-0.29069809
+1/23/18,Armadillo,Nine-banded Armadillo,1,-75.76384203,-0.33382984
+1/26/18,Cracid,Spix's Guan,1,-75.64849276,-0.402453105
+1/3/18,Rodent,Capibara,2,-75.72959833,-0.331014595
+2/20/18,Cracid,Salvin's Currasow,1,-75.74695472,-0.358697837
+2/9/18,Rodent,Lowland Paca,4,-75.73569652,-0.356351799
+2/7/18,Ungulates,Red Brocket Deer,1,-75.7371038,-0.355882592
+2/3/18,Cracid,Spix's Guan,1,-75.79245662,-0.324914898
+2/13/18,Ungulates,Collared Peccary,1,-75.73944926,-0.360105459
+2/3/18,Rodent,Lowland Paca,1,-75.7484031,-0.292654719
+1/29/18,Rodent,Lowland Paca,1,-75.80661952,-0.389172818
+2/8/18,Ungulates,Collared Peccary,3,-75.71036557,-0.355882592
+2/27/18,Ungulates,Collared Peccary,1,-75.72490742,-0.311777088
+2/10/18,Ungulates,White-lipped Peccary,1,-75.70802011,-0.321630446
+2/2/18,Cracid,Salvin's Currasow,1,-75.74976928,-0.301923731
+2/20/18,Rodent,Black Agouti,1,-75.7539911,-0.307085014
+2/9/18,Ungulates,White-lipped Peccary,3,-75.75023837,-0.371366439
+2/3/18,Ungulates,Red Brocket Deer,1,-75.75727474,-0.371835646
+2/5/18,Cracid,Salvin's Currasow,2,-75.6747146,-0.356351799
+2/3/18,Cracid,Spix's Guan,3,-75.6279051,-0.378474537
+2/4/18,Rodent,Black Agouti,1,-75.68550371,-0.370428024
+2/9/18,Ungulates,White-lipped Peccary,1,-75.70520556,-0.371835646
+2/21/18,Ungulates,White-lipped Peccary,1,-75.748362,-0.298170071
+2/21/18,Ungulates,Collared Peccary,2,-75.748362,-0.298170071
+3/17/18,Ungulates,Lowland Tapir,1,-75.58605628,-0.501336912
+2/26/18,Cracid,Spix's Guan,1,-75.6747146,-0.466615558
+3/3/18,Cracid,Spix's Guan,2,-75.6622986,-0.402089794
+3/8/18,Rodent,Lowland Paca,2,-75.71834013,-0.380281381
+2/28/18,Bird,Great Tinamou,2,-75.6466762,-0.402453105
+3/2/18,Bird,Orange-winged Parrot,3,-75.66111095,-0.395765228
+3/1/18,Cracid,Nocturnal Currasow,2,-75.64234728,-0.368551194
+3/3/18,Bird,Grey-winged Trumpeter,2,-75.69488555,-0.366674364
+3/2/18,Ungulates,White-lipped Peccary,1,-75.70004556,-0.369958816
+3/12/18,Cracid,Spix's Guan,1,-75.70239101,-0.358228629
+3/14/18,Rodent,Lowland Paca,1,-75.63759341,-0.394823561
+2/26/18,Rodent,Lowland Paca,1,-75.71787104,-0.347436857
+2/28/18,Ungulates,Collared Peccary,1,-75.72350014,-0.346498442
+2/25/18,Rodent,Lowland Paca,1,-75.71646377,-0.332891425
+2/21/18,Ungulates,Collared Peccary,1,-75.73006742,-0.34509082
+3/14/18,Rodent,Green Acouchy,1,-75.73335107,-0.370428024
+3/15/18,Rodent,Green Acouchy,1,-75.7258456,-0.34696765
+3/12/18,Primate,Howler Monkey,1,-75.67330733,-0.342275575
+3/15/18,Ungulates,White-lipped Peccary,2,-75.77375887,-0.384669891
+2/27/18,Reptile,Tortoise,1,-75.68925645,-0.387319493
+3/6/18,Primate,Howler Monkey,1,-75.79605783,-0.306599385
+3/8/18,Rodent,Lowland Paca,1,-75.74540115,-0.295335033
+2/25/18,Ungulates,White-lipped Peccary,1,-75.77979114,-0.308961844
+3/12/18,Mammal,Coati,1,-75.77275477,-0.315061541
+3/12/18,Bird,Toucan,2,-75.77275477,-0.315061541
+3/20/18,Primate,Howler Monkey,1,-75.78588934,-0.323976483
+3/22/18,Ungulates,White-lipped Peccary,2,-75.78542024,-0.296293241
+3/22/18,Ungulates,White-lipped Peccary,2,-75.78542024,-0.296293241
+3/14/18,Rodent,Lowland Paca,1,-75.73929004,-0.295442245
+2/26/18,Reptile,Tortoise,1,-75.69113281,-0.379812173
+2/22/18,Rodent,Lowland Paca,1,-75.70051465,-0.34509082
+2/23/18,Armadillo,Nine-banded Armadillo,1,-75.70004556,-0.362920704
+2/23/18,Reptile,Tortoise,1,-75.70004556,-0.362920704
+2/19/18,Reptile,Tortoise,1,-75.62827453,-0.464738728
+2/18/18,Rodent,Lowland Paca,2,-75.62264543,-0.473184463
+2/15/18,Rodent,Lowland Paca,2,-75.68691099,-0.369020401
+2/15/18,Rodent,Black Agouti,1,-75.68691099,-0.369020401
+2/11/18,Ungulates,White-lipped Peccary,1,-75.69676191,-0.376527721
+2/14/18,Reptile,Tortoise,1,-75.7033292,-0.369020401
+2/12/18,Rodent,Lowland Paca,1,-75.69535464,-0.371366439
+2/12/18,Reptile,Tortoise,1,-75.69535464,-0.371366439
+2/8/18,Rodent,Black Agouti,1,-75.81168938,-0.381219796
+3/22/18,Ungulates,White-lipped Peccary,2,-75.74414017,-0.319753616
+3/27/18,Cracid,Spix's Guan,1,-75.65313639,-0.365735949
+3/24/18,Armadillo,Nine-banded Armadillo,1,-75.65360548,-0.363389912
+3/21/18,Primate,Howler Monkey,1,-75.65548185,-0.361043874
+3/20/18,Rodent,Lowland Paca,2,-75.62911614,-0.390342717
+3/22/18,Ungulates,White-lipped Peccary,1,-75.74465066,-0.294128891
+3/18/18,Primate,Howler Monkey,1,-75.79829826,-0.300725847
+3/7/18,Cracid,Nocturnal Currasow,1,-75.76290384,-0.303331354
+3/15/18,Rodent,Lowland Paca,1,-75.76384203,-0.289724337
+3/19/18,Rodent,Black Agouti,1,-75.71740195,-0.347906065
+3/20/18,Bird,Great Tinamou,1,-75.72303105,-0.346029235
+3/16/18,Ungulates,White-lipped Peccary,3,-75.65126002,-0.34696765
+5/1/18,Reptile,Tortoise,1,-75.61052776,-0.371563157
+5/4/18,Rodent,Lowland Paca,2,-75.64563092,-0.382158211
+5/4/18,Primate,Black-mantled Tamarin,1,-75.64563092,-0.382158211
+4/27/18,Bird,Orange-winged Parrot,1,-75.68579097,-0.369070465
+4/29/18,Ungulates,White-lipped Peccary,1,-75.68321787,-0.341838477
+3/18/18,Bird,Orange-winged Parrot,2,-75.72537651,-0.331483803
+5/3/18,Mammal,Kinkajou,2,-75.73944926,-0.302862146
+4/28/18,Mammal,Coati,2,-75.72162377,-0.302392939
+4/28/18,Cracid,Salvin's Currasow,1,-75.72162377,-0.302392939
+4/28/18,Ungulates,White-lipped Peccary,1,-75.72162377,-0.302392939
+5/3/18,Primate,Woolly Monkey,1,-75.75305292,-0.286439884
+4/22/18,Bird,Blue-headed Parrot,2,-75.68972554,-0.366674364
+4/11/18,Ungulates,Collared Peccary,1,-75.69629282,-0.364328327
+4/15/18,Ungulates,Collared Peccary,1,-75.70098374,-0.32819935
+4/9/18,Mammal,Kinkajou,1,-75.68503462,-0.368081986
+3/29/18,Ungulates,White-lipped Peccary,1,-75.69300918,-0.368081986
+4/5/18,Rodent,Lowland Paca,2,-75.69962139,-0.348244427
+4/11/18,Ungulates,Collared Peccary,1,-75.73851107,-0.353067347
+4/2/18,Ungulates,White-lipped Peccary,1,-75.63904666,-0.388647263
+4/1/18,Ungulates,White-lipped Peccary,1,-75.69723101,-0.386381078
+4/28/18,Rodent,Lowland Paca,1,-75.71834013,-0.377935344
+4/20/18,Ungulates,Collared Peccary,1,-75.73991835,-0.358228629
+4/4/18,Primate,Howler Monkey,3,-75.76149657,-0.293477997
+4/4/18,Cracid,Salvin's Currasow,2,-75.76149657,-0.293477997
+4/3/18,Primate,Collared Titi,1,-75.75164564,-0.295824034
+4/27/18,Primate,Howler Monkey,3,-75.79212196,-0.31986026
+4/19/18,Bird,Great Tinamou,1,-75.73335107,-0.312715503
+4/11/18,Rodent,Lowland Paca,1,-75.75446019,-0.340867952
+3/31/18,Armadillo,Nine-banded Armadillo,1,-75.74432903,-0.288124988
+3/31/18,Primate,Howler Monkey,1,-75.73971889,-0.289733177
+4/8/18,Ungulates,White-lipped Peccary,3,-75.64891456,-0.367612779
+4/10/18,Cracid,Salvin's Currasow,2,-75.61326359,-0.371366439
+4/12/18,Rodent,Lowland Paca,5,-75.87314039,-0.370897231
+4/3/18,Rodent,Black Agouti,1,-75.6582964,-0.360574667
+4/4/18,Primate,Capuchin Monkey,1,-75.66060315,-0.40354304
+4/5/18,Bird,Toucan,3,-75.64422364,-0.369958816
+3/28/18,Bird,Toucan,1,-75.62354536,-0.379443368
+3/4/18,Ungulates,White-lipped Peccary,3,-75.76243475,-0.351190517
+4/2/18,Bird,Great Tinamou,1,-75.6803437,-0.355413384
+4/5/18,Rodent,Black Agouti,1,-75.6877208,-0.340123076
+4/8/18,Primate,Squirrel Monkey,5,-75.6184236,-0.473184463
+4/16/18,Primate,Howler Monkey,2,-75.61009891,-0.360198626
+4/2/18,Primate,Squirrel Monkey,3,-75.61889269,-0.48116099
+4/27/18,Ungulates,Collared Peccary,1,-75.88627496,-0.372774061
+4/19/18,Primate,Howler Monkey,1,-75.71927832,-0.443624391
+4/19/18,Primate,Woolly Monkey,1,-75.71927832,-0.443624391
+4/22/18,Primate,Howler Monkey,3,-75.64140909,-0.465207935
+4/11/18,Cracid,Salvin's Currasow,1,-75.67612188,-0.346029235
+4/18/18,Rodent,Lowland Paca,1,-75.68128804,-0.356848234
+4/19/18,Rodent,Black Agouti,1,-75.69394736,-0.372774061
+4/20/18,Rodent,Lowland Paca,1,-75.67657069,-0.352023669
+5/3/18,Ungulates,White-lipped Peccary,2,-75.7314747,-0.304269769
+4/11/18,Cracid,Salvin's Currasow,2,-75.75023837,-0.317407578
+4/4/18,Bird,Grey-winged Trumpeter,2,-75.73663471,-0.301454524
+4/16/18,Primate,Howler Monkey,1,-75.78260569,-0.282686224
+5/20/18,Primate,Howler Monkey,1,-75.64281637,-0.460046653
+5/24/18,Ungulates,White-lipped Peccary,1,-75.67377642,-0.370428024
+5/23/18,Cracid,Nocturnal Currasow,3,-75.67190005,-0.334768255
+5/30/18,Bird,Tinamou,1,-75.67431923,-0.351809244
+5/11/18,Primate,Howler Monkey,1,-75.64140909,-0.465677143
+5/11/18,Primate,Woolly Monkey,2,-75.64140909,-0.465677143
+5/7/18,Ungulates,White-lipped Peccary,1,-75.74414017,-0.383565833
+5/4/18,Primate,Woolly Monkey,1,-75.61748542,-0.518228381
+5/20/18,Primate,Howler Monkey,3,-75.78324718,-0.501987226
+5/20/18,Cracid,Piping Guan,3,-75.77788655,-0.495554472
+5/17/18,Primate,Howler Monkey,3,-75.90738408,-0.436117071
+5/8/18,Ungulates,White-lipped Peccary,1,-75.91160591,-0.383565833
+5/17/18,Primate,Woolly Monkey,1,-75.6634564,-0.331014595
+5/3/18,Ungulates,White-lipped Peccary,2,-75.69243815,-0.389816094
+5/9/18,Ungulates,White-lipped Peccary,2,-75.74367108,-0.33382984
+5/10/18,Primate,Howler Monkey,2,-75.79574026,-0.315061541
+5/9/18,Bird,Toucan,2,-75.77040931,-0.309431051
+5/21/18,Cracid,Spix's Guan,2,-75.78540069,-0.281894194
+5/8/18,Ungulates,White-lipped Peccary,3,-75.76431112,-0.383096626
+5/17/18,Rodent,Lowland Paca,1,-75.73124909,-0.381882365
+5/18/18,Ungulates,Collared Peccary,1,-75.75478225,-0.385956442
+5/18/18,Rodent,Lowland Paca,1,-75.74116626,-0.387886268
+5/15/18,Ungulates,White-lipped Peccary,1,-75.72631469,-0.347436857
+5/16/18,Cracid,Salvin's Currasow,1,-75.70286011,-0.334768255
+5/15/18,Primate,Collared Titi,1,-75.70239101,-0.33570667
+5/14/18,Rodent,Black Agouti,1,-75.69582373,-0.365266741
+5/12/18,Mammal,Kinkajou,1,-75.69394736,-0.367612779
+4/16/18,Rodent,Black Agouti,1,-75.73804198,-0.35072131
+4/6/18,Rodent,Lowland Paca,1,-75.73991835,-0.337114293
+5/28/18,Cracid,Salvin's Currasow,2,-75.66814732,-0.33946033
+5/30/18,Primate,Woolly Monkey,3,-75.61701633,-0.371366439
+5/30/18,Cracid,Spix's Guan,1,-75.61701633,-0.371366439
+5/26/18,Bird,Great Tinamou,1,-75.73194379,-0.34696765
+5/28/18,Rodent,Lowland Paca,1,-75.76478021,-0.343683197
+5/29/18,Ungulates,White-lipped Peccary,1,-75.77838387,-0.32444569
+5/31/18,Bird,Great Tinamou,1,-75.69582373,-0.369489609
+5/18/18,Bird,Grey-winged Trumpeter,1,-75.77791478,-0.311307881
+4/19/18,Mammal,Kinkajou,2,-75.74658049,-0.291234152
+5/26/18,Bird,Great Tinamou,1,-75.77369295,-0.311307881
+5/27/18,Mammal,Coati,1,-75.72068559,-0.299108486
+5/29/18,Cracid,Spix's Guan,2,-75.7765075,-0.314123126
+5/30/18,Bird,Toucan,1,-75.72631469,-0.329606973
+5/30/18,Rodent,Black Agouti,1,-75.72631469,-0.329606973
+5/31/18,Ungulates,White-lipped Peccary,1,-75.79575508,-0.305327794
+5/29/18,Cracid,Spix's Guan,1,-75.75539838,-0.294885619
+5/28/18,Cracid,Spix's Guan,1,-75.75305292,-0.290662752
+5/24/18,Bird,Great Tinamou,1,-75.75586747,-0.291601167
+5/18/18,Cracid,Spix's Guan,2,-75.76290384,-0.298639279
+6/2/18,Bird,Dove,4,-75.74179472,-0.3375835
+6/2/18,Cracid,Nocturnal Currasow,8,-75.74179472,-0.3375835
+6/2/18,Bird,Russet-backed Oropendola,10,-75.74179472,-0.3375835
+5/6/18,Rodent,Lowland Paca,1,-75.80418391,-0.388727116
+5/6/18,Mammal,Kinkajou,1,-75.80418391,-0.388727116
+5/30/18,Primate,Woolly Monkey,1,-75.62029997,-0.370897231
+5/30/18,Cracid,Spix's Guan,1,-75.62029997,-0.370897231
+5/28/18,Rodent,Lowland Paca,1,-75.69254009,-0.371366439
+5/28/18,Armadillo,Nine-banded Armadillo,1,-75.69254009,-0.371366439
+5/24/18,Ungulates,White-lipped Peccary,1,-75.69254009,-0.373712476
+5/2/18,Rodent,Lowland Paca,2,-75.69910737,-0.329137765
+5/3/18,Ungulates,White-lipped Peccary,2,-75.69394736,-0.376996929
+5/3/18,Cracid,Spix's Guan,2,-75.69394736,-0.376996929
+5/4/18,Armadillo,Nine-banded Armadillo,2,-75.6864419,-0.378873759
+5/15/18,Ungulates,White-lipped Peccary,1,-75.74414017,-0.384973456
+4/12/18,Rodent,Lowland Paca,3,-75.82341667,-0.382627418
+4/10/18,Ungulates,White-lipped Peccary,2,-75.73851107,-0.354005762
+6/23/18,Ungulates,White-lipped Peccary,2,-75.78542024,-0.289255129
+6/18/18,Primate,Howler Monkey,1,-75.75258383,-0.290193544
+6/21/18,Primate,Howler Monkey,1,-75.76102748,-0.306146599
+6/19/18,Rodent,Black Agouti,1,-75.75680565,-0.305208184
+6/27/18,Ungulates,White-lipped Peccary,1,-75.64891456,-0.34884448
+6/20/18,Mammal,Coati,1,-75.66674005,-0.370428024
+6/18/18,Armadillo,Nine-banded Armadillo,2,-75.71787104,-0.331014595
+6/18/18,Rodent,Black Agouti,3,-75.71787104,-0.331014595
+6/8/18,Ungulates,White-lipped Peccary,1,-75.77556932,-0.307085014
+6/4/18,Cracid,Piping Guan,2,-75.66533277,-0.3375835
+6/11/18,Ungulates,White-lipped Peccary,1,-75.79667844,-0.332422218
+6/2/18,Primate,Woolly Monkey,1,-75.70004556,-0.322099653
+6/25/18,Ungulates,White-lipped Peccary,1,-75.74883109,-0.331014595
+6/10/18,Primate,Howler Monkey,1,-75.76008929,-0.298170071
+6/24/18,Primate,Howler Monkey,1,-75.78166751,-0.288785922
+6/18/18,Ungulates,White-lipped Peccary,4,-75.6612393,-0.358456422
+6/19/18,Cracid,Spix's Guan,1,-75.7821366,-0.292070374
+5/21/18,Primate,Woolly Monkey,1,-75.75680565,-0.302392939
+6/15/18,Rodent,Black Agouti,1,-75.7596202,-0.35072131
+6/25/18,Rodent,Black Agouti,2,-75.7708784,-0.313653918
+6/5/18,Ungulates,Collared Peccary,1,-75.74226381,-0.331483803
+6/4/18,Bird,Great Tinamou,2,-75.73898017,-0.35072131
+6/7/18,Rodent,Lowland Paca,1,-75.75680565,-0.316938371
+6/5/18,Cracid,Salvin's Currasow,1,-75.71646377,-0.301923731
+6/5/18,Cracid,Spix's Guan,1,-75.71646377,-0.301923731
+6/3/18,Ungulates,Grey Brocket Deer,1,-75.7652493,-0.298639279
+6/14/18,Rodent,Black Agouti,1,-75.77416204,-0.313653918
+6/13/18,Cracid,Salvin's Currasow,1,-75.72068559,-0.298639279
+6/10/18,Cracid,Piping Guan,1,-75.73991835,-0.3375835
+6/6/18,Ungulates,White-lipped Peccary,2,-75.80211303,-0.323553928
+6/6/18,Cracid,Spix's Guan,2,-75.80011481,-0.310656365
+6/18/18,Rodent,Black Agouti,1,-75.73991835,-0.301923731
+6/16/18,Ungulates,White-lipped Peccary,1,-75.78026023,-0.303331354
+6/20/18,Cracid,Spix's Guan,2,-75.7492608,-0.283836486
+6/21/18,Bird,Great Tinamou,1,-75.7539911,-0.317407578
+6/23/18,Ungulates,White-lipped Peccary,2,-75.77838387,-0.297700864
+6/7/18,Cracid,Spix's Guan,1,-75.70661284,-0.351659724
+6/23/18,Bird,Great Tinamou,1,-75.71552558,-0.357290214
+6/10/18,Ungulates,White-lipped Peccary,3,-75.78870389,-0.321630446
+5/29/18,Ungulates,White-lipped Peccary,2,-75.73053652,-0.34884448
+6/8/18,Primate,Howler Monkey,2,-75.76223352,-0.497698723
+6/8/18,Primate,Squirrel Monkey,2,-75.76394892,-0.500271825
+6/19/18,Primate,Howler Monkey,2,-75.60012903,-0.517759173
+6/19/18,Primate,Woolly Monkey,1,-75.60012903,-0.517759173
+6/17/18,Bird,Great Tinamou,1,-75.58980901,-0.484445442
+7/6/18,Ungulates,Collared Peccary,1,-75.64516183,-0.344152405
+7/6/18,Cracid,Spix's Guan,2,-75.64516183,-0.344152405
+6/27/18,Ungulates,White-lipped Peccary,1,-75.64891456,-0.362451497
+6/23/18,Mammal,Coati,2,-75.66533277,-0.365266741
+6/26/18,Bird,Toucan,2,-75.65360548,-0.3375835
+6/17/18,Bird,Undulated Tinamou,1,-75.64985274,-0.392949983
+6/20/18,Primate,Night Monkey,1,-75.64797638,-0.394826813
+6/7/18,Armadillo,Nine-banded Armadillo,2,-75.66627095,-0.383096626
+6/7/18,Rodent,Black Agouti,1,-75.66627095,-0.383096626
+6/14/18,Mammal,Coati,1,-75.65079093,-0.361043874
+6/6/18,Primate,Collared Titi,2,-75.65172911,-0.365735949
+7/13/18,Ungulates,Collared Peccary,1,-75.72772197,-0.320222823
+7/15/18,Cracid,Salvin's Currasow,1,-75.77791478,-0.292539582
+7/11/18,Bird,Grey-winged Trumpeter,1,-75.79620935,-0.310369466
+6/25/18,Ungulates,White-lipped Peccary,1,-75.73489432,-0.295629867
+6/25/18,Bird,Grey-winged Trumpeter,3,-75.73053652,-0.296762449
+6/29/18,Cracid,Spix's Guan,1,-75.74367108,-0.307554221
+6/29/18,Bird,Toucan,1,-75.74367108,-0.307554221
+6/30/18,Primate,Howler Monkey,1,-75.72912924,-0.317407578
+6/25/18,Ungulates,White-lipped Peccary,1,-75.81122029,-0.388727116
+6/27/18,Cracid,Spix's Guan,1,-75.69582373,-0.362451497
+7/6/18,Ungulates,White-lipped Peccary,1,-75.70567466,-0.353536554
+7/4/18,Armadillo,Nine-banded Armadillo,2,-75.70004556,-0.365735949
+7/2/18,Ungulates,White-lipped Peccary,1,-75.71599467,-0.369489609
+7/10/18,Bird,Dove,5,-75.70567466,-0.352128932
+6/15/18,Ungulates,Lowland Tapir,1,-75.77744568,-0.32632252
+6/15/18,Mammal,Kinkajou,1,-75.77744568,-0.32632252
+6/14/18,Bird,Great Tinamou,2,-75.7089583,-0.361043874
+6/14/18,Rodent,Black Agouti,2,-75.7089583,-0.361043874
+6/14/18,Rodent,Lowland Paca,2,-75.7089583,-0.361043874
+7/2/18,Bird,Dove,6,-75.70989648,-0.354944177
+6/28/18,Mammal,Kinkajou,2,-75.77181658,-0.331483803
+6/28/18,Rodent,Lowland Paca,2,-75.77181658,-0.331483803
+6/12/18,Reptile,Tortoise,2,-75.7033292,-0.370897231
+6/6/18,Rodent,Lowland Paca,2,-75.71177285,-0.372774061
+6/6/18,Armadillo,Nine-banded Armadillo,1,-75.71177285,-0.372774061
+7/2/18,Ungulates,White-lipped Peccary,1,-75.69629282,-0.361982289
+7/9/18,Ungulates,White-lipped Peccary,1,-75.76806385,-0.314123126
+7/4/18,Cracid,Spix's Guan,1,-75.75727474,-0.35072131
+6/29/18,Cracid,Spix's Guan,1,-75.73898017,-0.35072131
+7/1/18,Rodent,Black Agouti,1,-75.71927832,-0.349313687
+7/1/18,Cracid,Spix's Guan,1,-75.67330733,-0.354474969
+7/2/18,Cracid,Salvin's Currasow,1,-75.68784917,-0.356351799
+7/14/18,Cracid,Salvin's Currasow,1,-75.6639255,-0.338991122
+7/17/18,Rodent,Lowland Paca,1,-75.69300918,-0.351190517
+7/19/18,Bird,Undulated Tinamou,1,-75.68315826,-0.354005762
+7/23/18,Cracid,Salvin's Currasow,1,-75.68128189,-0.346029235
+7/23/18,Bird,Toucan,1,-75.68128189,-0.346029235
+7/23/18,Mammal,Coati,2,-75.68128189,-0.346029235
+7/24/18,Bird,Great Tinamou,1,-75.75352201,-0.376058514
+7/24/18,Rodent,Black Agouti,1,-75.75352201,-0.376058514
+7/24/18,Armadillo,Nine-banded Armadillo,1,-75.75352201,-0.376058514
+7/28/18,Bird,Great Tinamou,1,-75.74179472,-0.378404551
+7/28/18,Armadillo,Nine-banded Armadillo,1,-75.74179472,-0.378404551
+7/4/18,Ungulates,Red Brocket Deer,1,-75.69582373,-0.343683197
+7/8/18,Primate,Woolly Monkey,3,-75.79761663,-0.316469163
+7/6/18,Primate,Howler Monkey,1,-75.71083466,-0.333360633
+8/4/18,Rodent,Lowland Paca,1,-75.71787104,-0.34884448
+8/7/18,Rodent,Lowland Paca,1,-75.7033292,-0.356821007
+8/11/18,Mammal,Kinkajou,1,-75.68315826,-0.369958816
+8/13/18,Bird,Great Tinamou,1,-75.692071,-0.368551194
+8/15/18,Rodent,Lowland Paca,1,-75.70098374,-0.357759422
+8/5/18,Cracid,Spix's Guan,1,-75.75211473,-0.348375272
+8/5/18,Bird,Great Tinamou,1,-75.75211473,-0.348375272
+8/14/18,Rodent,Lowland Paca,1,-75.69488555,-0.34884448
+8/6/18,Rodent,Lowland Paca,1,-75.70520556,-0.355882592
+8/8/18,Rodent,Lowland Paca,1,-75.72256196,-0.381689003
+7/31/18,Bird,Great Tinamou,1,-75.73804198,-0.354944177
+7/31/18,Bird,Toucan,1,-75.73804198,-0.354944177
+8/1/18,Rodent,Lowland Paca,1,-75.67096187,-0.323976483
+8/4/18,Primate,Howler Monkey,2,-75.86798038,-0.437055486
+8/4/18,Primate,Woolly Monkey,1,-75.86798038,-0.437055486
+8/9/18,Primate,Woolly Monkey,1,-75.67283824,-0.33946033
+8/6/18,Cracid,Salvin's Currasow,2,-75.62928996,-0.351085559
+8/5/18,Rodent,Lowland Paca,1,-75.68972554,-0.354944177
+8/3/18,Primate,Woolly Monkey,2,-75.64985274,-0.350252102
+8/2/18,Rodent,Black Agouti,1,-75.8252745,-0.432138248
+8/2/18,Armadillo,Nine-banded Armadillo,1,-75.80254544,-0.430690879
+8/1/18,Rodent,Lowland Paca,1,-75.74789291,-0.378873759
+8/13/18,Rodent,Lowland Paca,2,-75.75727474,-0.372304854
+8/2/18,Cracid,Spix's Guan,2,-75.66861641,-0.519636003
+8/9/18,Rodent,Lowland Paca,2,-75.81262756,-0.379812173
+8/12/18,Rodent,Lowland Paca,2,-75.66251822,-0.525735701
+8/13/18,Rodent,Lowland Paca,2,-75.75352201,-0.379342966
+8/8/18,Rodent,Lowland Paca,2,-75.86844947,-0.365266741
+8/3/18,Cracid,Spix's Guan,1,-75.72678378,-0.33195301
+8/3/18,Bird,Grey-winged Trumpeter,1,-75.72678378,-0.33195301
+8/4/18,Cracid,Spix's Guan,1,-75.77744568,-0.325384105
+8/5/18,Rodent,Lowland Paca,1,-75.74132562,-0.336645085
+8/3/18,Bird,Grey-winged Trumpeter,2,-75.68784917,-0.327730143
+8/3/18,Ungulates,White-lipped Peccary,1,-75.68784917,-0.327730143
+8/7/18,Rodent,Black Agouti,1,-75.76994022,-0.384504248
+8/7/18,Bird,Great Tinamou,2,-75.76994022,-0.384504248
+7/29/18,Ungulates,Collared Peccary,1,-75.77322386,-0.314592333
+7/14/18,Bird,Great Tinamou,1,-75.748362,-0.348375272
+8/9/18,Rodent,Lowland Paca,2,-75.79104934,-0.380281381
+8/7/18,Bird,Russet-backed Oropendola,2,-75.69488555,-0.347906065
+8/7/18,Bird,Dove,2,-75.69488555,-0.347906065
+8/6/18,Rodent,Lowland Paca,1,-75.79781384,-0.297456042
+8/4/18,Rodent,Capibara,1,-75.74930018,-0.32444569
+7/30/18,Ungulates,White-lipped Peccary,4,-75.80132585,-0.299635912
+8/6/18,Bird,Russet-backed Oropendola,3,-75.69863828,-0.34509082
+8/6/18,Bird,Dove,2,-75.69863828,-0.34509082
+7/23/18,Rodent,Lowland Paca,2,-75.74414017,-0.336645085
+7/23/18,Armadillo,Nine-banded Armadillo,1,-75.74414017,-0.336645085
+8/6/18,Bird,Russet-backed Oropendola,3,-75.69723101,-0.348375272
+7/7/18,Ungulates,White-lipped Peccary,1,-75.70661284,-0.35072131
+7/20/18,Bird,Great Tinamou,2,-75.72537651,-0.347436857
+7/24/18,Armadillo,Nine-banded Armadillo,1,-75.72959833,-0.334299048
+7/23/18,Armadillo,Nine-banded Armadillo,1,-75.74038744,-0.302392939
+7/22/18,Cracid,Salvin's Currasow,1,-75.74175592,-0.287052863
+7/24/18,Rodent,Lowland Paca,1,-75.79620935,-0.321161238
+7/16/18,Rodent,Lowland Paca,1,-75.75680565,-0.33946033
+7/1/18,Ungulates,White-lipped Peccary,1,-75.77134749,-0.314592333
+7/23/18,Ungulates,Collared Peccary,1,-75.75164564,-0.321161238
+7/24/18,Ungulates,White-lipped Peccary,1,-75.74460927,-0.327260935
+7/22/18,Ungulates,White-lipped Peccary,2,-75.81075119,-0.380281381
+7/16/18,Ungulates,White-lipped Peccary,1,-75.70051465,-0.318815201
+7/17/18,Bird,Undulated Tinamou,7,-75.66674005,-0.369489609
+7/23/18,Rodent,Lowland Paca,2,-75.73851107,-0.338521915
+7/23/18,Bird,Undulated Tinamou,2,-75.73851107,-0.338521915
+7/23/18,Armadillo,Nine-banded Armadillo,2,-75.73851107,-0.338521915
+7/19/18,Bird,Undulated Tinamou,2,-75.7492608,-0.329884277
+7/21/18,Cracid,Spix's Guan,2,-75.79198753,-0.387319493
+10/19/18,Primate,Howler Monkey,1,-75.69066372,-0.461923483
+10/28/18,Reptile,Tortoise,1,-75.6747146,-0.348375272
+10/28/18,Armadillo,Nine-banded Armadillo,1,-75.6808128,-0.351190517
+10/24/18,Rodent,Lowland Paca,1,-75.692071,-0.367612779
+10/10/18,Ungulates,Lowland Tapir,1,-75.85672218,-0.376527721
+10/7/18,Rodent,Lowland Paca,3,-75.80230754,-0.388727116
+10/7/18,Rodent,Lowland Paca,1,-75.70802011,-0.380750588
+10/7/18,Cracid,Spix's Guan,1,-75.67049278,-0.342744782
+9/27/18,Ungulates,White-lipped Peccary,2,-75.74601654,-0.384504248
+10/8/18,Cracid,Salvin's Currasow,1,-75.69723101,-0.348375272
+10/13/18,Ungulates,White-lipped Peccary,1,-75.69723101,-0.349782895
+9/27/18,Ungulates,White-lipped Peccary,2,-75.73569652,-0.376996929
+10/3/18,Rodent,Lowland Paca,2,-75.7708784,-0.378873759
+10/5/18,Bird,Russet-backed Oropendola,7,-75.69019463,-0.352128932
+10/7/18,Bird,Russet-backed Oropendola,7,-75.67174613,-0.35459677
+10/17/18,Ungulates,White-lipped Peccary,2,-75.65360548,-0.519166796
+10/15/18,Rodent,Capibara,2,-75.66531337,-0.395498359
+10/4/18,Ungulates,Red Brocket Deer,1,-75.71974741,-0.334299048
+10/8/18,Ungulates,White-lipped Peccary,1,-75.74601654,-0.32444569
+10/1/18,Ungulates,Collared Peccary,1,-75.79551287,-0.298667081
+10/9/18,Rodent,Lowland Paca,1,-75.73950446,-0.29112694
+10/7/18,Rodent,Lowland Paca,1,-75.74229199,-0.286195162
+10/16/18,Rodent,Lowland Paca,1,-75.80017537,-0.294731205
+10/14/18,Ungulates,White-lipped Peccary,1,-75.77181658,-0.325853313
+10/29/18,Ungulates,Lowland Tapir,1,-75.76149657,-0.376996929
+10/12/18,Ungulates,White-lipped Peccary,1,-75.74132562,-0.32819935
+10/17/18,Ungulates,White-lipped Peccary,1,-75.78588934,-0.291601167
+10/16/18,Cracid,Spix's Guan,1,-75.7033292,-0.33007618
+8/25/18,Primate,Woolly Monkey,1,-75.61936179,-0.358228629
+8/25/18,Cracid,Spix's Guan,1,-75.61936179,-0.358228629
+9/13/18,Rodent,Capibara,1,-75.78307479,-0.382627418
+9/13/18,Rodent,Lowland Paca,2,-75.69629282,-0.383565833
+9/13/18,Mammal,Kinkajou,1,-75.69629282,-0.383565833
+8/23/18,Cracid,Spix's Guan,1,-75.83936579,-0.382158211
+8/23/18,Bird,Toucan,2,-75.83936579,-0.382158211
+8/20/18,Rodent,Lowland Paca,3,-75.86188219,-0.372304854
+8/20/18,Mammal,Kinkajou,1,-75.86188219,-0.372304854
+8/19/18,Rodent,Lowland Paca,5,-75.78682752,-0.384504248
+8/19/18,Primate,Night Monkey,2,-75.78682752,-0.384504248
+8/18/18,Cracid,Spix's Guan,1,-75.86094401,-0.365266741
+10/21/18,Rodent,Lowland Paca,3,-75.8215403,-0.381689003
+10/21/18,Mammal,Kinkajou,1,-75.8215403,-0.381689003
+10/17/18,Ungulates,Red Brocket Deer,1,-75.6526673,-0.346498442
+10/16/18,Cracid,Spix's Guan,2,-75.7202165,-0.305677391
+10/24/18,Ungulates,Collared Peccary,2,-75.70004556,-0.374181684
+10/28/18,Ungulates,Lowland Tapir,2,-75.90597681,-0.378404551
+10/31/18,Rodent,Black Agouti,2,-75.70755102,-0.357290214
+10/29/18,Rodent,Lowland Paca,2,-75.82482395,-0.378873759
+10/24/18,Mammal,Coati,1,-75.77791478,-0.312715503
+12/15/18,Ungulates,White-lipped Peccary,2,-75.71083466,-0.367143571
+11/19/18,Bird,Duck,2,-75.70614375,-0.354944177
+11/9/18,Ungulates,Lowland Tapir,2,-75.81684939,-0.381689003
+11/25/18,Rodent,Capibara,2,-75.70980658,-0.33956021
+11/11/18,Rodent,Lowland Paca,2,-75.71318012,-0.3375835
+11/6/18,Mammal,Kinkajou,1,-75.69582373,-0.371835646
+11/9/18,Armadillo,Nine-banded Armadillo,1,-75.71224194,-0.370428024
+11/9/18,Rodent,Black Agouti,1,-75.71224194,-0.370428024
+11/26/18,Cracid,Salvin's Currasow,1,-75.78729661,-0.285032262
+11/24/18,Primate,Howler Monkey,1,-75.77510023,-0.324914898
+11/27/18,Bird,Toucan,2,-75.78401297,-0.278463357
+11/27/18,Cracid,Nocturnal Currasow,1,-75.78401297,-0.278463357
+11/27/18,Cracid,Spix's Guan,1,-75.78401297,-0.278463357
+11/20/18,Cracid,Spix's Guan,2,-75.73053652,-0.296762449
+11/20/18,Bird,Grey-winged Trumpeter,1,-75.73053652,-0.296762449
+11/29/18,Rodent,Lowland Paca,1,-75.63008497,-0.378958953
+11/29/18,Bird,Undulated Tinamou,1,-75.62645185,-0.381017719
+11/30/18,Rodent,Black Agouti,1,-75.74601654,-0.334299048
+11/30/18,Cracid,Spix's Guan,2,-75.74601654,-0.334299048
+11/30/18,Bird,Undulated Tinamou,1,-75.74601654,-0.334299048
+11/28/18,Armadillo,Nine-banded Armadillo,1,-75.77932205,-0.314123126
+11/28/18,Bird,Great Tinamou,1,-75.77932205,-0.314123126
+11/28/18,Bird,Grey-winged Trumpeter,2,-75.77932205,-0.314123126
+11/6/18,Ungulates,Red Brocket Deer,1,-75.70090794,-0.306619154
+11/6/18,Rodent,Black Agouti,1,-75.70005024,-0.304260477
+11/6/18,Armadillo,Nine-banded Armadillo,1,-75.69779878,-0.308388161
+11/14/18,Ungulates,Red Brocket Deer,2,-75.73663471,-0.327260935
+11/14/18,Ungulates,White-lipped Peccary,1,-75.73663471,-0.327260935
+11/15/18,Armadillo,Nine-banded Armadillo,1,-75.63529244,-0.390463821
+11/15/18,Rodent,Black Agouti,1,-75.63165932,-0.39010051
+11/15/18,Primate,Howler Monkey,2,-75.63250705,-0.390463821
+11/15/18,Cracid,Spix's Guan,1,-75.7145874,-0.354944177
+11/15/18,Ungulates,Collared Peccary,1,-75.7145874,-0.354944177
+11/19/18,Ungulates,White-lipped Peccary,1,-75.74601654,-0.329137765
+11/19/18,Ungulates,Red Brocket Deer,1,-75.74601654,-0.329137765
+11/19/18,Cracid,Spix's Guan,1,-75.74601654,-0.329137765
+11/20/18,Ungulates,Collared Peccary,1,-75.78682752,-0.279401772
+11/20/18,Cracid,Spix's Guan,1,-75.78682752,-0.279401772
+11/23/18,Rodent,Lowland Paca,1,-75.78260569,-0.284563054
+11/23/18,Cracid,Spix's Guan,1,-75.78260569,-0.284563054
+11/22/18,Cracid,Spix's Guan,1,-75.77791478,-0.293477997
+11/22/18,Rodent,Black Agouti,1,-75.77791478,-0.293477997
+11/17/18,Cracid,Spix's Guan,1,-75.69535464,-0.365266741
+11/21/18,Mammal,Kinkajou,1,-75.69863828,-0.361043874
+11/23/18,Cracid,Spix's Guan,1,-75.71880922,-0.332422218
+11/24/18,Reptile,Tortoise,1,-75.69816919,-0.361043874
+11/25/18,Bird,Great Tinamou,1,-75.7033292,-0.358697837
+11/26/18,Rodent,Black Agouti,1,-75.69300918,-0.366674364
+11/29/18,Mammal,Kinkajou,1,-75.70286011,-0.354474969
+11/30/18,Cracid,Spix's Guan,2,-75.72209287,-0.330545388
+11/13/18,Rodent,Lowland Paca,1,-75.71130376,-0.3375835
+11/8/18,Armadillo,Nine-banded Armadillo,2,-75.6751837,-0.352598139
+11/28/18,Cracid,Salvin's Currasow,2,-75.77791478,-0.295354827
+11/26/18,Cracid,Salvin's Currasow,1,-75.77791478,-0.292539582
+11/25/18,Primate,Black-mantled Tamarin,1,-75.7145874,-0.347906065
+11/21/18,Ungulates,White-lipped Peccary,2,-75.67096187,-0.351659724
+11/27/18,Cracid,Salvin's Currasow,2,-75.64328546,-0.333360633
+11/23/18,Rodent,Capibara,1,-75.69629282,-0.362451497
+11/2/18,Primate,Howler Monkey,1,-75.78917298,-0.299577694
+11/11/18,Rodent,Lowland Paca,1,-75.77134749,-0.301454524
+11/14/18,Primate,Howler Monkey,2,-75.77416204,-0.300046901
+11/4/18,Mammal,Kinkajou,1,-75.74572279,-0.292306278
+11/16/18,Mammal,Kinkajou,2,-75.74179472,-0.307554221
+11/15/18,Ungulates,White-lipped Peccary,2,-75.77181658,-0.32632252
+11/14/18,Rodent,Lowland Paca,1,-75.78870389,-0.321161238
+11/13/18,Cracid,Spix's Guan,1,-75.78026023,-0.309431051
+11/11/18,Bird,Great Tinamou,1,-75.74085653,-0.306146599
+11/12/18,Ungulates,Collared Peccary,1,-75.67377642,-0.379812173
+11/15/18,Bird,Great Tinamou,1,-75.69957646,-0.363389912
+11/8/18,Bird,Great Tinamou,1,-75.70942739,-0.353536554
+11/24/18,Rodent,Lowland Paca,1,-75.68175098,-0.338521915
+11/9/18,Ungulates,White-lipped Peccary,1,-75.64797638,-0.368081986
+11/20/18,Ungulates,White-lipped Peccary,1,-75.68409644,-0.33382984
+11/13/18,Ungulates,White-lipped Peccary,1,-75.67330733,-0.342275575
+11/8/18,Rodent,Lowland Paca,1,-75.80183845,-0.389665531
+11/9/18,Rodent,Lowland Paca,1,-75.73898017,-0.387788701
+11/21/18,Ungulates,White-lipped Peccary,2,-75.68332508,-0.340444714
+11/27/18,Cracid,Spix's Guan,1,-75.67292547,-0.35331022
+10/21/18,Cracid,Spix's Guan,1,-75.67330733,-0.352128932
+10/23/18,Rodent,Green Acouchy,1,-75.67096187,-0.343683197
+10/9/18,Cracid,Salvin's Currasow,1,-75.74554745,-0.329606973
+11/4/18,Ungulates,White-lipped Peccary,1,-75.65642003,-0.362451497
+11/25/18,Bird,Toucan,1,-75.66580186,-0.331483803
+11/21/18,Ungulates,White-lipped Peccary,1,-75.67049278,-0.342275575
+11/14/18,Rodent,Lowland Paca,1,-75.70661284,-0.371835646
+11/9/18,Ungulates,White-lipped Peccary,2,-75.65642003,-0.362920704
+11/4/18,Cracid,Spix's Guan,1,-75.64422364,-0.351659724
+10/27/18,Bird,Undulated Tinamou,1,-75.6732471,-0.350093843
+10/28/18,Cracid,Spix's Guan,1,-75.69441646,-0.349782895
+10/31/18,Bird,Great Tinamou,1,-75.70051465,-0.357759422
+11/1/18,Cracid,Spix's Guan,1,-75.70473647,-0.358228629
+10/30/18,Mammal,Coati,1,-75.68409644,-0.369020401
+10/28/18,Cracid,Spix's Guan,1,-75.7258456,-0.331483803
+11/2/18,Rodent,Black Agouti,1,-75.68418278,-0.370893078
+10/23/18,Bird,Great Tinamou,1,-75.70661284,-0.359636252
+10/19/18,Mammal,Coati,1,-75.70802011,-0.354474969
+10/27/18,Rodent,Lowland Paca,1,-75.75586747,-0.302392939
+9/1/18,Rodent,Black Agouti,1,-75.74507836,-0.33570667
+9/12/18,Ungulates,White-lipped Peccary,2,-75.77556932,-0.380281381
+9/13/18,Rodent,Lowland Paca,2,-75.74132562,-0.383096626
+9/8/18,Rodent,Black Agouti,1,-75.69066372,-0.367143571
+9/2/18,Bird,Russet-backed Oropendola,6,-75.6977001,-0.347436857
+9/4/18,Rodent,Lowland Paca,2,-75.77322386,-0.379812173
+9/2/18,Ungulates,White-lipped Peccary,2,-75.65501275,-0.361513082
+9/2/18,Rodent,Capibara,2,-75.70755102,-0.354474969
+8/31/18,Reptile,Tortoise,2,-75.66533277,-0.32819935
+8/31/18,Bird,Grey-winged Trumpeter,2,-75.66533277,-0.32819935
+8/29/18,Primate,Howler Monkey,2,-75.69019463,-0.53699668
+8/30/18,Rodent,Lowland Paca,2,-75.64985274,-0.361513082
+9/17/18,Bird,Toucan,1,-75.6526673,-0.341806367
+9/17/18,Ungulates,Collared Peccary,1,-75.64488938,-0.333127457
+8/18/18,Ungulates,White-lipped Peccary,3,-75.74554745,-0.32444569
+9/25/18,Cracid,Spix's Guan,1,-75.69160191,-0.368081986
+9/7/18,Cracid,Salvin's Currasow,1,-75.70004556,-0.335237463
+9/11/18,Cracid,Salvin's Currasow,1,-75.70098374,-0.340867952
+9/11/18,Cracid,Spix's Guan,1,-75.70098374,-0.340867952
+9/28/18,Bird,Great Tinamou,1,-75.70661284,-0.354474969
+9/19/18,Mammal,Coati,1,-75.79151844,-0.289724337
+9/23/18,Bird,Great Tinamou,1,-75.77838387,-0.311307881
+9/25/18,Ungulates,Grey Brocket Deer,1,-75.76290384,-0.33007618
+9/12/18,Rodent,Lowland Paca,2,-75.74218477,-0.288151792
+9/12/18,Cracid,Salvin's Currasow,2,-75.7381107,-0.29018883
+9/8/18,Ungulates,White-lipped Peccary,1,-75.7933948,-0.321161238
+9/10/18,Ungulates,White-lipped Peccary,3,-75.76618748,-0.312246296
+8/15/18,Primate,Woolly Monkey,1,-75.63906364,-0.373243269
+8/17/18,Primate,Woolly Monkey,1,-75.70379829,-0.314592333
+8/16/18,Ungulates,White-lipped Peccary,1,-75.6695546,-0.366205156
+8/10/18,Rodent,Lowland Paca,1,-75.69254009,-0.351659724
+8/25/18,Ungulates,Red Brocket Deer,2,-75.69160191,-0.377466136
+8/22/18,Rodent,Lowland Paca,3,-75.84124215,-0.376527721
+8/17/18,Primate,Woolly Monkey,1,-75.66674005,-0.325384105
+8/16/18,Ungulates,White-lipped Peccary,1,-75.70473647,-0.364797534
+8/15/18,Primate,Woolly Monkey,1,-75.64234728,-0.368551194
+8/16/18,Ungulates,White-lipped Peccary,2,-75.68128189,-0.370897231
+8/20/18,Ungulates,White-lipped Peccary,1,-75.70567466,-0.338991122
+8/20/18,Cracid,Salvin's Currasow,2,-75.70567466,-0.338991122
+8/20/18,Cracid,Spix's Guan,2,-75.70567466,-0.338991122
+8/19/18,Cracid,Spix's Guan,2,-75.76196566,-0.350252102
+8/25/18,Ungulates,Collared Peccary,1,-75.74038744,-0.305208184
+8/10/18,Ungulates,Collared Peccary,1,-75.70661284,-0.309431051
+8/11/18,Ungulates,Red Brocket Deer,1,-75.76149657,-0.342744782
+8/5/18,Rodent,Capibara,1,-75.79684501,-0.30363234
+8/19/18,Ungulates,White-lipped Peccary,1,-75.67190005,-0.33382984
+8/4/18,Cracid,Spix's Guan,3,-75.64328546,-0.349782895
+9/7/18,Ungulates,Collared Peccary,1,-75.69910737,-0.339929537
+9/6/18,Ungulates,White-lipped Peccary,2,-75.73851107,-0.358697837
+8/31/18,Cracid,Spix's Guan,1,-75.72303105,-0.34884448
+8/30/18,Bird,Grey-winged Trumpeter,1,-75.70051465,-0.315999956
+9/12/18,Ungulates,White-lipped Peccary,2,-75.7708784,-0.379342966
+9/3/18,Armadillo,Nine-banded Armadillo,1,-75.68315826,-0.371835646
+9/3/18,Cracid,Spix's Guan,1,-75.71083466,-0.338052707
+8/30/18,Mammal,Coati,1,-75.70661284,-0.354944177
+9/10/18,Ungulates,Collared Peccary,1,-75.66627095,-0.33382984
+9/6/18,Rodent,Lowland Paca,1,-75.72303105,-0.381219796
+9/7/18,Cracid,Spix's Guan,1,-75.65923458,-0.358697837
+9/2/18,Ungulates,White-lipped Peccary,2,-75.66439459,-0.382158211
+9/2/18,Cracid,Salvin's Currasow,3,-75.74357854,-0.286195162
+9/2/18,Cracid,Spix's Guan,2,-75.73618087,-0.291341365
+8/29/18,Ungulates,White-lipped Peccary,2,-75.74038744,-0.33946033
+8/24/18,Bird,Great Tinamou,1,-75.77885296,-0.311777088
+8/24/18,Bird,Toucan,1,-75.77885296,-0.311777088
+8/24/18,Cracid,Spix's Guan,1,-75.77885296,-0.311777088
+9/6/18,Ungulates,White-lipped Peccary,2,-75.69113281,-0.354474969
+9/29/18,Rodent,Black Agouti,1,-75.70848921,-0.353067347
+9/17/18,Ungulates,Collared Peccary,1,-75.69300918,-0.367612779
+9/12/18,Cracid,Spix's Guan,1,-75.69535464,-0.364797534
+8/10/18,Ungulates,White-lipped Peccary,3,-75.83360004,-0.373933142
+8/2/18,Rodent,Lowland Paca,1,-75.86516583,-0.366674364
+9/2/18,Rodent,Lowland Paca,1,-75.85437672,-0.372304854
+9/2/18,Rodent,Lowland Paca,2,-75.85437672,-0.372304854
+9/2/18,Rodent,Capibara,1,-75.85437672,-0.372304854
+9/28/18,Rodent,Lowland Paca,3,-75.73335107,-0.433771034
+8/29/18,Rodent,Lowland Paca,1,-75.77744568,-0.383096626
+8/29/18,Primate,Collared Titi,1,-75.77744568,-0.383096626
+8/29/18,Ungulates,White-lipped Peccary,1,-75.77744568,-0.383096626
+9/10/18,Bird,Russet-backed Oropendola,4,-75.692071,-0.355882592
+9/6/18,Bird,Russet-backed Oropendola,7,-75.69441646,-0.351190517
+9/5/18,Bird,Russet-backed Oropendola,7,-75.68878736,-0.354944177
+9/5/18,Bird,Undulated Tinamou,4,-75.67667791,-0.350201056
+9/11/18,Rodent,Capibara,1,-75.73194379,-0.375589306
+9/18/18,Ungulates,White-lipped Peccary,2,-75.76900203,-0.378404551
+11/8/18,Ungulates,White-lipped Peccary,1,-75.78729661,-0.285501469
+11/8/18,Ungulates,Red Brocket Deer,1,-75.78729661,-0.285501469
+11/8/18,Cracid,Spix's Guan,2,-75.78729661,-0.285501469
+11/4/18,Ungulates,Collared Peccary,1,-75.79363576,-0.293762374
+11/4/18,Ungulates,Red Brocket Deer,2,-75.79145589,-0.294246789
+11/4/18,Ungulates,White-lipped Peccary,2,-75.79097147,-0.292793543
+11/13/18,Cracid,Spix's Guan,1,-75.7381107,-0.292842341
+11/13/18,Ungulates,Collared Peccary,1,-75.74314969,-0.28694565
+11/10/18,Reptile,Tortoise,1,-75.76853294,-0.275648112
+11/10/18,Rodent,Capibara,1,-75.77692164,-0.28019126
+11/11/18,Ungulates,Lowland Tapir,1,-75.77228568,-0.291131959
+11/11/18,Ungulates,White-lipped Peccary,1,-75.77228568,-0.291131959
+11/11/18,Ungulates,Red Brocket Deer,1,-75.77228568,-0.291131959
+9/10/18,Rodent,Lowland Paca,2,-75.85156217,-0.374650891
+9/10/18,Armadillo,Nine-banded Armadillo,1,-75.85156217,-0.374650891
+10/21/18,Primate,Howler Monkey,1,-75.78870389,-0.284563054
+10/20/18,Cracid,Spix's Guan,2,-75.78854939,-0.278745493
+10/4/18,Rodent,Capibara,1,-75.81122029,-0.382627418
+10/4/18,Ungulates,Red Brocket Deer,1,-75.81122029,-0.382627418
+11/1/18,Bird,Grey-winged Trumpeter,1,-75.73241288,-0.365266741
+11/17/18,Cracid,Spix's Guan,1,-75.71224194,-0.352128932
+11/16/18,Ungulates,White-lipped Peccary,1,-75.72912924,-0.346029235
+10/30/18,Ungulates,White-lipped Peccary,4,-75.69816919,-0.305677391
+11/24/18,Bird,Grey-winged Trumpeter,2,-75.78307479,-0.384504248
+11/24/18,Rodent,Lowland Paca,1,-75.78307479,-0.384504248
+12/2/18,Cracid,Spix's Guan,1,-75.65923458,-0.354005762
+12/27/18,Bird,Great Tinamou,1,-75.66439459,-0.337114293
+12/23/18,Bird,Grey-winged Trumpeter,1,-75.67612188,-0.377466136
+12/24/18,Cracid,Spix's Guan,1,-75.67190005,-0.357290214
+12/25/18,Primate,Capuchin Monkey,1,-75.67846734,-0.344152405
+12/8/18,Primate,Howler Monkey,1,-75.76478021,-0.299577694
+12/16/18,Cracid,Salvin's Currasow,1,-75.78354388,-0.294416412
+12/18/18,Mammal,Tyra,1,-75.77979114,-0.301923731
+12/14/18,Cracid,Spix's Guan,1,-75.71646377,-0.323038068
+12/11/18,Cracid,Spix's Guan,1,-75.77697659,-0.284563054
+12/11/18,Reptile,Tortoise,1,-75.77697659,-0.284563054
+12/9/18,Rodent,Lowland Paca,1,-75.76196566,-0.302862146
+12/6/18,Primate,Howler Monkey,1,-75.78823479,-0.290193544
+12/3/18,Rodent,Lowland Paca,1,-75.75023837,-0.308023429
+12/23/18,Reptile,Tortoise,1,-75.77463113,-0.281278602
+12/29/18,Cracid,Spix's Guan,1,-75.74976928,-0.298170071
+12/24/18,Rodent,Capibara,1,-75.7995093,-0.300120328
+1/24/18,Ungulates,White-lipped Peccary,2,-75.72209287,-0.346029235
+12/20/18,Rodent,Lowland Paca,1,-75.70567466,-0.34133716
+12/17/18,Bird,Grey-winged Trumpeter,2,-75.76008929,-0.380281381
+12/19/18,Cracid,Spix's Guan,1,-75.68503462,-0.356821007
+12/15/18,Bird,Toucan,1,-75.70192192,-0.3375835
+12/8/18,Cracid,Spix's Guan,1,-75.68878736,-0.355882592
+12/9/18,Rodent,Black Agouti,1,-75.6977001,-0.363859119
+12/3/18,Ungulates,Red Brocket Deer,1,-75.74507836,-0.385442663
+12/24/18,Cracid,Spix's Guan,1,-75.72256196,-0.34321399
+12/23/18,Bird,Great Tinamou,1,-75.70802011,-0.361982289
+12/14/18,Ungulates,Collared Peccary,2,-75.73194379,-0.370428024
+12/19/18,Ungulates,Collared Peccary,1,-75.6690855,-0.371835646
+12/17/18,Rodent,Black Agouti,2,-75.68597281,-0.369958816
+12/20/18,Rodent,Lowland Paca,2,-75.68831826,-0.388257908
+12/4/18,Ungulates,White-lipped Peccary,2,-75.71740195,-0.374650891
+12/10/18,Bird,Russet-backed Oropendola,7,-75.67185334,-0.353631857
+12/10/18,Bird,Great Tinamou,4,-75.67485529,-0.355561683
+12/13/18,Cracid,Spix's Guan,2,-75.73428925,-0.370428024
+12/8/18,Bird,Duck,1,-75.68409644,-0.357759422
+12/14/18,Bird,Duck,2,-75.69723101,-0.362920704
+12/24/18,Mammal,Kinkajou,1,-75.65360548,-0.344152405
+12/23/18,Reptile,Iguana,1,-75.6695546,-0.390134738
+12/13/18,Cracid,Spix's Guan,1,-75.71318012,-0.372774061
+12/13/18,Bird,Undulated Tinamou,1,-75.71318012,-0.372774061
+12/24/18,Reptile,Black Caiman,1,-75.70051465,-0.34696765
+12/21/18,Bird,Russet-backed Oropendola,4,-75.67846734,-0.357759422
+12/21/18,Bird,Great Tinamou,2,-75.67846734,-0.357759422
+4/12/18,Ungulates,White-lipped Peccary,4,-75.73663471,-0.357290214
+12/22/18,Rodent,Black Agouti,1,-75.69113281,-0.370428024
+12/22/18,Reptile,Tortoise,1,-75.69113281,-0.370428024
+12/24/18,Rodent,Lowland Paca,2,-75.70848921,-0.376527721
+12/29/18,Cracid,Spix's Guan,2,-75.73428925,-0.336175878
+12/24/18,Reptile,Tortoise,1,-75.72959833,-0.347436857
+12/20/18,Cracid,Spix's Guan,1,-75.72068559,-0.376996929
+12/20/18,Reptile,Tortoise,1,-75.72068559,-0.376996929
+12/16/18,Cracid,Spix's Guan,1,-75.77885296,-0.32444569
+12/16/18,Bird,Great Tinamou,1,-75.77885296,-0.32444569
+11/27/18,Cracid,Spix's Guan,1,-75.74226381,-0.366205156
+11/27/18,Rodent,Black Agouti,1,-75.74226381,-0.366205156
+12/18/18,Ungulates,Collared Peccary,1,-75.6353109,-0.348375272
+6/12/18,Rodent,Lowland Paca,1,-75.79504056,-0.386063654
+12/22/18,Cracid,Salvin's Currasow,1,-75.63484181,-0.34884448
+12/8/18,Rodent,Lowland Paca,1,-75.71036557,-0.354005762
+11/20/18,Cracid,Spix's Guan,1,-75.71505649,-0.350252102
+11/23/18,Ungulates,Red Brocket Deer,1,-75.75727474,-0.316469163
+12/15/18,Rodent,Black Agouti,1,-75.73522743,-0.361513082
+12/16/18,Cracid,Spix's Guan,2,-75.73241288,-0.361043874
+12/20/18,Rodent,Lowland Paca,1,-75.77322386,-0.291601167
+12/22/18,Rodent,Lowland Paca,4,-75.78635843,-0.327260935
+12/22/18,Armadillo,Nine-banded Armadillo,1,-75.78635843,-0.327260935
+12/17/18,Cracid,Salvin's Currasow,3,-75.75211473,-0.292070374
+12/10/18,Reptile,Tortoise,1,-75.79242472,-0.287464972
+12/12/18,Cracid,Salvin's Currasow,3,-75.77369295,-0.292539582
+12/19/18,Cracid,Piping Guan,1,-75.71974741,-0.530427776
+12/19/18,Rodent,Lowland Paca,1,-75.7145874,-0.539811925
+12/14/18,Bird,Toucan,1,-75.65079093,-0.350252102
+12/21/18,Cracid,Salvin's Currasow,2,-75.74851031,-0.495125622
+12/3/18,Cracid,Piping Guan,2,-75.63718727,-0.464738728
+12/1/18,Bird,Southern Mealy Parrot,1,-75.69347827,-0.384973456
+12/1/18,Mammal,Kinkajou,1,-75.6330424,-0.349048521
+12/21/18,Primate,Squirrel Monkey,1,-75.62827453,-0.473184463
+12/27/18,Rodent,Black Agouti,1,-75.71177285,-0.381219796
+12/27/18,Bird,Undulated Tinamou,1,-75.71177285,-0.381219796
+12/30/18,Bird,Undulated Tinamou,1,-75.67283824,-0.355413384
+11/16/18,Ungulates,White-lipped Peccary,1,-75.65032184,-0.358697837
+12/9/18,Ungulates,White-lipped Peccary,1,-75.75821293,-0.305677391
+12/12/18,Ungulates,White-lipped Peccary,1,-75.78260569,-0.296293241
+12/24/18,Rodent,Lowland Paca,1,-75.76149657,-0.306146599
+12/20/18,Cracid,Salvin's Currasow,1,-75.78354388,-0.297231656
+12/5/18,Armadillo,Nine-banded Armadillo,1,-75.6698163,-0.392067557
+12/5/18,Rodent,Black Agouti,1,-75.67356874,-0.385849229
+12/5/18,Bird,Toucan,1,-75.66885139,-0.396570484
+12/4/18,Rodent,Lowland Paca,1,-75.78729661,-0.382158211
+12/4/18,Ungulates,Red Brocket Deer,1,-75.78729661,-0.382158211
+12/4/18,Cracid,Spix's Guan,1,-75.78729661,-0.382158211
+12/6/18,Rodent,Lowland Paca,1,-75.82529304,-0.383565833
+12/6/18,Cracid,Spix's Guan,1,-75.82529304,-0.383565833
+12/6/18,Bird,Undulated Tinamou,1,-75.82463123,-0.381453515
+12/2/18,Ungulates,White-lipped Peccary,1,-75.70286011,-0.328668558
+12/2/18,Cracid,Spix's Guan,1,-75.70286011,-0.328668558
+12/2/18,Bird,Toucan,2,-75.70286011,-0.328668558
+12/24/18,Armadillo,Nine-banded Armadillo,1,-75.70379829,-0.360105459
+12/24/18,Rodent,Black Agouti,1,-75.70379829,-0.360105459
+12/20/18,Rodent,Lowland Paca,1,-75.80011481,-0.306296625
+12/22/18,Armadillo,Nine-banded Armadillo,1,-75.77510023,-0.382158211
+12/22/18,Mammal,Kinkajou,1,-75.77510023,-0.382158211
+12/22/18,Rodent,Lowland Paca,1,-75.77510023,-0.382158211
+12/16/18,Ungulates,Collared Peccary,1,-75.69957646,-0.33007618
+12/16/18,Cracid,Spix's Guan,1,-75.69957646,-0.33007618
+12/16/18,Bird,Toucan,1,-75.69957646,-0.33007618
+12/13/18,Rodent,Lowland Paca,1,-75.78588934,-0.300985316
+12/13/18,Cracid,Spix's Guan,1,-75.78588934,-0.300985316
+12/13/18,Rodent,Black Agouti,1,-75.78588934,-0.300985316
+12/6/18,Rodent,Black Agouti,1,-75.69816919,-0.346029235
+12/9/18,Rodent,Black Agouti,1,-75.6977001,-0.365266741
+12/9/18,Cracid,Spix's Guan,1,-75.6977001,-0.365266741
+12/8/18,Reptile,Tortoise,1,-75.67002369,-0.341806367
+12/4/18,Ungulates,Red Brocket Deer,1,-75.67485529,-0.350951544
+12/12/18,Bird,Grey-winged Trumpeter,1,-75.68222007,-0.334299048
+12/9/18,Cracid,Spix's Guan,1,-75.67190005,-0.356351799
+12/14/18,Ungulates,Collared Peccary,1,-75.80512209,-0.380281381

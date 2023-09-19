@@ -1,0 +1,879 @@
+---
+title: "Zabalo Report"
+author: "Morgan Manning"
+date: "8/15/2023"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+
+# Introduction
+Mammal population dynamics are closely linked to human activity (Lee 1987, Ritzel and Gallo 2020). This tie of human culture to the environment is known as “biocultural heritage” (Davidson-Hunt et al. 2012, Gavin et al. 2015). Biocultural heritage includes the practices and knowledge of indigenous communities and positively affects local wildlife populations. Many of these indigenous communities have faced a loss of biocultural heritage (Davidson-Hunt et al. 2012, Gavin et al. 2015, Rotherham 2015). With this loss of biocultural heritage, indigenous communities interact less directly with the environment, but interactions tend to be more extractive than in communities with a stronger link to biocultural heritage (Peres 2001, Gavin et al. 2015, Rotherham 2015, de Araujo Lima Constantino 2016). One such example of this is hunting. Indigenous communities with strong ties to their biocultural heritage rely on daily subsistence hunting whereas communities with detachment from biocultural heritage rely on daily or weekly markets for food. Studies have shown that hunting increases with a community’s access to a market, where individuals are able to sell excess meat (de la Montaña et al. 2015, de Araujo Lima Constantino 2016). Conversely, communities that rely on subsistence hunting have lower harvest rates. This preliminary report will focus on Zabalo, one of the four indigenous communities in the Ecuadorian Amazon that will be included in our research on mammal occupancy across the gradient of detachment from biocultural heritage. Zabalo represents the community with the strongest ties to the environment, with members relying on daily subsistence hunting. 
+
+# Methodology
+We used single-species, single-season occupancy models within the *unmarked* package to explore the occupancy of three common species in the study area: the collared peccary, the lowland paca, and the brown brocket. Habitat type (lowland, swamp, or highland), effort (the number of days the camera at that site was operational), and whether the camera site was located on a trail were included as covariates of detection. Binary hunting presence, habitat type (lowland, swamp, or highland), hunting intensity, and the distances to Zabalo, rivers, and trails were considered as covariates to model occupancy. Hunting intensity was calculated for each camera trap site like so:
+
+$$
+Hunting\ Intensity_j = \sum_{i = 1}^{777}{e^{-(distance_{ij})}}
+$$
+where $distance_{ij}$ is the distance between hunting occasion *i* and camera trap site *j*. \
+
+All continuous covariates were normalized. All combinations of occupancy and detection covariates (n = 512) were modeled for each species using the *unmarked* package with the number of iterations increased to 10,000 and providing a starting value of 0 for all parameters (Fiske and Chandler 2011). Models with convergence problems and with standard errors larger than the absolute value of the intercept estimate were removed. 
+
+# Results
+
+
+```{r set up, message=FALSE, warning=FALSE, include=FALSE}
+require(unmarked)
+require(dplyr)
+require(ggplot2)
+require(reshape2)
+require(ggpubr)
+require(rphylopic)
+```
+
+
+```{r load data, echo=FALSE}
+# occupancy data
+setwd("~/Documents/amazon/Data")
+
+# occupancy covariates
+load('R Objects/siteCovs2018.RData')
+
+# peccary
+load('R Objects/PeccaryUFO.RData')
+load('R Objects/PeccaryAllModels.RData')
+load('R Objects/PeccaryNoWackyMods.RData')
+load('R Objects/peccaryModelSelection.RData')
+
+# paca
+load('R Objects/PacaUFO.RData')
+load('R Objects/PacaAllModels.RData')
+load('R Objects/PacaNoWackyMods.RData')
+load('R Objects/pacaModelSelection.RData')
+
+# red brocket
+load('R Objects/BrocketUFO.RData')
+load('R Objects/BrocketAllModels.RData')
+load('R Objects/BrocketNoWackyMods.RData')
+load('R Objects/brocketModelSelection.RData')
+
+```
+
+
+## Collared peccary
+### Best Model (based on AIC)
+```{r peccary best model, echo=FALSE}
+
+# Make a data frame to show the model names and their AICs
+df <- data.frame(ModelName = NA,
+                 AIC = NA)
+
+for(i in 1:length(peccaryNoWackyMods)){
+  df[i,1]<- as.character(c(peccaryNoWackyMods[[i]]@formula))
+  df[i,2]<- peccaryNoWackyMods[[i]]@AIC
+}
+
+unmarkedModels <- df[order(df$AIC),] # order by AIC
+
+# show the best model
+test <- occu(formula(unmarkedModels[1,1]), peccaryUFO)
+
+bestModel <- occu(formula(unmarkedModels[1,1]),
+                  peccaryUFO,
+                  control = 10000, # to get models to converge (https://doi90.github.io/lodestar/fitting-occupancy-models-with-unmarked.html#common-errors)
+                  starts = c(rep(0, length(test@opt$par)))) # setting all starting values to 0
+
+print(bestModel)
+```
+
+
+
+### Top Models (all models within 2 of the lowest AIC)
+```{r peccary best models, echo=FALSE}
+# top models
+peccaryModelSelection <- peccaryModelSelection[order(peccaryModelSelection$AIC),] # order by AIC
+topModels <- subset(peccaryModelSelection, delta <= 2)
+topModels[,c("formula", "AIC", "AICwt")]
+
+```
+
+
+
+
+### Prediction Plots
+Occupancy probability is plotted across each normalized covariate by holding all other continuous covariates at their means or at the mode for factor covariates. All models (after the removal of models with convergence issues and with standard errors larger than the intercept estimate) were weighted and averaged to predict occupancy.
+```{r peccary plotting, echo=FALSE, message=FALSE, warning=FALSE}
+
+############################################################################
+##################### PLOTTING MODEL PREDICTIONS ###########################
+############################################################################
+
+
+############### COMMUNITY ##################
+# First, set-up a new data frame to predict along a sequence of the covariate.
+# Predicting requires all covariates, so hold the other covariates constant at their mean value
+df <- data.frame(Community = seq(min(siteCovariate$Community), 
+                                 max(siteCovariate$Community), 
+                                 length.out = 100),
+                 Effort = mean(siteCovariate$Effort),
+                 River = mean(siteCovariate$River),
+                 Habitat = as.factor("Upland"), # most common habitat
+                 Hunting = as.factor(1),
+                 Trail.Distance = mean(siteCovariate$Trail.Distance),
+                 OnTrail = as.factor(0), # more common to be off trail
+                 HuntingIntensity = mean(siteCovariate$HuntingIntensity)
+) 
+
+# Model-averaged prediction of occupancy and confidence interval
+unmarkedPred <- predict(fitList(peccaryNoWackyMods), type = 'state', new = df, appendData = TRUE)
+
+# Put prediction, confidence interval, and covariate values together in a data frame
+predictionDataFrame <- data.frame(Predicted = unmarkedPred$Predicted,
+                                  lower = unmarkedPred$lower,
+                                  upper = unmarkedPred$upper,
+                                  df)
+
+# Plot the relationship
+predictionPlot <- ggplot(predictionDataFrame, aes(x = Community, y = Predicted)) +
+  geom_ribbon(aes(ymin = lower, ymax = upper), fill = 'orange', alpha = 0.5, linetype = "dashed") +
+  geom_path(linewidth = 1) +
+  labs(x = "Distance to community \n (scaled)", y = "Occupancy probability") +
+  # ggtitle(label = "Collared peccary") +
+  theme_classic() +
+  coord_cartesian(ylim = c(0,1), xlim = c(-1.85, 2.6)) +
+  theme(text = element_text(family = "Times", colour = "black"),
+        axis.text = element_text(colour = "black"),
+        plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5, face = 'italic'),
+        axis.title.x = element_text(size = 10))
+
+# add an animal
+# Pecari tajacu
+# Mazama pandora
+# Cuniculus paca
+
+# Get a single image uuid for a species
+uuid <- get_uuid(name = "Pecari tajacu", n = 1)
+# Get the image for that uuid
+img <- get_phylopic(uuid = uuid)
+
+peccaryComm <- predictionPlot + 
+    add_phylopic(img, alpha = 1, x = 0.19, y = 0.1, ysize = 0.17)
+
+
+
+############### RIVER ##################
+# First, set-up a new data frame to predict along a sequence of the covariate.
+# Predicting requires all covariates, so hold the other covariates constant at their mean value
+df <- data.frame(Community = mean(siteCovariate$Community),
+                 Effort = mean(siteCovariate$Effort),
+                 River = seq(min(siteCovariate$River), 
+                             max(siteCovariate$River), 
+                             length.out = 100),
+                 Habitat = as.factor("Upland"), # most common habitat
+                 Hunting = as.factor(1),
+                 Trail.Distance = mean(siteCovariate$Trail.Distance),
+                 OnTrail = as.factor(0) , # more common to be off trail
+                 HuntingIntensity = mean(siteCovariate$HuntingIntensity)
+) 
+
+# Model-averaged prediction of occupancy and confidence interval
+unmarkedPred <- predict(fitList(peccaryNoWackyMods), type = 'state', new = df, appendData = TRUE)
+
+# Put prediction, confidence interval, and covariate values together in a data frame
+predictionDataFrame <- data.frame(Predicted = unmarkedPred$Predicted,
+                                  lower = unmarkedPred$lower,
+                                  upper = unmarkedPred$upper,
+                                  df)
+
+# Plot the relationship
+predictionPlot <- ggplot(predictionDataFrame, aes(x = River, y = Predicted)) +
+  geom_ribbon(aes(ymin = lower, ymax = upper), fill = 'blue2', alpha = 0.5, linetype = "dashed") +
+  geom_path(linewidth = 1) +
+  labs(x = "Distance to river \n (scaled)", y = "Occupancy probability") +
+  # ggtitle(label = "Collared peccary") +
+  theme_classic() +
+  coord_cartesian(ylim = c(0,1), xlim = c(-1.85, 2.6)) +
+  theme(text = element_text(family = "Times", colour = "black"),
+        axis.text = element_text(colour = "black"),
+        plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5, face = 'italic'),
+        axis.title.x = element_text(size = 10))
+
+# add an animal
+# Pecari tajacu
+# Mazama pandora
+# Cuniculus paca
+
+# Get a single image uuid for a species
+uuid <- get_uuid(name = "Pecari tajacu", n = 1)
+# Get the image for that uuid
+img <- get_phylopic(uuid = uuid)
+
+peccaryRiver <- predictionPlot + 
+    add_phylopic(img, alpha = 1, x = 0.19, y = 0.1, ysize = 0.17)
+
+
+
+############### TRAIL DISTANCE ##################
+# First, set-up a new data frame to predict along a sequence of the covariate.
+# Predicting requires all covariates, so hold the other covariates constant at their mean value
+df <- data.frame(Community = mean(siteCovariate$Community),
+                 Effort = mean(siteCovariate$Effort),
+                 River = mean(siteCovariate$River),
+                 Habitat = as.factor("Upland"), # most common habitat
+                 Hunting = as.factor(1),
+                 Trail.Distance = seq(min(siteCovariate$Trail.Distance), 
+                                      max(siteCovariate$Trail.Distance), 
+                                      length.out = 100),
+                 OnTrail = as.factor(0) , # more common to be off trail
+                 HuntingIntensity = mean(siteCovariate$HuntingIntensity)
+) 
+
+# Model-averaged prediction of occupancy and confidence interval
+unmarkedPred <- predict(fitList(peccaryNoWackyMods), type = 'state', new = df, appendData = TRUE)
+
+# Put prediction, confidence interval, and covariate values together in a data frame
+predictionDataFrame <- data.frame(Predicted = unmarkedPred$Predicted,
+                                  lower = unmarkedPred$lower,
+                                  upper = unmarkedPred$upper,
+                                  df)
+
+# Plot the relationship
+predictionPlot <- ggplot(predictionDataFrame, aes(x = Trail.Distance, y = Predicted)) +
+  geom_ribbon(aes(ymin = lower, ymax = upper), fill = 'green4', alpha = 0.5, linetype = "dashed") +
+  geom_path(linewidth = 1) +
+  labs(x = "Distance to a trail \n (scaled)", y = "Occupancy probability") +
+  #ggtitle(label = "Collared peccary") +
+  theme_classic() +
+  coord_cartesian(ylim = c(0,1), xlim = c(-1.85, 2.6)) +
+  theme(text = element_text(family = "Times", colour = "black"),
+        axis.text = element_text(colour = "black"),
+        plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5, face = 'italic'),
+        axis.title.x = element_text(size = 10))
+
+# add an animal
+# Pecari tajacu
+# Mazama pandora
+# Cuniculus paca
+
+# Get a single image uuid for a species
+uuid <- get_uuid(name = "Pecari tajacu", n = 1)
+# Get the image for that uuid
+img <- get_phylopic(uuid = uuid)
+
+peccaryTrail <- predictionPlot + 
+    add_phylopic(img, alpha = 1, x = 0.19, y = 0.1, ysize = 0.17)
+
+
+############### HUNTING INTENSITY ##################
+# First, set-up a new data frame to predict along a sequence of the covariate.
+# Predicting requires all covariates, so hold the other covariates constant at their mean value
+df <- data.frame(Community = mean(siteCovariate$Community),
+                 Effort = mean(siteCovariate$Effort),
+                 River = mean(siteCovariate$River),
+                 Habitat = as.factor("Upland"), # most common habitat
+                 Hunting = as.factor(1),
+                 Trail.Distance = mean(siteCovariate$Trail.Distance),
+                 OnTrail = as.factor(0), # more common to be off trail
+                 HuntingIntensity = seq(min(siteCovariate$HuntingIntensity), 
+                                        max(siteCovariate$HuntingIntensity), 
+                                        length.out = 100)
+) 
+
+# Model-averaged prediction of occupancy and confidence interval
+unmarkedPred <- predict(fitList(peccaryNoWackyMods), type = 'state', new = df, appendData = TRUE)
+
+# Put prediction, confidence interval, and covariate values together in a data frame
+predictionDataFrame <- data.frame(Predicted = unmarkedPred$Predicted,
+                                  lower = unmarkedPred$lower,
+                                  upper = unmarkedPred$upper,
+                                  df)
+
+
+# Plot the relationship
+predictionPlot <- ggplot(predictionDataFrame, aes(x = HuntingIntensity, y = Predicted)) +
+  geom_ribbon(aes(ymin = lower, ymax = upper), fill = 'red', alpha = 0.5, linetype = "dashed") +
+  geom_path(linewidth = 1) +
+  labs(x = "Hunting intensity \n (scaled)", y = "Occupancy probability") +
+  # ggtitle(label = "Collared peccary") +
+  theme_classic() +
+  coord_cartesian(ylim = c(0,1), xlim = c(-1.85, 2.6)) +
+  theme(text = element_text(family = "Times", colour = "black"),
+        axis.text = element_text(colour = "black"),
+        plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5, face = 'italic'),
+        axis.title.x = element_text(size = 10))
+
+# add an animal
+# Pecari tajacu
+# Mazama pandora
+# Cuniculus paca
+
+# Get a single image uuid for a species
+uuid <- get_uuid(name = "Pecari tajacu", n = 1)
+# Get the image for that uuid
+img <- get_phylopic(uuid = uuid)
+
+peccaryHunting <- predictionPlot + 
+    add_phylopic(img, alpha = 1, x = 0.19, y = 0.1, ysize = 0.17)
+
+# figure panel
+arranged <- ggarrange(peccaryComm, peccaryRiver, peccaryTrail, peccaryHunting,
+          #labels = c("A", "B", "C"),
+          ncol = 4, nrow = 1)
+annotate_figure(arranged, top = text_grob("Collared peccary", face = "bold", size = 16))
+
+
+```
+
+\
+
+## Lowland paca
+### Best Model (based on AIC)
+```{r paca best model, echo=FALSE}
+
+# Make a data frame to show the model names and their AICs
+df <- data.frame(ModelName = NA,
+                 AIC = NA)
+
+for(i in 1:length(pacaNoWackyMods)){
+  df[i,1]<- as.character(c(pacaNoWackyMods[[i]]@formula))
+  df[i,2]<- pacaNoWackyMods[[i]]@AIC
+}
+
+unmarkedModels <- df[order(df$AIC),] # order by AIC
+
+# show the best model
+test <- occu(formula(unmarkedModels[1,1]), pacaUFO)
+
+bestModel <- occu(formula(unmarkedModels[1,1]),
+                  pacaUFO,
+                  control = 10000, # to get models to converge (https://doi90.github.io/lodestar/fitting-occupancy-models-with-unmarked.html#common-errors)
+                  starts = c(rep(0, length(test@opt$par)))) # setting all starting values to 0
+
+print(bestModel)
+```
+
+
+
+### Top Models (all models within 2 of the lowest AIC)
+```{r paca best models, echo=FALSE}
+# top models
+pacaModelSelection <- pacaModelSelection[order(pacaModelSelection$AIC),] # order by AIC
+topModels <- subset(pacaModelSelection, delta <= 2)
+topModels[,c("formula", "AIC", "AICwt")]
+
+```
+
+
+
+
+### Prediction Plots
+Occupancy probability is plotted across each normalized covariate by holding all other continuous covariates at their means or at the mode for factor covariates. All models (after the removal of models with convergence issues and with standard errors larger than the intercept estimate) were weighted and averaged to predict occupancy.
+
+```{r paca plotting, echo=FALSE, message=FALSE, warning=FALSE}
+
+############################################################################
+##################### PLOTTING MODEL PREDICTIONS ###########################
+############################################################################
+
+
+############### COMMUNITY ##################
+# First, set-up a new data frame to predict along a sequence of the covariate.
+# Predicting requires all covariates, so hold the other covariates constant at their mean value
+df <- data.frame(Community = seq(min(siteCovariate$Community), 
+                                 max(siteCovariate$Community), 
+                                 length.out = 100),
+                 Effort = mean(siteCovariate$Effort),
+                 River = mean(siteCovariate$River),
+                 Habitat = as.factor("Upland"), # most common habitat
+                 Hunting = as.factor(1),
+                 Trail.Distance = mean(siteCovariate$Trail.Distance),
+                 OnTrail = as.factor(0), # more common to be off trail
+                 HuntingIntensity = mean(siteCovariate$HuntingIntensity)
+) 
+
+# Model-averaged prediction of occupancy and confidence interval
+unmarkedPred <- predict(fitList(pacaNoWackyMods), type = 'state', new = df, appendData = TRUE)
+
+# Put prediction, confidence interval, and covariate values together in a data frame
+predictionDataFrame <- data.frame(Predicted = unmarkedPred$Predicted,
+                                  lower = unmarkedPred$lower,
+                                  upper = unmarkedPred$upper,
+                                  df)
+
+# Plot the relationship
+predictionPlot <- ggplot(predictionDataFrame, aes(x = Community, y = Predicted)) +
+  geom_ribbon(aes(ymin = lower, ymax = upper), fill = 'orange', alpha = 0.5, linetype = "dashed") +
+  geom_path(linewidth = 1) +
+  labs(x = "Distance to community \n (scaled)", y = "Occupancy probability") +
+  theme_classic() +
+  coord_cartesian(ylim = c(0,1), xlim = c(-1.85, 2.6)) +
+  theme(text = element_text(family = "Times", colour = "black"),
+        axis.text = element_text(colour = "black"),
+        plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5, face = 'italic'),
+        axis.title.x = element_text(size = 10))
+
+# add an animal
+# Pecari tajacu
+# Mazama pandora
+# Cuniculus paca
+
+# Get a single image uuid for a species
+uuid <- get_uuid(name = "Cuniculus paca", n = 1)
+# Get the image for that uuid
+img <- get_phylopic(uuid = uuid)
+
+pacaComm <- predictionPlot + 
+    add_phylopic(img, alpha = 1, x = 0.19, y = 0.1, ysize = 0.15)
+
+
+
+############### RIVER ##################
+# First, set-up a new data frame to predict along a sequence of the covariate.
+# Predicting requires all covariates, so hold the other covariates constant at their mean value
+df <- data.frame(Community = mean(siteCovariate$Community),
+                 Effort = mean(siteCovariate$Effort),
+                 River = seq(min(siteCovariate$River), 
+                             max(siteCovariate$River), 
+                             length.out = 100),
+                 Habitat = as.factor("Upland"), # most common habitat
+                 Hunting = as.factor(1),
+                 Trail.Distance = mean(siteCovariate$Trail.Distance),
+                 OnTrail = as.factor(0) , # more common to be off trail
+                 HuntingIntensity = mean(siteCovariate$HuntingIntensity)
+) 
+
+# Model-averaged prediction of occupancy and confidence interval
+unmarkedPred <- predict(fitList(pacaNoWackyMods), type = 'state', new = df, appendData = TRUE)
+
+# Put prediction, confidence interval, and covariate values together in a data frame
+predictionDataFrame <- data.frame(Predicted = unmarkedPred$Predicted,
+                                  lower = unmarkedPred$lower,
+                                  upper = unmarkedPred$upper,
+                                  df)
+
+# Plot the relationship
+predictionPlot <- ggplot(predictionDataFrame, aes(x = River, y = Predicted)) +
+  geom_ribbon(aes(ymin = lower, ymax = upper), fill = 'blue2', alpha = 0.5, linetype = "dashed") +
+  geom_path(linewidth = 1) +
+  labs(x = "Distance to river \n (scaled)", y = "Occupancy probability") +
+  theme_classic() +
+  coord_cartesian(ylim = c(0,1), xlim = c(-1.85, 2.6)) +
+  theme(text = element_text(family = "Times", colour = "black"),
+        axis.text = element_text(colour = "black"),
+        plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5, face = 'italic'),
+        axis.title.x = element_text(size = 10))
+
+# add an animal
+# Pecari tajacu
+# Mazama pandora
+# Cuniculus paca
+
+# Get a single image uuid for a species
+uuid <- get_uuid(name = "Cuniculus paca", n = 1)
+# Get the image for that uuid
+img <- get_phylopic(uuid = uuid)
+
+pacaRiver <- predictionPlot + 
+    add_phylopic(img, alpha = 1, x = 0.19, y = 0.1, ysize = 0.15)
+
+
+
+############### TRAIL DISTANCE ##################
+# First, set-up a new data frame to predict along a sequence of the covariate.
+# Predicting requires all covariates, so hold the other covariates constant at their mean value
+df <- data.frame(Community = mean(siteCovariate$Community),
+                 Effort = mean(siteCovariate$Effort),
+                 River = mean(siteCovariate$River),
+                 Habitat = as.factor("Upland"), # most common habitat
+                 Hunting = as.factor(1),
+                 Trail.Distance = seq(min(siteCovariate$Trail.Distance), 
+                                      max(siteCovariate$Trail.Distance), 
+                                      length.out = 100),
+                 OnTrail = as.factor(0) , # more common to be off trail
+                 HuntingIntensity = mean(siteCovariate$HuntingIntensity)
+) 
+
+# Model-averaged prediction of occupancy and confidence interval
+unmarkedPred <- predict(fitList(pacaNoWackyMods), type = 'state', new = df, appendData = TRUE)
+
+# Put prediction, confidence interval, and covariate values together in a data frame
+predictionDataFrame <- data.frame(Predicted = unmarkedPred$Predicted,
+                                  lower = unmarkedPred$lower,
+                                  upper = unmarkedPred$upper,
+                                  df)
+
+# Plot the relationship
+predictionPlot <- ggplot(predictionDataFrame, aes(x = Trail.Distance, y = Predicted)) +
+  geom_ribbon(aes(ymin = lower, ymax = upper), fill = 'green4', alpha = 0.5, linetype = "dashed") +
+  geom_path(linewidth = 1) +
+  labs(x = "Distance to a trail \n (scaled)", y = "Occupancy probability") +
+  theme_classic() +
+  coord_cartesian(ylim = c(0,1), xlim = c(-1.85, 2.6)) +
+  theme(text = element_text(family = "Times", colour = "black"),
+        axis.text = element_text(colour = "black"),
+        plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5, face = 'italic'),
+        axis.title.x = element_text(size = 10))
+
+# add an animal
+# Pecari tajacu
+# Mazama pandora
+# Cuniculus paca
+
+# Get a single image uuid for a species
+uuid <- get_uuid(name = "Cuniculus paca", n = 1)
+# Get the image for that uuid
+img <- get_phylopic(uuid = uuid)
+
+pacaTrail <- predictionPlot + 
+    add_phylopic(img, alpha = 1, x = 0.19, y = 0.1, ysize = 0.15)
+
+
+############### HUNTING INTENSITY ##################
+# First, set-up a new data frame to predict along a sequence of the covariate.
+# Predicting requires all covariates, so hold the other covariates constant at their mean value
+df <- data.frame(Community = mean(siteCovariate$Community),
+                 Effort = mean(siteCovariate$Effort),
+                 River = mean(siteCovariate$River),
+                 Habitat = as.factor("Upland"), # most common habitat
+                 Hunting = as.factor(1),
+                 Trail.Distance = mean(siteCovariate$Trail.Distance),
+                 OnTrail = as.factor(0), # more common to be off trail
+                 HuntingIntensity = seq(min(siteCovariate$HuntingIntensity), 
+                                        max(siteCovariate$HuntingIntensity), 
+                                        length.out = 100)
+) 
+
+# Model-averaged prediction of occupancy and confidence interval
+unmarkedPred <- predict(fitList(pacaNoWackyMods), type = 'state', new = df, appendData = TRUE)
+
+# Put prediction, confidence interval, and covariate values together in a data frame
+predictionDataFrame <- data.frame(Predicted = unmarkedPred$Predicted,
+                                  lower = unmarkedPred$lower,
+                                  upper = unmarkedPred$upper,
+                                  df)
+
+
+# Plot the relationship
+predictionPlot <- ggplot(predictionDataFrame, aes(x = HuntingIntensity, y = Predicted)) +
+  geom_ribbon(aes(ymin = lower, ymax = upper), fill = 'red', alpha = 0.5, linetype = "dashed") +
+  geom_path(linewidth = 1) +
+  labs(x = "Hunting intensity \n (scaled)", y = "Occupancy probability") +
+  theme_classic() +
+  coord_cartesian(ylim = c(0,1), xlim = c(-1.85, 2.6)) +
+  theme(text = element_text(family = "Times", colour = "black"),
+        axis.text = element_text(colour = "black"),
+        plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5, face = 'italic'),
+        axis.title.x = element_text(size = 10))
+
+# add an animal
+# Pecari tajacu
+# Mazama pandora
+# Cuniculus paca
+
+# Get a single image uuid for a species
+uuid <- get_uuid(name = "Cuniculus paca", n = 1)
+# Get the image for that uuid
+img <- get_phylopic(uuid = uuid)
+
+pacaHunting <- predictionPlot + 
+    add_phylopic(img, alpha = 1, x = 0.19, y = 0.1, ysize = 0.15)
+
+# figure panel
+arranged <- ggarrange(pacaComm, pacaRiver, pacaTrail, pacaHunting,
+          #labels = c("A", "B", "C"),
+          ncol = 4, nrow = 1)
+annotate_figure(arranged, top = text_grob("Lowland paca", face = "bold", size = 16))
+
+
+```
+
+\
+
+## Brown brocket
+### Best Model (based on AIC)
+
+```{r brocket best model, echo=FALSE}
+
+# Make a data frame to show the model names and their AICs
+df <- data.frame(ModelName = NA,
+                 AIC = NA)
+
+for(i in 1:length(brocketNoWackyMods)){
+  df[i,1]<- as.character(c(brocketNoWackyMods[[i]]@formula))
+  df[i,2]<- brocketNoWackyMods[[i]]@AIC
+}
+
+unmarkedModels <- df[order(df$AIC),] # order by AIC
+
+# show the best model
+test <- occu(formula(unmarkedModels[1,1]), brocketUFO)
+
+bestModel <- occu(formula(unmarkedModels[1,1]),
+                  brocketUFO,
+                  control = 10000, # to get models to converge (https://doi90.github.io/lodestar/fitting-occupancy-models-with-unmarked.html#common-errors)
+                  starts = c(rep(0, length(test@opt$par)))) # setting all starting values to 0
+
+print(bestModel)
+```
+
+
+
+### Top Models (all models within 2 of the lowest AIC)
+```{r brocket best models, echo=FALSE}
+# top models
+brocketModelSelection <- brocketModelSelection[order(brocketModelSelection$AIC),] # order by AIC
+topModels <- subset(brocketModelSelection, delta <= 2)
+topModels[,c("formula", "AIC", "AICwt")]
+
+```
+
+
+
+
+### Prediction Plots 
+Occupancy probability is plotted across each normalized covariate by holding all other continuous covariates at their means or at the mode for factor covariates. All models (after the removal of models with convergence issues and with standard errors larger than the intercept estimate) were weighted and averaged to predict occupancy.
+
+```{r brocket plotting, echo=FALSE, message=FALSE, warning=FALSE}
+
+############################################################################
+##################### PLOTTING MODEL PREDICTIONS ###########################
+############################################################################
+
+
+############### COMMUNITY ##################
+# First, set-up a new data frame to predict along a sequence of the covariate.
+# Predicting requires all covariates, so hold the other covariates constant at their mean value
+df <- data.frame(Community = seq(min(siteCovariate$Community), 
+                                 max(siteCovariate$Community), 
+                                 length.out = 100),
+                 Effort = mean(siteCovariate$Effort),
+                 River = mean(siteCovariate$River),
+                 Habitat = as.factor("Upland"), # most common habitat
+                 Hunting = as.factor(1),
+                 Trail.Distance = mean(siteCovariate$Trail.Distance),
+                 OnTrail = as.factor(0), # more common to be off trail
+                 HuntingIntensity = mean(siteCovariate$HuntingIntensity)
+) 
+
+# Model-averaged prediction of occupancy and confidence interval
+unmarkedPred <- predict(fitList(brocketNoWackyMods), type = 'state', new = df, appendData = TRUE)
+
+# Put prediction, confidence interval, and covariate values together in a data frame
+predictionDataFrame <- data.frame(Predicted = unmarkedPred$Predicted,
+                                  lower = unmarkedPred$lower,
+                                  upper = unmarkedPred$upper,
+                                  df)
+
+# Plot the relationship
+predictionPlot <- ggplot(predictionDataFrame, aes(x = Community, y = Predicted)) +
+  geom_ribbon(aes(ymin = lower, ymax = upper), fill = 'orange', alpha = 0.5, linetype = "dashed") +
+  geom_path(linewidth = 1) +
+  labs(x = "Distance to community \n (scaled)", y = "Occupancy probability") +
+  theme_classic() +
+  coord_cartesian(ylim = c(0,1), xlim = c(-1.85, 2.6)) +
+  theme(text = element_text(family = "Times", colour = "black"),
+        axis.text = element_text(colour = "black"),
+        plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5, face = 'italic'),
+        axis.title.x = element_text(size = 10))
+
+# add an animal
+# Pecari tajacu
+# Mazama pandora
+# Cuniculus paca
+
+# Get a single image uuid for a species
+uuid <- get_uuid(name = "Mazama pandora", n = 1)
+# Get the image for that uuid
+img <- get_phylopic(uuid = uuid)
+
+pacaComm <- predictionPlot + 
+    add_phylopic(img, alpha = 1, x = 0.19, y = 0.1, ysize = 0.2)
+
+
+
+############### RIVER ##################
+# First, set-up a new data frame to predict along a sequence of the covariate.
+# Predicting requires all covariates, so hold the other covariates constant at their mean value
+df <- data.frame(Community = mean(siteCovariate$Community),
+                 Effort = mean(siteCovariate$Effort),
+                 River = seq(min(siteCovariate$River), 
+                             max(siteCovariate$River), 
+                             length.out = 100),
+                 Habitat = as.factor("Upland"), # most common habitat
+                 Hunting = as.factor(1),
+                 Trail.Distance = mean(siteCovariate$Trail.Distance),
+                 OnTrail = as.factor(0) , # more common to be off trail
+                 HuntingIntensity = mean(siteCovariate$HuntingIntensity)
+) 
+
+# Model-averaged prediction of occupancy and confidence interval
+unmarkedPred <- predict(fitList(brocketNoWackyMods), type = 'state', new = df, appendData = TRUE)
+
+# Put prediction, confidence interval, and covariate values together in a data frame
+predictionDataFrame <- data.frame(Predicted = unmarkedPred$Predicted,
+                                  lower = unmarkedPred$lower,
+                                  upper = unmarkedPred$upper,
+                                  df)
+
+# Plot the relationship
+predictionPlot <- ggplot(predictionDataFrame, aes(x = River, y = Predicted)) +
+  geom_ribbon(aes(ymin = lower, ymax = upper), fill = 'blue2', alpha = 0.5, linetype = "dashed") +
+  geom_path(linewidth = 1) +
+  labs(x = "Distance to river \n (scaled)", y = "Occupancy probability") +
+  theme_classic() +
+  coord_cartesian(ylim = c(0,1), xlim = c(-1.85, 2.6)) +
+  theme(text = element_text(family = "Times", colour = "black"),
+        axis.text = element_text(colour = "black"),
+        plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5, face = 'italic'),
+        axis.title.x = element_text(size = 10))
+
+# add an animal
+# Pecari tajacu
+# Mazama pandora
+# Cuniculus paca
+
+# Get a single image uuid for a species
+uuid <- get_uuid(name = "Mazama pandora", n = 1)
+# Get the image for that uuid
+img <- get_phylopic(uuid = uuid)
+
+pacaRiver <- predictionPlot + 
+    add_phylopic(img, alpha = 1, x = 0.19, y = 0.1, ysize = 0.2)
+
+
+
+############### TRAIL DISTANCE ##################
+# First, set-up a new data frame to predict along a sequence of the covariate.
+# Predicting requires all covariates, so hold the other covariates constant at their mean value
+df <- data.frame(Community = mean(siteCovariate$Community),
+                 Effort = mean(siteCovariate$Effort),
+                 River = mean(siteCovariate$River),
+                 Habitat = as.factor("Upland"), # most common habitat
+                 Hunting = as.factor(1),
+                 Trail.Distance = seq(min(siteCovariate$Trail.Distance), 
+                                      max(siteCovariate$Trail.Distance), 
+                                      length.out = 100),
+                 OnTrail = as.factor(0) , # more common to be off trail
+                 HuntingIntensity = mean(siteCovariate$HuntingIntensity)
+) 
+
+# Model-averaged prediction of occupancy and confidence interval
+unmarkedPred <- predict(fitList(brocketNoWackyMods), type = 'state', new = df, appendData = TRUE)
+
+# Put prediction, confidence interval, and covariate values together in a data frame
+predictionDataFrame <- data.frame(Predicted = unmarkedPred$Predicted,
+                                  lower = unmarkedPred$lower,
+                                  upper = unmarkedPred$upper,
+                                  df)
+
+# Plot the relationship
+predictionPlot <- ggplot(predictionDataFrame, aes(x = Trail.Distance, y = Predicted)) +
+  geom_ribbon(aes(ymin = lower, ymax = upper), fill = 'green4', alpha = 0.5, linetype = "dashed") +
+  geom_path(linewidth = 1) +
+  labs(x = "Distance to a trail \n (scaled)", y = "Occupancy probability") +
+  theme_classic() +
+  coord_cartesian(ylim = c(0,1), xlim = c(-1.85, 2.6)) +
+  theme(text = element_text(family = "Times", colour = "black"),
+        axis.text = element_text(colour = "black"),
+        plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5, face = 'italic'),
+        axis.title.x = element_text(size = 10))
+
+# add an animal
+# Pecari tajacu
+# Mazama pandora
+# Cuniculus paca
+
+# Get a single image uuid for a species
+uuid <- get_uuid(name = "Mazama pandora", n = 1)
+# Get the image for that uuid
+img <- get_phylopic(uuid = uuid)
+
+pacaTrail <- predictionPlot + 
+    add_phylopic(img, alpha = 1, x = 0.19, y = 0.1, ysize = 0.2)
+
+
+############### HUNTING INTENSITY ##################
+# First, set-up a new data frame to predict along a sequence of the covariate.
+# Predicting requires all covariates, so hold the other covariates constant at their mean value
+df <- data.frame(Community = mean(siteCovariate$Community),
+                 Effort = mean(siteCovariate$Effort),
+                 River = mean(siteCovariate$River),
+                 Habitat = as.factor("Upland"), # most common habitat
+                 Hunting = as.factor(1),
+                 Trail.Distance = mean(siteCovariate$Trail.Distance),
+                 OnTrail = as.factor(0), # more common to be off trail
+                 HuntingIntensity = seq(min(siteCovariate$HuntingIntensity), 
+                                        max(siteCovariate$HuntingIntensity), 
+                                        length.out = 100)
+) 
+
+# Model-averaged prediction of occupancy and confidence interval
+unmarkedPred <- predict(fitList(brocketNoWackyMods), type = 'state', new = df, appendData = TRUE)
+
+# Put prediction, confidence interval, and covariate values together in a data frame
+predictionDataFrame <- data.frame(Predicted = unmarkedPred$Predicted,
+                                  lower = unmarkedPred$lower,
+                                  upper = unmarkedPred$upper,
+                                  df)
+
+
+# Plot the relationship
+predictionPlot <- ggplot(predictionDataFrame, aes(x = HuntingIntensity, y = Predicted)) +
+  geom_ribbon(aes(ymin = lower, ymax = upper), fill = 'red', alpha = 0.5, linetype = "dashed") +
+  geom_path(linewidth = 1) +
+  labs(x = "Hunting intensity \n (scaled)", y = "Occupancy probability") +
+  theme_classic() +
+  coord_cartesian(ylim = c(0,1), xlim = c(-1.85, 2.6)) +
+  theme(text = element_text(family = "Times", colour = "black"),
+        axis.text = element_text(colour = "black"),
+        plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5, face = 'italic'),
+        axis.title.x = element_text(size = 10))
+
+# add an animal
+# Pecari tajacu
+# Mazama pandora
+# Cuniculus paca
+
+# Get a single image uuid for a species
+uuid <- get_uuid(name = "Mazama pandora", n = 1)
+# Get the image for that uuid
+img <- get_phylopic(uuid = uuid)
+
+pacaHunting <- predictionPlot + 
+    add_phylopic(img, alpha = 1, x = 0.19, y = 0.1, ysize = 0.2)
+
+# figure panel
+arranged <- ggarrange(pacaComm, pacaRiver, pacaTrail, pacaHunting,
+          #labels = c("A", "B", "C"),
+          ncol = 4, nrow = 1)
+annotate_figure(arranged, top = text_grob("Red brocket", face = "bold", size = 16))
+
+
+```
+
+\
+
+## Bibliography
+1. de Araujo Lima Constantino, P. 2016. Deforestation and hunting effects on wildlife across Amazonian indigenous lands. Ecology and Society 21. <https://www.jstor.org/stable/26270361>. Accessed 15 Apr 2023.
+2. Davidson-Hunt, I. J., K. L. Turner, A. T. P. Mead, J. Cabrera-Lopez, R. Bolton, C. J. Idrobo, I. Miretski, A. Morrison, and J. P. Robson. 2012. Biocultural Design: A New Conceptual Framework for Sustainable Development in Rural Indigenous and Local Communities. S.A.P.I.EN.S. Surveys and Perspectives Integrating Environment and Society. <https://journals.openedition.org/sapiens/1382>. Accessed 3 Aug 2023.
+3. Fiske, I., and R. Chandler. 2011. unmarked: An R Package for Fitting Hierarchical Models of Wildlife Occurrence and Abundance. Journal of Statistical Software 43:1–23.
+4. Gavin, M. C., J. McCarter, A. Mead, F. Berkes, J. R. Stepp, D. Peterson, and R. Tang. 2015. Defining biocultural approaches to conservation. Trends in Ecology & Evolution 30:140–145.
+5. Lee, R. D. 1987. Population Dynamics of Humans and Other Animals. Demography 24:443–465.
+6. de la Montaña, E., R. del Pilar Moreno-Sánchez, J. H. Maldonado, and D. M. Griffith. 2015. Predicting hunter behavior of indigenous communities in the Ecuadorian Amazon: insights from a household production model. Ecology and Society 20. <https://www.jstor.org/stable/26270294>. Accessed 15 Apr 2023.
+7. Peres, C. A. 2001. Synergistic Effects of Subsistence Hunting and Habitat Fragmentation on Amazonian Forest Vertebrates. Conservation Biology 15:1490–1505.
+8. Ritzel, K., and T. Gallo. 2020. Behavior Change in Urban Mammals: A Systematic Review. Frontiers in Ecology and Evolution 8. <https://www.frontiersin.org/articles/10.3389/fevo.2020.576665>. Accessed 3 Aug 2023.
+9. Rotherham, I. D. 2015. Bio-cultural heritage and biodiversity: emerging paradigms in conservation and planning. Biodiversity and Conservation 24:3405–3429.
