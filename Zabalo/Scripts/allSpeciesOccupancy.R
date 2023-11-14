@@ -2,6 +2,8 @@
 ######################## OCCUPANCY OF ALL SPECIES ##########################
 ############################################################################
 # requirements: input files must be detection matrices (e.g., "Deer.csv" in Zabalo)
+# notes: this file should run with just inputting the .csv files of interest
+# you can follow this by running 'allSpeciesPlotting.R' to visualize results
 
 setwd("~/Documents/amazon/Zabalo/Data")
 
@@ -16,15 +18,18 @@ require(reshape2)
 ############################################################################
 
 
-  ##############################################
-  ##### !!! insert all .csv file names !!! #####
-  ##############################################
+
+################# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ###################
+################# !!! insert all .csv file names here !!! ###################
+################# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ###################
 speciesDFs <- c(
   "CollaredPeccary.csv",
   "Deer.csv",
-  "Paca.csv"
-)
+  "Paca.csv")
 
+
+
+###############################################################################
 # read in all .csv files and remove any ID rows or columns 
 dfList <- list()
 for (i in 1:length(speciesDFs)) {
@@ -45,6 +50,8 @@ for (i in 1:length(speciesDFs)) {
 # name dfs after their associated species
 listTitles <- gsub('.csv', '', speciesDFs)
 names(dfList) <- listTitles
+speciesNames <- listTitles
+save(speciesNames, file = 'R Objects/speciesNames.RData')
 
 # Zabalo occupancy covariates
 load('R Objects/siteCovs2018.RData')
@@ -276,6 +283,7 @@ for(j in 1:length(allModels)) {
   eachSpecies[sapply(eachSpecies, is.null)] <- NULL
   noMissingMods[[j]] <- eachSpecies
 }
+save(noMissingMods, file = 'R Objects/noMissingMods.RData')
 
 # remove all models with ridiculous standard errors
 noWackyMods <- list()
@@ -404,7 +412,8 @@ save(huntingPredictions, file = 'R Objects/huntingPredictions.RData')
 df <- data.frame(
   Habitat = siteCovariate$Habitat,
   HuntingIntensity = siteCovariate$HuntingIntensity,
-  Trail.Distance = siteCovariate$Trail.Distance
+  Trail.Distance = siteCovariate$Trail.Distance,
+  Effort = siteCovariate$Effort
 ) 
 
 estimatedParameters <- list()
@@ -422,13 +431,3 @@ for (j in 1:length(bestModsFitLists)) {
 }
 names(estimatedParameters) <- listTitles
 
-
-
-# Model-averaged prediction of occupancy and confidence interval
-unmarkedPred <- predict(bestMods, type = 'state', new = df, appendData = TRUE)
-mean(unmarkedPred$Predicted); mean(unmarkedPred$SE)
-range(unmarkedPred$Predicted)
-
-unmarkedPred <- predict(bestMods, type = 'det', new = df, appendData = TRUE)
-mean(unmarkedPred$Predicted); mean(unmarkedPred$SE)
-range(unmarkedPred$Predicted)

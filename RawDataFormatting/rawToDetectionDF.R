@@ -1,27 +1,43 @@
 rm(list = ls())
 
-setwd("/Users/mesbach/Dropbox (Princeton)/2. Publications/Camera Traps")
+############################################################################
+###################### FORMATTING DETECTION MATRICES #######################
+############################################################################
+# requirements: 
+# notes:
 
-year=2018
 
-# load data
+setwd("~/Documents/amazon/RawDataFormatting")
+
 library(openxlsx)
-Data = read.csv(paste0("Data/RecordTable",year,".csv")) # this for camtrapR (Steps 1-5)
-Traps = read.csv(paste0("Data/Stations",year,".csv"))
+library(camtrapR)
+library(dplyr)
+require(unmarked)
+
+
+
+############################################################################
+############################# LOAD DATA ####################################
+############################################################################
+
+# Sinangoe
+Data <- read.csv("Sinangoe/RecordTable.csv") # this for camtrapR (Steps 1-5)
+Traps <- read.csv("Sinangoe/Stations.csv")
+
+
+
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
 # ---------------------- CAMERA INDEPENDENCE ----------------------------------#
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
 
-library(camtrapR)
-
 # create DateTimeOrginal column in proper format
-Data$DateTimeOriginal = strptime(paste(as.Date(Data$Date, format = "%m/%d/%y"),
+Data$DateTimeOriginal = strptime(paste(as.Date(Data$Date, format = "%d/%m/%Y"), # changed this from OG code
                                        Data$Time),
                                  format = "%Y-%m-%d %H:%M:%S", tz = "UTC")
 
 # temporal independence
-source("Code/Functions/assessTemporalIndependence.R")
+source("assessTemporalIndependence.R")
 Time30 = assessTemporalIndependence(intable = Data,
                                     deltaTimeComparedTo = "lastIndependentRecord",
                                     columnOfInterest = "Species",
@@ -32,6 +48,8 @@ Time30 = assessTemporalIndependence(intable = Data,
 
 # check that the previous function worked (e.g. no duplicates)
 Time30 = Time30[order(Time30$DateTimeOriginal),]
+Time30 <- Time30 %>% 
+  distinct(.keep_all = TRUE)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
 # ----------------------------- DETECTIONS ------------------------------------#
@@ -41,97 +59,6 @@ Time30 = Time30[order(Time30$DateTimeOriginal),]
 total = data.frame(table(Time30$Species)) # number of detections / species
 colnames(total) = c("Species", "Total")
 
-Hunting = subset(Time30, Station %in% c(1, 2, 5, 10, 11, 14, 15, 16, 19, 20, 23, 24, 25, 27, 28))
-NonHunting = subset(Time30, Station %in% c(3, 4, 6, 7, 8, 9, 12, 13, 17, 18, 21, 22, 26, 29, 30))
-
-# Hunting detections
-hunted = data.frame(table(Hunting$Species)) # number of detections / species
-colnames(hunted) = c("Species", "Hunted")
-
-# NonHunting detections
-sepicho = data.frame(table(NonHunting$Species)) # number of detections / species
-colnames(sepicho) = c("Species", "Sepicho")
-
-detections = merge(total, hunted, by="Species", all=TRUE)
-detections = merge(detections, sepicho, by="Species", add=TRUE)
-
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
-# ------------------------- ACTIVITY PATTERNS ---------------------------------#
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
-
-# put time back into character format
-Time30$DateTimeOriginal = as.character(Time30$DateTimeOriginal)
-
-# single-species diel activity kernel density estimation plots
-activityDensity(recordTable = Time30,
-                species = "Pecari-tajacu",
-                allSpecies = FALSE,
-                speciesCol = "Species",
-                recordDateTimeCol = "DateTimeOriginal",
-                recordDateTimeFormat = "%Y-%m-%d %H:%M:%S",
-                plotR = TRUE,
-                writePNG = FALSE,
-                plotDirectory,
-                createDir = FALSE,
-                pngMaxPix = 1000,
-                add.rug = TRUE) 
-
-# two-species diel activity overlap plots and estimates
-activityOverlap(recordTable = Time30,
-                speciesA = "Pecari-tajacu",
-                speciesB = "Tayassu-pecari",
-                speciesCol = "Species",
-                recordDateTimeCol = "DateTimeOriginal",
-                recordDateTimeFormat = "%Y-%m-%d %H:%M:%S",
-                plotR = TRUE,
-                writePNG = FALSE,
-                addLegend = FALSE,
-                legendPosition = "topleft",
-                plotDirectory,
-                createDir = FALSE,
-                pngMaxPix = 1000,
-                add.rug = TRUE,
-                overlapEstimator = c("Dhat1", "Dhat4", "Dhat5"))
-
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
-# ----------------------------- MAPPING ---------------------------------------#
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
-
-library(rgdal)
-
-# backgroundPoylogon (for function below)
-StudyArea = readOGR("/Users/mesbach/Dropbox (Princeton)/6. PhD/1. Dissertation/Part 3/4. Camera Traps/yr2018/1. GIS/StudyArea/Background.shp")
-
-# species richness
-detectionMaps(CTtable = Traps,
-              recordTable = Time30,
-              Xcol = "x", 
-              Ycol = "y",
-              backgroundPolygon = StudyArea,
-              stationCol = "Station",
-              speciesCol = "Species",
-              speciesPlots = FALSE, #invividual species
-              richnessPlot = TRUE, #richness across entire project
-              printLabels = FALSE, #station numbers in red
-              addLegend = FALSE) 
-
-# species
-unique(Time30$Species)
-species = "Mazama-gouazoubira"
-
-# species presence by station
-detectionMaps(CTtable = Traps,
-              recordTable = Time30,
-              Xcol = "x", 
-              Ycol = "y",
-              backgroundPolygon = StudyArea,
-              stationCol = "Station",
-              speciesCol = "Species",
-              speciesToShow = species,
-              speciesPlots = TRUE, #invividual species
-              richnessPlot = FALSE, #richness across entire project
-              printLabels = FALSE,
-              addLegend = FALSE) 
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
 # -------------------------- OCCUPANCY SET-UP ---------------------------------#
@@ -140,14 +67,14 @@ detectionMaps(CTtable = Traps,
 # camera operability matrix
 Operation = cameraOperation(CTtable = Traps,
                             stationCol = "Station",
-                            cameraCol = "CameraName",
+                            cameraCol = "Camera",
                             setupCol = "Setup_date",
                             retrievalCol = "Retrieval_date",
                             hasProblems = TRUE,
                             byCamera = FALSE,
                             allCamsOn = FALSE,
                             camerasIndependent = FALSE,
-                            dateFormat = "%m/%d/%Y",
+                            dateFormat = "%d/%m/%Y",
                             writecsv = FALSE)
 
 # occasion length
