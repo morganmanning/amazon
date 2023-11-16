@@ -12,58 +12,46 @@ setwd("~/Documents/amazon/RawDataFormatting")
 library(openxlsx)
 library(camtrapR)
 library(dplyr)
-require(unmarked)
-
+require(lubridate)
 
 
 ############################################################################
 ############################# LOAD DATA ####################################
 ############################################################################
 
-# Sinangoe
-Data <- read.csv("Sinangoe/RecordTable.csv") # this for camtrapR (Steps 1-5)
-Traps <- read.csv("Sinangoe/Stations.csv")
+##### Pick a community
+# Sinangoe = SGE
+# Siona = SNA
+# Siekopai = SKP
+# Zabalo = ZAB
+community <- "Siekopai"
+communityAbrv <- "SKP"
+Data <- read.csv(paste0(community, "/", communityAbrv, "IndependentRecordsFormatted.csv")) # just independent records
+Traps <- read.csv(paste0(community, "/", communityAbrv, "StationsFormatted.csv")) 
+Data$DateTimeOriginal <- parse_date_time(Data$DateTimeOriginal, c("%Y-%m-%d", "%Y-%m-%d %H:%M:%S"))
 
+##### Pick species of interest
+species <- c("Cuniculus paca", "Mazama americana", "Dicotyles tajacu")
+# paca = Cuniculus paca
+# brocket = Mazama americana
+# collared peccary = Dicotyles tajacu 
+# brown four-eyed possum = Metachirus nudicaudatus (#1 species in SGE)
+# black agouti = Dasyprocta fuliginosa (#2 species in SGE)
 
-
-
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
-# ---------------------- CAMERA INDEPENDENCE ----------------------------------#
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
-
-# create DateTimeOrginal column in proper format
-Data$DateTimeOriginal = strptime(paste(as.Date(Data$Date, format = "%d/%m/%Y"), # changed this from OG code
-                                       Data$Time),
-                                 format = "%Y-%m-%d %H:%M:%S", tz = "UTC")
-
-# temporal independence
-source("assessTemporalIndependence.R")
-Time30 = assessTemporalIndependence(intable = Data,
-                                    deltaTimeComparedTo = "lastIndependentRecord",
-                                    columnOfInterest = "Species",
-                                    stationCol = "Station",
-                                    cameraCol = "CameraName",
-                                    camerasIndependent = FALSE,
-                                    minDeltaTime = 30)
-
-# check that the previous function worked (e.g. no duplicates)
-Time30 = Time30[order(Time30$DateTimeOriginal),]
-Time30 <- Time30 %>% 
-  distinct(.keep_all = TRUE)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
 # ----------------------------- DETECTIONS ------------------------------------#
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
 
 # explore total detections
-total = data.frame(table(Time30$Species)) # number of detections / species
-colnames(total) = c("Species", "Total")
+total <- data.frame(table(Data$Species)) # number of detections / species
+colnames(total) <- c("Species", "Total")
 
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
 # -------------------------- OCCUPANCY SET-UP ---------------------------------#
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
-
+for (i in 1:length(species)) {
 # camera operability matrix
 Operation = cameraOperation(CTtable = Traps,
                             stationCol = "Station",
@@ -74,14 +62,14 @@ Operation = cameraOperation(CTtable = Traps,
                             byCamera = FALSE,
                             allCamsOn = FALSE,
                             camerasIndependent = FALSE,
-                            dateFormat = "%d/%m/%Y",
+                            dateFormat = "%Y-%m-%d",
                             writecsv = FALSE)
 
 # occasion length
 occasion = 2
 
 # species detection histories for occupancy analyses
-DetHis = detectionHistory(recordTable = Time30,
+DetHis = detectionHistory(recordTable = Data,
                           camOp = Operation,
                           output = "binary", # binary or count
                           stationCol = "Station",
@@ -95,129 +83,12 @@ DetHis = detectionHistory(recordTable = Time30,
                           includeEffort = TRUE,
                           scaleEffort = FALSE,
                           #maxNumberDays = 90, #need to think about this
-                          species = species) #change species here
+                          species = species[i]) #change species here
 
-# Deer = DetHis[["detection_history"]]
-# write.csv(Deer, "~/Desktop/Occupancy/Deer.csv", row.names=T)
+justDetHis <- DetHis[["detection_history"]]
 
+write.csv(justDetHis, 
+          paste0("../", community, "/Data/", communityAbrv, gsub(" ", "", species[i]), ".csv"), 
+          row.names=T)
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
-# -------------------------- OCCUPANCY ANALYSIS -------------------------------#
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
-
-library(unmarked)
-
-y = as.matrix(DetHis$detection_history)
-y = y[ order(as.numeric(row.names(y))), ]
-
-# occupancy covariates
-siteCovariate = read.csv(paste0("Data/siteCovs",year,".csv"))
-
-# unmarked df
-ufo = unmarkedFrameOccu(y, 
-                        siteCovs = siteCovariate,
-                        obsCovs = NULL)
-
-plot(ufo)
-summary(ufo)
-
-# ----------------------- MODELS ----------------------------------------------#
-
-# null
-Null = occu( ~1 ~1, ufo)
-
-# occupancy
-Community = occu( ~1 ~CR, ufo)
-River = occu( ~1 ~RR, ufo)
-
-# multiple
-CommunityHabitat = occu( ~1 ~CR + Habitat, ufo)
-CommunityHunted = occu( ~1 ~CR + Hunting, ufo)
-
-# detection
-CommunityEffort = occu( ~ScaleEffort ~CR, ufo)
-
-# AIC values
-BestModel = fitList(Null, Community, River, 
-                    CommunityHabitat, CommunityHunted, CommunityEffort)
-modSel(BestModel)
-
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
-# -------------------------- PLOT PREDICITIONS --------------------------------#
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
-
-# ONE VARIABLE
-newdata = data.frame(0:10)
-colnames(newdata)[1] = "CR"
-predicted = predict(Community, type="state", newdata=newdata, appendData=TRUE) # state = occupancy
-par(pty="s")
-
-plot(Predicted~CR, predicted, type="l", ylim=0:1, lwd=2, 
-     xlab = "Distance from Community (km)",
-     ylab = "Occurance Probability", 
-     main = paste0(species))
-lines(upper~CR, predicted, lty=2, col="red")
-# lines(lower~CR, predicted, lty=2, col="red")
-# lines(newdata$CR, predicted[,"Predicted"]+1.96*predicted[,"SE"], lty=2, col="red")
-lines(newdata$CR, predicted[,"Predicted"]-1.96*predicted[,"SE"], lty=2, col="red")
-
-# ------------------------------ GGPLOT ---------------------------------------#
-
-library(ggplot2)
-
-# add restriction
-predicted$Restriction = "Hunted"
-predicted[6:11,6] = "Not Hunted"
-
-# ensure proper order
-predicted$Restriction = factor(predicted$Restriction, 
-                               levels = c("Not Hunted","Hunted"))
-
-# gap
-predicted = rbind(predicted, predicted[rep(6, 1), ])
-predicted[12, "Restriction"] = "Hunted"
-
-# LCL
-predicted$lower = predicted$Predicted - predicted$SE*1.96
-predicted$lower[predicted$lower<0] = 0
-
-# names
-English = read.xlsx("/Users/mesbach/Dropbox (Princeton)/2. Publications/Camera Traps/Code/Names.xlsx")
-predicted$English = English$English[match(species, English$Scientific)]
-predicted$Scientific = species
-predicted$Scientific = gsub("-"," ",as.character(predicted$Scientific))
-
-# plot
-ggplot(NULL, aes(x=CR, y=Predicted)) + 
-  geom_line(data=predicted, linetype="solid", size=1, aes(color=Restriction)) +
-  geom_ribbon(data=predicted, aes(ymin=lower, ymax=upper), fill="black", alpha=0.15) +
-  scale_x_continuous(breaks=seq(0,10,1), minor_breaks=1, expand = c(0,0)) + 
-  scale_y_continuous(breaks=seq(0,1,0.25), limits=c(0:1), expand = c(0,0)) + 
-  scale_color_manual(name="Restriction", values=c("#009E73","#D55E00")) + 
-  theme_minimal() +
-  coord_fixed(10) +
-  labs(title = predicted$English, subtitle = predicted$Scientific, 
-       x = "Distance from Community (km)", 
-       y = "Occurrence Probability") +
-  theme(plot.title = element_text(hjust = 0.5)) +
-  theme(plot.subtitle = element_text(hjust = 0.5, face = "italic")) +
-  theme(panel.border = element_rect(colour = "black", fill=NA, size=1)) +
-  geom_vline(aes(xintercept = 5, linetype = "~5 km")) +
-  scale_linetype_manual(name = "Hunting Limit", values = 5) + 
-  guides(color = guide_legend(order = 1), size = guide_legend(order = 2))
