@@ -1,0 +1,1325 @@
+---
+title: "Sinangoe vs. Zabalo"
+author: "Morgan Manning"
+date: "2023-11-10"
+output:
+  html_document: default
+  pdf_document: default
+editor_options:
+  markdown:
+    wrap: 72
+---
+
+# Sinangoe versus Zabalo
+
+
+
+
+```{r load packages, message=FALSE, warning=FALSE, include=FALSE}
+require(unmarked)
+require(dplyr)
+require(ggplot2)
+require(reshape2)
+```
+
+```{r Sinangoe, include=FALSE}
+speciesDFs <- c(
+  "SGEDicotylestajacu.csv",
+  "SGEMazamaamericana.csv",
+  "SGECuniculuspaca.csv",
+  "SGEPsophiacrepitans.csv")
+
+# read in all .csv files and remove any ID rows or columns 
+dfList <- list()
+for (i in 1:length(speciesDFs)) {
+  species <- read.csv(paste0("../Data/", speciesDFs[i]))
+  species <- species[,-1] # remove the column of ID names
+  dfList[[i]] <- species
+}
+
+# name dfs after their associated species
+# listTitlesSGE <- gsub('.csv', '', speciesDFs)
+listTitlesSGE <- c("Collared peccary", "Red brocket", "Lowland paca", "Grey-winged trumpeter")
+names(dfList) <- listTitlesSGE
+speciesNames <- listTitlesSGE
+
+# stations info
+stations <- read.csv("../Data/SGEStationsFormatted.csv")
+cameraRecords <- read.csv("../Data/SGEIndependentRecordsFormatted.csv")
+
+# site covariates (scaled)
+siteCovariateSGE <- data.frame(DistToComm = scale(stations$Community/1000))
+
+# make all the data frames in the list into matrices
+for (i in 1:length(dfList)) {
+  dfList[[i]] <- dfList[[i]][ order(as.numeric(row.names(dfList[[i]]))), ] #order matters
+  dfList[[i]] <- as.matrix(dfList[[i]])
+}
+
+# clump all matrices according to their best clumping factor
+source("../../Zabalo/Scripts/optimalClumping.R")
+
+clumpedMatrixList <- list()
+for (i in 1:length(dfList)) {
+  y <- dfList[[i]]
+  clumpEvery <- as.numeric(best_clumping_factor(y)[1])
+  nClumpedColumns <- ncol(y)/clumpEvery
+  clumpedMatrix <- matrix(0, ncol = nClumpedColumns, nrow = nrow(y)) 
+  
+  clumpStart <- seq(1, ncol(y), by = clumpEvery) # the first column in the clump
+  clumpEnd <- seq(clumpEvery, ncol(y), by = clumpEvery) # the last column in the clump
+  
+  ### make the clumped matrix
+  for (k in 1:30){
+    for (j in 1:ncol(clumpedMatrix)){
+      if(all(is.na(y[k, clumpStart[j]:clumpEnd[j]])) == TRUE) {
+        clumpedMatrix[k,j] <- NA
+      } else if (sum(y[k, clumpStart[j]:clumpEnd[j]], na.rm=TRUE) >= 1) {
+        clumpedMatrix[k,j] <- 1
+      } else {
+        clumpedMatrix[k,j] <- 0
+      }
+    }
+  } # the clumped matrix is made
+  clumpedMatrixList[[i]] <- clumpedMatrix
+}
+names(clumpedMatrixList) <- listTitlesSGE
+
+
+# make unmarked df for each species
+ufoList <- list()
+for (i in 1:length(clumpedMatrixList)){
+  clumpedMatrix <- clumpedMatrixList[[i]]
+  ufo <- unmarkedFrameOccu(clumpedMatrix, 
+                           siteCovs = siteCovariateSGE,
+                           obsCovs = NULL)
+  ufoList[[i]] <- ufo
+}
+names(ufoList) <- listTitlesSGE
+
+# make unmarked df for each species without clumping
+unclumpedUFOList <- list()
+for (i in 1:length(dfList)){
+  unclumpedMatrix <- dfList[[i]]
+  ufo <- unmarkedFrameOccu(unclumpedMatrix, 
+                           siteCovs = siteCovariateSGE,
+                           obsCovs = NULL)
+  unclumpedUFOList[[i]] <- ufo
+}
+names(unclumpedUFOList) <- listTitlesSGE
+
+# make detection plots
+# clumped
+clumpPlotListSGE <- list()
+for (i in 1:length(ufoList)) {
+  ufo <- ufoList[[i]]
+  colnames(ufo@y) <- 1:ncol(ufo@y)
+  meltedComb <- melt(ufo@y)
+  meltedComb$value <- as.factor(meltedComb$value)
+  
+  #plot
+  clumpPlotListSGE[[i]] <- ggplot(meltedComb, aes(Var2, Var1, fill = value)) + 
+    geom_tile(colour = "gray50") +
+    scale_fill_manual(values=c("gray75", "red3"), na.value="white", name = "") +
+    scale_x_continuous(breaks = seq(0, ncol(ufo@y), by = 2)) +
+    scale_alpha_identity(guide = "none") +
+    coord_equal(expand = 0) +
+    xlab(paste("Time (1 unit = ~", 
+               as.numeric(best_clumping_factor(dfList[[i]]))*2,
+               # number of columns/time steps divided by the clumping factor, times 2
+               "days)")) +
+    ylab("Camera trap site") +
+    ggtitle(gsub('SGE', '', listTitlesSGE[i])) +
+    theme_bw() +
+            theme(plot.title = element_text(size = 25, hjust = 0.5))
+  
+}
+
+# unclumped
+unclumpPlotListSGE <- list()
+for (i in 1:length(unclumpedUFOList)) {
+  ufo <- unclumpedUFOList[[i]]
+  colnames(ufo@y) <- 1:ncol(ufo@y)
+  meltedComb <- melt(ufo@y)
+  meltedComb$value <- as.factor(meltedComb$value)
+  
+  #plot
+  unclumpPlotListSGE[[i]] <- ggplot(meltedComb, aes(Var2, Var1, fill = value)) + 
+    geom_tile(colour = "gray50") +
+    scale_fill_manual(values=c("gray75", "red3"), na.value="white", name = "") +
+    scale_x_continuous(breaks = seq(0, ncol(ufo@y), by = 2)) +
+    scale_alpha_identity(guide = "none") +
+    coord_equal(expand = 0) +
+    xlab("Time (1 unit = 2 days)") +
+    ylab("Camera trap site") +
+    ggtitle(gsub('SGE', '', listTitlesSGE[i])) +
+    theme_bw() +
+            theme(plot.title = element_text(size = 25, hjust = 0.5))
+
+  
+}
+
+
+############################################################################
+############################## DETECTION ###################################
+############################################################################
+
+# vector of variables to consider for detection
+match_variables <- c("1")
+
+# every possible combination of variables
+combos <- sapply( seq(length(match_variables)), function(i) {
+  as.list(as.data.frame(combn( x = match_variables, m = i)))
+})
+combos <- unlist(combos, recursive=FALSE)
+
+# all combinations of variables into formulas
+forms <- sapply(combos, function(x) paste("~ ", paste(x, collapse="+"), sep = ""))
+
+detectionFormulas <- as.vector(c(forms, "~ 1"))
+
+# get the best detection formula and stick with that for the occupancy formulas
+tempDF <- data.frame(detection = detectionFormulas,
+                     occupancy = "~ 1")
+allDetectionFormulas <- paste(tempDF$detection, tempDF$occupancy, sep = " ")
+
+# see which detection model is the best
+bestDetectionModels <- data.frame(species = listTitlesSGE,
+                                  bestDetectionModel = NA)
+for (j in 1:length(ufoList)) {
+  detectionMods <- list()
+  temp <- data.frame(Model = allDetectionFormulas,
+                     AIC = NA)
+  for(i in 1:length(allDetectionFormulas)) {
+    test <- occu(formula(allDetectionFormulas[[i]]), ufoList[[j]])
+    detectionMods[[i]] <- occu(formula(allDetectionFormulas[[i]]), ufoList[[j]], 
+                               control = 10000, 
+                               starts = c(rep(0, length(test@opt$par)))) 
+    temp$AIC[i] <- detectionMods[[i]]@AIC
+  }
+  # select the model with the lowest AIC
+  bestDetectionModels$bestDetectionModel[j] <- detectionFormulas[which(temp$AIC == min(temp$AIC))]
+}
+
+
+
+
+############################################################################
+############################## OCCUPANCY ###################################
+############################################################################
+
+# vector of variables 
+match_variables <- c("DistToComm")
+
+# every possible combination of variables
+combos <- sapply( seq(length(match_variables)), function(i) {
+  as.list(as.data.frame(combn( x = match_variables, m = i)))
+})
+combos <- unlist(combos, recursive=FALSE)
+
+# all combinations of variables into formulas
+forms <- sapply(combos, function(x) paste("~ ", paste(x, collapse="+"), sep = ""))
+
+forms <- as.vector(c(forms, "~ 1"))
+
+occupancyFormulas <- forms
+
+
+############################################################################
+############################### MODELS #####################################
+############################################################################
+occupancyModelsList <- list()
+for (i in 1:length(ufoList)) {
+  df <- data.frame(detection = bestDetectionModels$bestDetectionModel[i],
+                   occupancy = occupancyFormulas)
+  occupancyModelsList[[i]] <- c(paste(df$detection, df$occupancy, sep = " "))
+}
+
+# run occupancy unmarked model for all models
+allModelsSGE <- list()
+for (j in 1:length(ufoList)) { # for all the species
+  occupancyMods <- list()
+  for(i in 1:length(occupancyModelsList[[j]])) {
+    test <- occu(formula(occupancyModelsList[[j]][i]), ufoList[[j]])
+    occupancyMods[[i]] <- occu(formula(occupancyModelsList[[j]][i]), ufoList[[j]], 
+                               control = 10000, 
+                               starts = c(rep(0, length(test@opt$par)))) 
+  }
+  names(occupancyMods) <- 1:length(occupancyMods)
+  allModelsSGE[[j]] <- occupancyMods
+}
+
+# Make a data frame to show the model names and their AICs
+modelAICs <- list()
+topModelsSGE <- list() # only models within 2 AIC of lowest AIC
+for(j in 1:length(allModelsSGE)) {
+  df <- data.frame(ModelName = NA,
+                   AIC = NA,
+                   diffFromBest = NA)
+  for(i in 1:length(allModelsSGE[[j]])){
+    df[i,1]<- as.character(c(allModelsSGE[[j]][[i]]@formula))
+    df[i,2]<- allModelsSGE[[j]][[i]]@AIC
+  }
+  df <- df[order(df$AIC),]
+  df$diffFromBest <- df$AIC - min(df$AIC)
+  modelAICs[[j]] <- df
+  
+  # only the best
+  ANTM <- subset(df, diffFromBest <= 2)
+  topModelsSGE[[j]] <- ANTM
+}
+names(topModelsSGE) <- listTitlesSGE
+
+# take these best models and put them into a list
+bestModsFitListsSGE <- list()
+for (j in 1:length(topModelsSGE)){
+  speciesBestMods <- list()
+  for(i in 1:nrow(topModelsSGE[[j]])) {
+    test <- occu(formula(topModelsSGE[[j]]$ModelName[i]), ufoList[[j]])
+    
+    speciesBestMods[[i]] <- occu(formula(topModelsSGE[[j]]$ModelName[i]), ufoList[[j]], 
+                                 control = 10000, 
+                                 starts = c(rep(0, length(test@opt$par)))) 
+    #print(speciesBestMods[[i]])
+  } 
+  bestModsFitListsSGE[[j]] <- fitList(speciesBestMods)
+}
+names(bestModsFitListsSGE) <- listTitlesSGE
+
+bestOfTheBestSGE <- list()
+for (i in 1:length(listTitlesSGE)) {
+  bestOfTheBestSGE[[i]] <- occu(formula(topModelsSGE[[i]]$ModelName[1]), ufoList[[i]])
+}
+names(bestOfTheBestSGE) <- listTitlesSGE
+
+
+# OUTPUT: 
+  # allModelsSGE
+  # unclumpPlotListSGE
+  # clumpPlotListSGE
+  # bestModsFitListsSGE
+  # topModelsSGE
+
+```
+
+
+
+
+```{r Zabalo, include = FALSE}
+speciesDFs <- c(
+  "ZABDicotylestajacu.csv",
+  "ZABMazamaamericana.csv",
+  "ZABCuniculuspaca.csv",
+  "ZABPsophiacrepitans.csv")
+
+###############################################################################
+# read in all .csv files and remove any ID rows or columns 
+dfList <- list()
+for (i in 1:length(speciesDFs)) {
+  species <- read.csv(paste0("../../Zabalo/Data/", speciesDFs[i]))
+  species <- species[,-1] # remove the column of ID names
+  dfList[[i]] <- species
+}
+
+# name dfs after their associated species
+# listTitlesZAB <- gsub('.csv', '', speciesDFs)
+listTitlesZAB <- c("Collared peccary", "Red brocket", "Lowland paca", "Grey-winged trumpeter")
+names(dfList) <- listTitlesZAB
+speciesNames <- listTitlesZAB
+
+# Zabalo occupancy covariates
+load('../../Zabalo/Data/R Objects/siteCovs2018.RData')
+siteCovariateZAB <- siteCovariate
+
+# stations and hunting info
+stations <- read.csv("../../Zabalo/Data/Stations2018.csv")
+hunting <- read.csv("../../Zabalo/Data/HuntingData2018.csv")
+cameraRecords <- read.csv("../../Zabalo/Data/RecordTable2018.csv")
+
+
+############################################################################
+######################## FORMAT FOR UNMARKED ###############################
+############################################################################
+
+# make all the data frames in the list into matrices
+for (i in 1:length(dfList)) {
+  dfList[[i]] <- dfList[[i]][ order(as.numeric(row.names(dfList[[i]]))), ] #order matters
+  dfList[[i]] <- as.matrix(dfList[[i]])
+}
+
+
+# clump all matrices according to their best clumping factor
+source("../../Zabalo/Scripts/optimalClumping.R")
+
+clumpedMatrixList <- list()
+for (i in 1:length(dfList)) {
+  y <- dfList[[i]]
+  clumpEvery <- as.numeric(best_clumping_factor(y))
+  nClumpedColumns <- ncol(y)/clumpEvery
+  clumpedMatrix <- matrix(0, ncol = nClumpedColumns, nrow = nrow(y)) 
+  
+  clumpStart <- seq(1, ncol(y), by = clumpEvery) # the first column in the clump
+  clumpEnd <- seq(clumpEvery, ncol(y), by = clumpEvery) # the last column in the clump
+  
+  ### make the clumped matrix
+  for (k in 1:30){
+    for (j in 1:ncol(clumpedMatrix)){
+      if(all(is.na(y[k, clumpStart[j]:clumpEnd[j]])) == TRUE) {
+        clumpedMatrix[k,j] <- NA
+      } else if (sum(y[k, clumpStart[j]:clumpEnd[j]], na.rm=TRUE) >= 1) {
+        clumpedMatrix[k,j] <- 1
+      } else {
+        clumpedMatrix[k,j] <- 0
+      }
+    }
+  } # the clumped matrix is made
+  clumpedMatrixList[[i]] <- clumpedMatrix
+}
+names(clumpedMatrixList) <- listTitlesZAB
+
+
+# make unmarked df for each species
+ufoList <- list()
+for (i in 1:length(clumpedMatrixList)){
+  clumpedMatrix <- clumpedMatrixList[[i]]
+  ufo <- unmarkedFrameOccu(clumpedMatrix, 
+                           siteCovs = siteCovariateZAB,
+                           obsCovs = NULL)
+  ufoList[[i]] <- ufo
+}
+names(ufoList) <- listTitlesZAB
+
+# make unmarked df for each species without clumping
+unclumpedUFOList <- list()
+for (i in 1:length(dfList)){
+  unclumpedMatrix <- dfList[[i]]
+  ufo <- unmarkedFrameOccu(unclumpedMatrix, 
+                           siteCovs = siteCovariateZAB,
+                           obsCovs = NULL)
+  unclumpedUFOList[[i]] <- ufo
+}
+names(unclumpedUFOList) <- listTitlesZAB
+
+# make detection plots
+# clumped
+clumpPlotListZAB <- list()
+for (i in 1:length(ufoList)) {
+  ufo <- ufoList[[i]]
+  colnames(ufo@y) <- 1:ncol(ufo@y)
+  meltedComb <- melt(ufo@y)
+  meltedComb$value <- as.factor(meltedComb$value)
+  
+  #plot
+  clumpPlotListZAB[[i]] <- ggplot(meltedComb, aes(Var2, Var1, fill = value)) + 
+    geom_tile(colour = "gray50") +
+    scale_fill_manual(values=c("gray75", "red3"), na.value="white", name = "") +
+    scale_x_continuous(breaks = seq(0, ncol(ufo@y), by = 2)) +
+    scale_alpha_identity(guide = "none") +
+    coord_equal(expand = 0) +
+    xlab(paste("Time (1 unit = ~", 
+               as.numeric(best_clumping_factor(dfList[[i]]))*2,
+               # number of columns/time steps divided by the clumping factor, times 2
+               "days)")) +
+    ylab("Camera trap site") +
+        ggtitle(gsub('ZAB', '', listTitlesZAB[i])) +
+    theme_bw()+
+            theme(plot.title = element_text(size = 25, hjust = 0.5))
+}
+
+# unclumped
+unclumpPlotListZAB <- list()
+for (i in 1:length(unclumpedUFOList)) {
+  ufo <- unclumpedUFOList[[i]]
+  colnames(ufo@y) <- 1:ncol(ufo@y)
+  meltedComb <- melt(ufo@y)
+  meltedComb$value <- as.factor(meltedComb$value)
+  
+  #plot
+  unclumpPlotListZAB[[i]] <- ggplot(meltedComb, aes(Var2, Var1, fill = value)) + 
+    geom_tile(colour = "gray50") +
+    scale_fill_manual(values=c("gray75", "red3"), na.value="white", name = "") +
+    scale_x_continuous(breaks = seq(0, ncol(ufo@y), by = 2)) +
+    scale_alpha_identity(guide = "none") +
+    coord_equal(expand = 0) +
+    xlab("Time (1 unit = 2 days)") +
+    ylab("Camera trap site") +
+    ggtitle(gsub('ZAB', '', listTitlesZAB[i])) +
+    theme_bw() +
+    theme(plot.title = element_text(size = 25, hjust = 0.5))
+  
+}
+
+
+############################################################################
+############################## DETECTION ###################################
+############################################################################
+
+# vector of variables to consider for detection
+match_variables <- c("Effort", "Habitat")
+
+# every possible combination of variables
+combos <- sapply( seq(length(match_variables)), function(i) {
+  as.list(as.data.frame(combn( x = match_variables, m = i)))
+})
+combos <- unlist(combos, recursive=FALSE)
+
+# all combinations of variables into formulas
+forms <- sapply(combos, function(x) paste("~ ", paste(x, collapse="+"), sep = ""))
+
+detectionFormulas <- as.vector(c(forms, "~ 1"))
+
+# get the best detection formula and stick with that for the occupancy formulas
+tempDF <- data.frame(detection = detectionFormulas,
+                     occupancy = "~ 1")
+allDetectionFormulas <- paste(tempDF$detection, tempDF$occupancy, sep = " ")
+
+# see which detection model is the best
+bestDetectionModels <- data.frame(species = listTitlesZAB,
+                                  bestDetectionModel = NA)
+for (j in 1:length(ufoList)) {
+  detectionMods <- list()
+  temp <- data.frame(Model = allDetectionFormulas,
+                     AIC = NA)
+  for(i in 1:length(allDetectionFormulas)) {
+    test <- occu(formula(allDetectionFormulas[[i]]), ufoList[[j]])
+    detectionMods[[i]] <- occu(formula(allDetectionFormulas[[i]]), ufoList[[j]], 
+                               control = 10000, 
+                               starts = c(rep(0, length(test@opt$par)))) 
+    temp$AIC[i] <- detectionMods[[i]]@AIC
+  }
+  # select the model with the lowest AIC
+  bestDetectionModels$bestDetectionModel[j] <- detectionFormulas[which(temp$AIC == min(temp$AIC))]
+  }
+
+
+
+############################################################################
+############################## OCCUPANCY ###################################
+############################################################################
+
+# vector of variables 
+match_variables <- c("Habitat", "Trail.Distance", "HuntingIntensity")
+
+# every possible combination of variables
+combos <- sapply( seq(length(match_variables)), function(i) {
+  as.list(as.data.frame(combn( x = match_variables, m = i)))
+})
+combos <- unlist(combos, recursive=FALSE)
+
+# all combinations of variables into formulas
+forms <- sapply(combos, function(x) paste("~ ", paste(x, collapse="+"), sep = ""))
+
+forms <- as.vector(c(forms, "~ 1"))
+
+occupancyFormulas <- forms
+
+
+############################################################################
+############################### MODELS #####################################
+############################################################################
+occupancyModelsList <- list()
+for (i in 1:length(ufoList)) {
+  df <- data.frame(detection = bestDetectionModels$bestDetectionModel[i],
+                                         occupancy = occupancyFormulas)
+  occupancyModelsList[[i]] <- c(paste(df$detection, df$occupancy, sep = " "))
+  }
+
+# run occupancy unmarked model for all models
+allModels <- list()
+for (j in 1:length(ufoList)) { # for all the species
+  occupancyMods <- list()
+  for(i in 1:length(occupancyModelsList[[j]])) {
+    test <- occu(formula(occupancyModelsList[[j]][i]), ufoList[[j]])
+    occupancyMods[[i]] <- occu(formula(occupancyModelsList[[j]][i]), ufoList[[j]], 
+                               control = 10000, 
+                               starts = c(rep(0, length(test@opt$par)))) 
+  }
+  names(occupancyMods) <- 1:length(occupancyMods)
+  allModels[[j]] <- occupancyMods
+}
+
+
+# remove all models with missing SE/z/p-value or that didn't converge
+noMissingMods <- list()
+for(j in 1:length(allModels)) {
+  eachSpecies <- list()
+  for(i in 1:length(allModels[[j]])){
+    
+    modSum <- summary(allModels[[j]][[i]])
+    
+    if(anyNA(modSum$state$SE)==FALSE & allModels[[j]][[i]]@opt$convergence != 1){
+      eachSpecies[[i]] <- allModels[[j]][[i]]
+    } else {
+      next
+    }
+  }
+  eachSpecies[sapply(eachSpecies, is.null)] <- NULL
+  noMissingMods[[j]] <- eachSpecies
+}
+
+# remove all models with ridiculous standard errors
+noWackyMods <- list()
+for(j in 1:length(noMissingMods)) {
+  eachSpecies <- list()
+  for(i in 1:length(noMissingMods[[j]])){
+    
+    modSum <- summary(noMissingMods[[j]][[i]])
+    
+    if((abs(modSum$state$SE[1]) < modSum$state$Estimate[1]) == TRUE){
+      eachSpecies[[i]] <- noMissingMods[[j]][[i]]
+    } else {
+      next
+    }
+  }
+  eachSpecies[sapply(eachSpecies, is.null)] <- NULL
+  noWackyMods[[j]] <- eachSpecies
+}
+names(noWackyMods) <- listTitlesZAB
+
+# noWackyMods
+
+# Make a data frame to show the model names and their AICs
+modelAICs <- list()
+topModelsZAB <- list() # only models within 2 AIC of lowest AIC
+for(j in 1:length(noWackyMods)) {
+  df <- data.frame(ModelName = NA,
+                   AIC = NA,
+                   diffFromBest = NA)
+  for(i in 1:length(noWackyMods[[j]])){
+    df[i,1]<- as.character(c(noWackyMods[[j]][[i]]@formula))
+    df[i,2]<- noWackyMods[[j]][[i]]@AIC
+  }
+  df <- df[order(df$AIC),]
+  df$diffFromBest <- df$AIC - min(df$AIC)
+  modelAICs[[j]] <- df
+  
+  # only the best
+  ANTM <- subset(df, diffFromBest <= 2)
+  topModelsZAB[[j]] <- ANTM
+}
+names(topModelsZAB) <- listTitlesZAB
+
+# take these best models and put them into a list
+bestModsFitListsZAB <- list()
+for (j in 1:length(topModelsZAB)){
+  speciesBestMods <- list()
+  for(i in 1:nrow(topModelsZAB[[j]])) {
+    test <- occu(formula(topModelsZAB[[j]]$ModelName[i]), ufoList[[j]])
+    
+    speciesBestMods[[i]] <- occu(formula(topModelsZAB[[j]]$ModelName[i]), ufoList[[j]], 
+                          control = 10000, 
+                          starts = c(rep(0, length(test@opt$par)))) 
+    #print(speciesBestMods[[i]])
+  } 
+  bestModsFitListsZAB[[j]] <- fitList(speciesBestMods)
+}
+names(bestModsFitListsZAB) <- listTitlesZAB
+
+bestOfTheBestZAB <- list()
+for (i in 1:length(listTitlesZAB)) {
+  bestOfTheBestZAB[[i]] <- occu(formula(topModelsZAB[[i]]$ModelName[1]), ufoList[[i]])
+}
+names(bestOfTheBestZAB) <- listTitlesZAB
+
+# OUTPUT:
+  # clumpPlotListZAB
+  # unclumpPlotListZAB
+  # noWackyMods
+  # bestModsFitListsZAB
+  # topModelsZAB
+
+```
+
+
+```{r record tables, include=FALSE}
+indivRecordsZAB <- read.csv("../../Zabalo/Data/ZABIndependentRecordsFormatted.csv")
+indivRecordsSGE <- read.csv("../Data/SGEIndependentRecordsFormatted.csv")
+
+indivRecordsSNA <- read.csv("../../Siona/Data/SNAIndependentRecordsFormatted.csv")
+indivRecordsSKP <- read.csv("../../Siekopai/Data/SKPIndependentRecordsFormatted.csv")
+
+```
+
+## Timeframe
+
+In Zabalo, camera trapping commenced on `r min(indivRecordsZAB$Date)`
+and ended on `r max(indivRecordsZAB$Date)`, spanning
+`r as.numeric(as.Date(max(indivRecordsZAB$Date)) - as.Date(min(indivRecordsZAB$Date)))`
+days. As for Sinangoe, trapping began on
+`r as.Date(min(indivRecordsSGE$Date))` and ended on
+`r as.Date(max(indivRecordsSGE$Date))`, going for
+`r as.numeric(as.Date(max(indivRecordsSGE$Date)) - as.Date(min(indivRecordsSGE$Date)))`
+days.
+
+\
+
+------------------------------------------------------------------------
+
+## Consolidating time steps
+The following plots show unconsolidated versus consolidated time steps
+for three species in Sinangoe and in Zabalo.
+
+### Sinangoe
+
+```{r plot Sinangoe clumped vs unclumped, echo=FALSE, fig.show="hold", out.width="25%"}
+par( mfrow= c(4, 2) )
+plot(unclumpPlotListSGE[[1]]); plot(unclumpPlotListSGE[[2]]); plot(unclumpPlotListSGE[[3]]); plot(unclumpPlotListSGE[[4]]); plot(clumpPlotListSGE[[1]]); plot(clumpPlotListSGE[[2]]); plot(clumpPlotListSGE[[3]]); plot(clumpPlotListSGE[[4]])
+
+```
+
+\
+
+### Zabalo
+
+```{r plot Zabalo clumped vs unclumped, echo=FALSE, fig.show="hold", out.width="25%"}
+par( mfrow= c(4, 2) )
+plot(unclumpPlotListZAB[[1]]); plot(unclumpPlotListZAB[[2]]); plot(unclumpPlotListZAB[[3]]); plot(unclumpPlotListZAB[[4]]); plot(clumpPlotListZAB[[1]]); plot(clumpPlotListZAB[[2]]); plot(clumpPlotListZAB[[3]]); plot(clumpPlotListZAB[[4]])
+
+```
+
+\
+
+\
+  
+
+------------------------------------------------------------------------
+
+
+## Top species
+
+### Zabalo
+
+```{r, echo=FALSE}
+# explore total detections
+total <- data.frame(table(indivRecordsZAB$Species)) # number of detections / species
+colnames(total) <- c("Species", "Total")
+knitr::kable(head(total[order(-total$Total),], 15), format="markdown", caption = "Zabalo Species")
+```
+
+
+### Sinangoe
+```{r, echo=FALSE}
+
+# explore total detections
+total <- data.frame(table(indivRecordsSGE$Species)) # number of detections / species
+colnames(total) <- c("Species", "Total")
+knitr::kable(head(total[order(-total$Total),], 15), format="markdown", caption = "Sinangoe Species")
+
+
+```
+
+  \
+  
+  \
+
+------------------------------------------------------------------------
+
+
+## Occupancy modeling
+
+Proceeding with all models for Sinangoe and models without missing
+estimates or disproportionately large standard errors for Zabalo.
+
+\
+
+### Zabalo
+
+```{r Zabalo models, echo=FALSE}
+# OUTPUT:
+  # bestModsFitListsZAB
+  # topModelsZAB
+knitr::kable(topModelsZAB[[1]], format="markdown", caption = names(topModelsZAB)[1])
+knitr::kable(topModelsZAB[[2]], format="markdown", caption = names(topModelsZAB)[2])
+knitr::kable(topModelsZAB[[3]], format="markdown", caption = names(topModelsZAB)[3])
+knitr::kable(topModelsZAB[[4]], format="markdown", caption = names(topModelsZAB)[4])
+
+```
+
+\
+
+#### Top Models
+
+##### `r gsub('ZAB', '', names(bestOfTheBestZAB)[1])`
+
+```{r, echo=FALSE}
+bestOfTheBestZAB[[1]]@estimates
+```
+
+##### `r gsub('ZAB', '', names(bestOfTheBestZAB)[2])`
+
+```{r, echo=FALSE}
+bestOfTheBestZAB[[2]]@estimates
+```
+
+##### `r gsub('ZAB', '', names(bestOfTheBestZAB)[3])`
+
+```{r, echo=FALSE}
+bestOfTheBestZAB[[3]]@estimates
+```
+
+##### `r gsub('ZAB', '', names(bestOfTheBestZAB)[4])`
+
+```{r, echo=FALSE}
+bestOfTheBestZAB[[4]]@estimates
+```
+
+\
+
+### Sinangoe
+
+```{r Sinangoe models, echo=FALSE}
+# OUTPUT: 
+  # bestModsFitListsSGE
+  # topModelsSGE
+knitr::kable(topModelsSGE[[1]], format="markdown", caption = names(topModelsSGE)[1])
+knitr::kable(topModelsSGE[[2]], format="markdown", caption = names(topModelsSGE)[2])
+knitr::kable(topModelsSGE[[3]], format="markdown", caption = names(topModelsSGE)[3])
+knitr::kable(topModelsSGE[[4]], format="markdown", caption = names(topModelsSGE)[4])
+
+```
+
+\
+
+#### Top Models
+##### `r gsub('SGE', '', names(bestOfTheBestSGE)[1])`
+
+```{r, echo=FALSE}
+bestOfTheBestSGE[[1]]@estimates
+```
+
+##### `r gsub('SGE', '', names(bestOfTheBestSGE)[2])`
+
+```{r, echo=FALSE}
+bestOfTheBestSGE[[2]]@estimates
+```
+
+
+##### `r gsub('SGE', '', names(bestOfTheBestSGE)[3])`
+
+```{r, echo=FALSE}
+bestOfTheBestSGE[[3]]@estimates
+```
+
+##### `r gsub('SGE', '', names(bestOfTheBestSGE)[4])`
+
+```{r, echo=FALSE}
+bestOfTheBestSGE[[4]]@estimates
+```
+
+\
+
+\
+
+
+
+------------------------------------------------------------------------
+
+## Diversity and richness
+
+#### Species richness
+Zabalo and Sinangoe had `r (nrow(data.frame(table(indivRecordsZAB$Species)))-1)` and `r (nrow(data.frame(table(indivRecordsSGE$Species)))-1)` total species, respectively, with Menhinick's species richness indices of `r round((nrow(data.frame(table(indivRecordsZAB$Species)))-1)/(sqrt(sum(data.frame(table(indivRecordsZAB$Species))[,2]))), 3)` and `r round((nrow(data.frame(table(indivRecordsSGE$Species)))-1)/(sqrt(sum(data.frame(table(indivRecordsSGE$Species))[,2]))), 3)`. 
+
+\
+
+#### Diversity
+```{r, include=FALSE}
+noUnknownsSGE <- indivRecordsSGE[indivRecordsSGE$Species != "N/D N/D",]
+noUnknownsZAB <- indivRecordsZAB[(indivRecordsZAB$Species != "NAN NAN" & indivRecordsZAB$Species != "NA NA"),]
+noUnknownsSNA <- indivRecordsSNA[indivRecordsSNA$Species != "N/D N/D",]
+noUnknownsSKP <- indivRecordsSKP[indivRecordsSKP$Species != "N/D N/D",]
+
+# per station
+  # Sinangoe
+siteDiversitySGE <- noUnknownsSGE %>%
+  group_by(Station, Species) %>%
+  summarise(abundance = n()) 
+
+siteDiversitySGE <- siteDiversitySGE %>%
+  group_by(Station) %>%
+  summarise(N=sum(abundance),
+            shannonDiversity = -sum((abundance/sum(abundance))*log(abundance/sum(abundance))),
+            simpsonDiversity = 1-sum((abundance/sum(abundance))^2))
+
+# Zabalo
+siteDiversityZAB <- noUnknownsZAB %>%
+  group_by(Station, Species) %>%
+  summarise(abundance = n()) 
+
+siteDiversityZAB <- siteDiversityZAB %>%
+  group_by(Station) %>%
+  summarise(N=sum(abundance),
+            shannonDiversity = -sum((abundance/sum(abundance))*log(abundance/sum(abundance))),
+            simpsonDiversity = 1-sum((abundance/sum(abundance))^2))
+
+# Siona
+siteDiversitySNA <- noUnknownsSNA %>%
+  group_by(Station, Species) %>%
+  summarise(abundance = n()) 
+
+siteDiversitySNA <- siteDiversitySNA %>%
+  group_by(Station) %>%
+  summarise(N=sum(abundance),
+            shannonDiversity = -sum((abundance/sum(abundance))*log(abundance/sum(abundance))),
+            simpsonDiversity = 1-sum((abundance/sum(abundance))^2))
+
+# Siekopai
+siteDiversitySKP <- noUnknownsSKP %>%
+  group_by(Station, Species) %>%
+  summarise(abundance = n()) 
+
+siteDiversitySKP <- siteDiversitySKP %>%
+  group_by(Station) %>%
+  summarise(N=sum(abundance),
+            shannonDiversity = -sum((abundance/sum(abundance))*log(abundance/sum(abundance))),
+            simpsonDiversity = 1-sum((abundance/sum(abundance))^2))
+
+```
+
+
+```{r include=FALSE}
+# per community
+wholeDiversitySGE <- noUnknownsSGE %>%
+  group_by(Species) %>%
+  summarise(abundance = n()) %>%
+  mutate(Community = "Sinangoe")
+wholeDiversityZAB <- noUnknownsZAB %>%
+  group_by(Species) %>%
+  summarise(abundance = n()) %>%
+  mutate(Community = "Zabalo")
+wholeDiversitySNA <- noUnknownsSNA %>%
+  group_by(Species) %>%
+  summarise(abundance = n()) %>%
+  mutate(Community = "Siona")
+wholeDiversitySKP <- noUnknownsSKP %>%
+  group_by(Species) %>%
+  summarise(abundance = n()) %>%
+  mutate(Community = "Siekopai")
+
+communityAbundance <- rbind(wholeDiversitySGE, wholeDiversityZAB, wholeDiversitySNA, wholeDiversitySKP)
+communityDiversity <- communityAbundance %>%
+  group_by(Community) %>%
+  summarise(nIndiv=sum(abundance),
+            nSpecies = length(unique(Species)),
+            shannonIndex = -sum((abundance/sum(abundance))*log(abundance/sum(abundance))),
+            simpsonIndex = 1-sum((abundance/sum(abundance))^2))
+
+```
+Among Sinangoe stations, the Shannon Diversity Index ranged from `r round(min(siteDiversitySGE$shannonDiversity), 3)` to `r round(max(siteDiversitySGE$shannonDiversity), 3)`. Among Zabalo stations, the Shannon Diversity Index ranged from `r round(min(siteDiversityZAB$shannonDiversity), 3)` to `r round(max(siteDiversityZAB$shannonDiversity), 3)`. Among Siona stations, the Shannon Diversity Index ranged from `r round(min(siteDiversitySNA$shannonDiversity), 3)` to `r round(max(siteDiversitySNA$shannonDiversity), 3)`.
+Among Siekopai stations, the Shannon Diversity Index ranged from `r round(min(siteDiversitySKP$shannonDiversity), 3)` to `r round(max(siteDiversitySKP$shannonDiversity), 3)`.
+
+```{r echo=FALSE}
+knitr::kable(communityDiversity, format="markdown", caption = "Species Diversity")
+```
+
+
+
+\
+
+
+\
+
+------------------------------------------------------------------------
+
+## Occupancy predictions
+
+### Sinangoe
+```{r include=FALSE}
+speciesNames <- listTitlesSGE
+
+commDF <- data.frame(
+  DistToComm = seq(min(siteCovariateSGE$DistToComm), 
+                   max(siteCovariateSGE$DistToComm), 
+                   length.out = 100)
+) 
+
+# predict
+commPredictionsSGE <- list()
+for (j in 1:length(bestModsFitListsSGE)) {
+  mods <- bestModsFitListsSGE[[j]]
+  unmarkedPred <- predict(mods, type = 'state', new = commDF, appendData = TRUE)
+  predictionDataFrame <- data.frame(Predicted = unmarkedPred$Predicted,
+                                    lower = unmarkedPred$lower,
+                                    upper = unmarkedPred$upper,
+                                    commDF)
+  commPredictionsSGE[[j]] <- predictionDataFrame
+}
+names(commPredictionsSGE) <- listTitlesSGE
+
+# get limits of covariates for each species (for plotting)
+xLimits <- data.frame(species = speciesNames,
+                      commMinX = NA,
+                      commMaxX = NA)
+for (j in 1:length(speciesNames)) {
+  speciesCommPrediction <- commPredictionsSGE[[j]]
+  xLimits[j,"commMinX"] <- min(speciesCommPrediction$DistToComm)
+  xLimits[j,"commMaxX"] <- max(speciesCommPrediction$DistToComm)
+}
+
+
+###### PLOT IT
+
+commPlots <- list()
+
+for (j in 1:length(speciesNames)) {
+  # Hunting intensity
+  speciesCommPrediction <- commPredictionsSGE[[j]]
+  commPlots[[j]] <- ggplot(speciesCommPrediction, 
+                           aes(x = DistToComm, y = Predicted)) +
+    geom_ribbon(aes(ymin = lower, ymax = upper), 
+                fill = 'red', alpha = 0.5, linetype = "dashed") +
+    geom_path(linewidth = 1) +
+    labs(x = "Distance to community (scaled)", y = "Occupancy probability") +
+    ggtitle(label = speciesNames[j]) +
+    theme_classic() +
+    coord_cartesian(ylim = c(0,1), 
+                    xlim = c(xLimits[j,"commMinX"], xLimits[j,"commMaxX"])) +
+    theme(text = element_text(family = "Times", colour = "black"),
+          axis.text = element_text(colour = "black"),
+          plot.title = element_text(hjust = 0.5),
+          plot.subtitle = element_text(hjust = 0.5, face = 'italic'))
+}
+
+```
+
+```{r echo=FALSE, fig.show="hold", out.width="25%"}
+par(mfrow= c(4, 1))
+plot(commPlots[[1]]) ; plot(commPlots[[2]]) ; plot(commPlots[[3]]) ; plot(commPlots[[4]])
+```
+
+
+### Zabalo
+```{r include=FALSE}
+speciesNames <- listTitlesZAB
+############### TRAIL DISTANCE ##################
+# First, set-up a new data frame to predict along a sequence of the covariate.
+# Predicting requires all covariates, so hold the other covariates constant at their mean value
+trailDF <- data.frame(
+                 Habitat = as.factor("Upland"), # most common habitat
+                 Trail.Distance = seq(min(siteCovariateZAB$Trail.Distance), 
+                                      max(siteCovariateZAB$Trail.Distance), 
+                                      length.out = 100),
+                 HuntingIntensity = mean(siteCovariateZAB$HuntingIntensity)
+) 
+
+# predict
+trailPredictions <- list()
+for (j in 1:length(bestModsFitListsZAB)) {
+  mods <- bestModsFitListsZAB[[j]]
+  unmarkedPred <- predict(mods, type = 'state', new = trailDF, appendData = TRUE)
+  predictionDataFrame <- data.frame(Predicted = unmarkedPred$Predicted,
+                                    lower = unmarkedPred$lower,
+                                    upper = unmarkedPred$upper,
+                                    trailDF)
+  trailPredictions[[j]] <- predictionDataFrame
+}
+names(trailPredictions) <- listTitlesZAB
+
+
+############### HUNTING INTENSITY ##################
+# First, set-up a new data frame to predict along a sequence of the covariate.
+# Predicting requires all covariates, so hold the other covariates constant at their mean value
+huntingDF <- data.frame(
+                 Habitat = as.factor("Upland"), # most common habitat
+                 Trail.Distance = mean(siteCovariateZAB$Trail.Distance),
+                 HuntingIntensity = seq(min(siteCovariateZAB$HuntingIntensity), 
+                                        max(siteCovariateZAB$HuntingIntensity), 
+                                        length.out = 100)
+) 
+
+# predict
+huntingPredictions <- list()
+for (j in 1:length(bestModsFitListsZAB)) {
+  mods <- bestModsFitListsZAB[[j]]
+  unmarkedPred <- predict(mods, type = 'state', new = huntingDF, appendData = TRUE)
+  predictionDataFrame <- data.frame(Predicted = unmarkedPred$Predicted,
+                                    lower = unmarkedPred$lower,
+                                    upper = unmarkedPred$upper,
+                                    huntingDF)
+  huntingPredictions[[j]] <- predictionDataFrame
+}
+names(huntingPredictions) <- listTitlesZAB
+
+
+
+######### ACTUALLY PLOTTING ###########
+huntingPlots <- list()
+trailPlots <- list()
+# get limits of covariates for each species (for plotting)
+xLimits <- data.frame(species = speciesNames,
+                      trailMinX = NA,
+                      trailMaxX = NA,
+                      huntingMinX = NA,
+                      huntingMaxX = NA)
+for (j in 1:length(speciesNames)) {
+  speciesTrailPrediction <- trailPredictions[[j]]
+  xLimits[j,"trailMinX"] <- min(speciesTrailPrediction$Trail.Distance)
+  xLimits[j,"trailMaxX"] <- max(speciesTrailPrediction$Trail.Distance)
+  
+  speciesHuntingPrediction <- huntingPredictions[[j]]
+  xLimits[j,"huntingMinX"] <- min(speciesHuntingPrediction$HuntingIntensity)
+  xLimits[j,"huntingMaxX"] <- max(speciesHuntingPrediction$HuntingIntensity)
+
+}
+
+
+# make a plot for hunting intensity and trail distance for each species j
+for (j in 1:length(speciesNames)) {
+  
+  # Distance to a trail prediction
+  speciesTrailPrediction <- trailPredictions[[j]]
+  trailPlots[[j]] <- ggplot(speciesTrailPrediction, aes(x = Trail.Distance, y = Predicted)) +
+    geom_ribbon(aes(ymin = lower, ymax = upper), fill = 'green4', alpha = 0.5, linetype = "dashed") +
+    geom_path(linewidth = 1) +
+    labs(x = "Distance to a trail (scaled)", y = "Occupancy probability") +
+    ggtitle(label = speciesNames[j]) +
+    theme_classic() +
+    coord_cartesian(ylim = c(0,1), xlim = c(xLimits[j,"trailMinX"], xLimits[j,"trailMaxX"])) +
+    theme(text = element_text(family = "Times", colour = "black"),
+          axis.text = element_text(colour = "black"),
+          plot.title = element_text(hjust = 0.5),
+          plot.subtitle = element_text(hjust = 0.5, face = 'italic'))
+  
+  
+  # Hunting intensity
+  speciesHuntingPrediction <- huntingPredictions[[j]]
+  huntingPlots[[j]] <- ggplot(speciesHuntingPrediction, aes(x = HuntingIntensity, y = Predicted)) +
+    geom_ribbon(aes(ymin = lower, ymax = upper), fill = 'orange', alpha = 0.5, linetype = "dashed") +
+    geom_path(linewidth = 1) +
+    labs(x = "Hunting intensity (scaled)", y = "Occupancy probability") +
+    ggtitle(label = speciesNames[j]) +
+    theme_classic() +
+    coord_cartesian(ylim = c(0,1), xlim = c(xLimits[j,"huntingMinX"], xLimits[j,"huntingMaxX"])) +
+    theme(text = element_text(family = "Times", colour = "black"),
+          axis.text = element_text(colour = "black"),
+          plot.title = element_text(hjust = 0.5),
+          plot.subtitle = element_text(hjust = 0.5, face = 'italic'))
+ 
+}
+
+```
+
+```{r echo=FALSE, fig.show="hold", out.width="25%"}
+par( mfrow= c(3, 2) )
+plot(huntingPlots[[1]]); plot(huntingPlots[[2]]); plot(huntingPlots[[3]]); plot(huntingPlots[[4]]); plot(trailPlots[[1]]); plot(trailPlots[[2]]); plot(trailPlots[[3]]); plot(trailPlots[[4]])
+```
+
+
+
+\
+
+
+\
+
+------------------------------------------------------------------------
+
+## Occupancy and detection estimates
+Occupancy and detection are averaged across sites using actual covariate values as input.
+
+\
+
+### Sinangoe
+
+```{r include=FALSE}
+df <- data.frame(
+  DistToComm = siteCovariateSGE$DistToComm) 
+
+estimatedParameters <- list()
+unmarkedPredOccSGE <- list()
+unmarkedPredDetSGE <- list()
+for (j in 1:length(bestModsFitListsSGE)) {
+  # state = occupancy
+  unmarkedPredOccSGE[[j]] <- predict(bestModsFitListsSGE[[j]], type = 'state', new = df, appendData = TRUE)
+  # det = detection
+  unmarkedPredDetSGE[[j]] <- predict(bestModsFitListsSGE[[j]], type = 'det', new = df, appendData = TRUE)
+  estimatedParameters[[j]] <- data.frame(avgOccupancy = mean(unmarkedPredOccSGE[[j]]$Predicted),
+                                         avgOccupancySE = mean(unmarkedPredOccSGE[[j]]$SE),
+                                         occupancyRange = range(unmarkedPredOccSGE[[j]]$Predicted),
+                                         avgDetection = mean(unmarkedPredDetSGE[[j]]$Predicted),
+                                         avgDetectionSE = mean(unmarkedPredDetSGE[[j]]$SE),
+                                         detectionRange = range(unmarkedPredDetSGE[[j]]$Predicted))
+}
+names(estimatedParameters) <- listTitlesSGE
+names(unmarkedPredOccSGE) <- listTitlesSGE
+names(unmarkedPredDetSGE) <- listTitlesSGE
+
+
+```
+
+```{r echo=FALSE}
+detOccSGE <- data.frame(Species = listTitlesZAB,
+           avgOccupancy = c(estimatedParameters[[listTitlesZAB[1]]]$avgOccupancy[1],
+                            estimatedParameters[[listTitlesZAB[2]]]$avgOccupancy[1],
+                            estimatedParameters[[listTitlesZAB[3]]]$avgOccupancy[1],
+                            estimatedParameters[[listTitlesZAB[4]]]$avgOccupancy[1]),
+           
+           avgOccupancySE = c(estimatedParameters[[listTitlesZAB[1]]]$avgOccupancySE[1],
+                            estimatedParameters[[listTitlesZAB[2]]]$avgOccupancySE[1],
+                            estimatedParameters[[listTitlesZAB[3]]]$avgOccupancySE[1],
+                            estimatedParameters[[listTitlesZAB[4]]]$avgOccupancySE[1]),
+           
+           avgDetection = c(estimatedParameters[[listTitlesZAB[1]]]$avgDetection[1],
+                            estimatedParameters[[listTitlesZAB[2]]]$avgDetection[1],
+                            estimatedParameters[[listTitlesZAB[3]]]$avgDetection[1],
+                            estimatedParameters[[listTitlesZAB[4]]]$avgDetection[1]),
+           
+           avgDetectionSE = c(estimatedParameters[[listTitlesZAB[1]]]$avgDetectionSE[1],
+                            estimatedParameters[[listTitlesZAB[2]]]$avgDetectionSE[1],
+                            estimatedParameters[[listTitlesZAB[3]]]$avgDetectionSE[1],
+                            estimatedParameters[[listTitlesZAB[4]]]$avgDetectionSE[1]))
+
+knitr::kable(detOccSGE, format="markdown", caption = "Sinangoe occupancy and detection estimates")
+# save(detOccSGE, file = "../Data/R Objects/detOccEstimatesSGE.RData")
+
+```
+
+
+
+
+
+
+
+
+### Zabalo
+```{r include=FALSE}
+###### average occupancy and detection across sites
+# Model-averaged prediction of occupancy and confidence interval
+
+df <- data.frame(
+  Habitat = siteCovariateZAB$Habitat,
+  HuntingIntensity = siteCovariateZAB$HuntingIntensity,
+  Trail.Distance = siteCovariateZAB$Trail.Distance,
+  Effort = siteCovariateZAB$Effort
+) 
+
+estimatedParameters <- list()
+unmarkedPredOccZAB <- list()
+unmarkedPredDetZAB <- list()
+for (j in 1:length(bestModsFitListsZAB)) {
+  # state = occupancy
+  unmarkedPredOccZAB[[j]] <- unmarked::predict(bestModsFitListsZAB[[j]], type = 'state', new = df, appendData = TRUE)
+  # det = detection
+  unmarkedPredDetZAB[[j]] <- unmarked::predict(bestModsFitListsZAB[[j]], type = 'det', new = df, appendData = TRUE)
+  estimatedParameters[[j]] <- data.frame(avgOccupancy = mean(unmarkedPredOccZAB[[j]]$Predicted),
+                                         avgOccupancySE = mean(unmarkedPredOccZAB[[j]]$SE),
+                                         occupancyRange = range(unmarkedPredOccZAB[[j]]$Predicted),
+                                         avgDetection = mean(unmarkedPredDetZAB[[j]]$Predicted),
+                                         avgDetectionSE = mean(unmarkedPredDetZAB[[j]]$SE),
+                                         detectionRange = range(unmarkedPredDetZAB[[j]]$Predicted))
+}
+names(estimatedParameters) <- listTitlesZAB
+names(unmarkedPredOccZAB) <- listTitlesZAB
+names(unmarkedPredDetZAB) <- listTitlesZAB
+
+
+```
+
+```{r echo=FALSE}
+detOccZAB <- data.frame(Species = listTitlesZAB,
+           avgOccupancy = c(estimatedParameters[[listTitlesZAB[1]]]$avgOccupancy[1],
+                            estimatedParameters[[listTitlesZAB[2]]]$avgOccupancy[1],
+                            estimatedParameters[[listTitlesZAB[3]]]$avgOccupancy[1],
+                            estimatedParameters[[listTitlesZAB[4]]]$avgOccupancy[1]),
+           
+           avgOccupancySE = c(estimatedParameters[[listTitlesZAB[1]]]$avgOccupancySE[1],
+                            estimatedParameters[[listTitlesZAB[2]]]$avgOccupancySE[1],
+                            estimatedParameters[[listTitlesZAB[3]]]$avgOccupancySE[1],
+                            estimatedParameters[[listTitlesZAB[4]]]$avgOccupancySE[1]),
+           
+           avgDetection = c(estimatedParameters[[listTitlesZAB[1]]]$avgDetection[1],
+                            estimatedParameters[[listTitlesZAB[2]]]$avgDetection[1],
+                            estimatedParameters[[listTitlesZAB[3]]]$avgDetection[1],
+                            estimatedParameters[[listTitlesZAB[4]]]$avgDetection[1]),
+           
+           avgDetectionSE = c(estimatedParameters[[listTitlesZAB[1]]]$avgDetectionSE[1],
+                            estimatedParameters[[listTitlesZAB[2]]]$avgDetectionSE[1],
+                            estimatedParameters[[listTitlesZAB[3]]]$avgDetectionSE[1],
+                            estimatedParameters[[listTitlesZAB[4]]]$avgDetectionSE[1]))
+
+knitr::kable(detOccZAB, format="markdown", caption = "Zabalo occupancy and detection estimates")
+# save(detOccZAB, file = '../../Zabalo/Data/R Objects/detOccEstimatesZAB.RData')
+
+```
+
+
+\
+
+
+\
+
+
+### Estimate plotting
+```{r}
+# detOccZAB / detOccSGE for estimates and their standard errors
+# bestModsFitListsZAB / bestModsFitListsSGE for the original fitLists that were predicted
+# unmarkedPredDetZAB / unmarkedPredDetSGE for raw det/occ predictions across each site
+
+# throw into one df
+
+# Zabalo
+speciesNames <- c("Collared peccary", "Red brocket", "Lowland paca", "Grey-winged trumpeter")
+for (j in 1:length(speciesNames)) {
+  unmarkedPredDetZAB[[j]]$Species <- speciesNames[j]
+  unmarkedPredDetZAB[[j]]$Site <- 1:nrow(unmarkedPredDetZAB[[j]])
+  unmarkedPredDetZAB[[j]]$Type <- "Detection"
+  unmarkedPredDetZAB[[j]]$Community <- "Zábalo"
+
+  unmarkedPredOccZAB[[j]]$Species <- speciesNames[j]
+  unmarkedPredOccZAB[[j]]$Site <- 1:nrow(unmarkedPredOccZAB[[j]])
+  unmarkedPredOccZAB[[j]]$Type <- "Occupancy"
+  unmarkedPredOccZAB[[j]]$Community <- "Zábalo"
+
+  unmarkedPredDetSGE[[j]]$Species <- speciesNames[j]
+  unmarkedPredDetSGE[[j]]$Site <- 1:nrow(unmarkedPredDetSGE[[j]])
+  unmarkedPredDetSGE[[j]]$Type <- "Detection"
+  unmarkedPredDetSGE[[j]]$Community <- "Sinangoe"
+  
+  unmarkedPredOccSGE[[j]]$Species <- speciesNames[j]
+  unmarkedPredOccSGE[[j]]$Site <- 1:nrow(unmarkedPredOccSGE[[j]])
+  unmarkedPredOccSGE[[j]]$Type <- "Occupancy"
+  unmarkedPredOccSGE[[j]]$Community <- "Sinangoe"
+}
+
+
+occupancyEstimates <- rbind(
+  unmarkedPredOccZAB[['Collared peccary']][,c('Community', 'Site', 'Predicted', 'SE', 'lower', 'upper', 'Species')],
+  unmarkedPredOccZAB[['Lowland paca']][,c('Community', 'Site', 'Predicted', 'SE', 'lower', 'upper', 'Species')],
+  unmarkedPredOccZAB[['Grey-winged trumpeter']][,c('Community', 'Site', 'Predicted', 'SE', 'lower', 'upper', 'Species')],
+
+  unmarkedPredOccSGE[['Collared peccary']][,c('Community', 'Site', 'Predicted', 'SE', 'lower', 'upper', 'Species')],
+  unmarkedPredOccSGE[['Lowland paca']][,c('Community', 'Site', 'Predicted', 'SE', 'lower', 'upper', 'Species')],
+  unmarkedPredOccSGE[['Grey-winged trumpeter']][,c('Community', 'Site', 'Predicted', 'SE', 'lower', 'upper', 'Species')]
+  )
+save(occupancyEstimates, file = "../Data/R Objects/occupancyEstimates.RData")
+
+# work around to make x-axis labels with italics and divided into two lines
+peccary <- ~ atop(paste("Collared peccary"), paste("(", italic("Dicotyles tajacu"), ")"))
+paca <- ~ atop(paste("Lowland paca"), paste("(", italic("Cuniculus paca"), ")"))
+trumpeter <- ~ atop(paste("Grey-winged trumpeter"), paste("(", italic("Psophia crepitans"), ")"))
+
+# plot
+ggplot(occupancyEstimates, aes(x = factor(Species, levels = unique(Species)),
+                               y = Predicted,
+                               fill = factor(Community, levels = unique(Community)))) +
+  geom_boxplot(position = position_dodge(width = 0.8)) +
+  scale_fill_manual(values = c("darkorange", "deepskyblue")) +
+  labs(x = "Species", y = "Average occupancy probability") +
+  theme_classic() +
+  theme(text = element_text(family = "Times", colour = "black"),
+        axis.text = element_text(colour = "black"),
+        legend.title = element_blank(),
+        axis.title.x = element_blank()) +
+  scale_x_discrete(labels = c(peccary, paca, trumpeter))
+
+
+
+```
+
+
+
+
+
+
+
+
+
+

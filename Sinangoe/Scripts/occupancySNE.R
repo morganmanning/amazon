@@ -38,13 +38,12 @@ names(dfList) <- listTitles
 speciesNames <- listTitles
 save(speciesNames, file = './Data/R Objects/speciesNames.RData')
 
-# site covariates (scaled)
-siteCovariate <- data.frame(DistToComm = scale(stations$Community/1000))
-
 # stations info
 stations <- read.csv("Data/SGEStationsFormatted.csv")
 cameraRecords <- read.csv("Data/SGEIndependentRecordsFormatted.csv")
 
+# site covariates (scaled)
+siteCovariate <- data.frame(DistToComm = scale(stations$Community/1000))
 
 
 ############################################################################
@@ -129,6 +128,7 @@ for (i in 1:length(ufoList)) {
                # number of columns/time steps divided by the clumping factor, times 2
                "days)")) +
     ylab("Camera trap site") +
+    ggtitle(gsub('SGE', '', listTitles[i])) +
     theme_bw()
   ggsave(filename = gsub(" ", "", paste("clumped_", names(ufoList)[i], ".png")), 
          width = 8, height = 4, 
@@ -152,6 +152,7 @@ for (i in 1:length(unclumpedUFOList)) {
     coord_equal(expand = 0) +
     xlab("Time (1 unit = 2 days)") +
     ylab("Camera trap site") +
+    ggtitle(gsub('SGE', '', listTitles[i])) +
     theme_bw()
   ggsave(filename = gsub(" ", "", paste("rawDetection_", names(unclumpedUFOList)[i], ".png")), 
          width = 8, height = 4, 
@@ -360,6 +361,10 @@ for (j in 1:length(bestModsFitLists)) {
 }
 names(commPredictions) <- listTitles
 save(commPredictions, file = './Data/R Objects/commPredictions.RData')
+
+
+
+
 
 
 

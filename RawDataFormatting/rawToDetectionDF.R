@@ -24,17 +24,18 @@ require(lubridate)
 # Siona = SNA
 # Siekopai = SKP
 # Zabalo = ZAB
-community <- "Siekopai"
-communityAbrv <- "SKP"
+community <- "Sinangoe"
+communityAbrv <- "SGE"
 Data <- read.csv(paste0(community, "/", communityAbrv, "IndependentRecordsFormatted.csv")) # just independent records
 Traps <- read.csv(paste0(community, "/", communityAbrv, "StationsFormatted.csv")) 
 Data$DateTimeOriginal <- parse_date_time(Data$DateTimeOriginal, c("%Y-%m-%d", "%Y-%m-%d %H:%M:%S"))
 
 ##### Pick species of interest
-species <- c("Cuniculus paca", "Mazama americana", "Dicotyles tajacu")
+species <- c("Cuniculus paca", "Mazama americana", "Dicotyles tajacu", "Psophia crepitans")
 # paca = Cuniculus paca
 # brocket = Mazama americana
 # collared peccary = Dicotyles tajacu 
+# trumpeter = Psophia crepitans
 # brown four-eyed possum = Metachirus nudicaudatus (#1 species in SGE)
 # black agouti = Dasyprocta fuliginosa (#2 species in SGE)
 
