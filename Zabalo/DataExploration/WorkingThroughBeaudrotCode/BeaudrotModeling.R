@@ -48,7 +48,7 @@ paca <- read.csv("Paca.csv")
 paca <- data.frame(paca[,-1], row.names=paca[,1]) #rownames = stations
 
 occupancyList <- list(Pecari_tajacu = peccary,
-                      Cervus_elaphus = deer,
+                      Mazama_americana = deer,
                       Cuniculus_paca = paca)
 
 
