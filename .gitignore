@@ -2,4 +2,4 @@
 *.Rhistory
 .Rhistory
 *.RData
-.Rdata
+.RData
