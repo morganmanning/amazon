@@ -1,3 +1,5 @@
-# ignore Rhistory files
+# ignore these types of files
 *.Rhistory
 .Rhistory
+*.RData
+.Rdata
