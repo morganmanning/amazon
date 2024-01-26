@@ -38,13 +38,13 @@ best_clumping_factor <- function(occupancyData){
   for (i in 1:(ncol)) { # for every possible clumping factor i, make a clumped matrix
     clumpingFactor <- i
     nClumpedColumns <- ncol/clumpingFactor
-    clumpedMatrix <- matrix(0, ncol = nClumpedColumns, nrow = 30) # bc there are 30 stations
+    clumpedMatrix <- matrix(0, ncol = nClumpedColumns, nrow = nrow(occupancyData))
     
     clumpStart <- seq(1, ncol, by = clumpingFactor) # the first column in the clump
     clumpEnd <- seq(clumpingFactor, ncol, by = clumpingFactor) # the last column in the clump
     
     ### make the clumped matrix
-    for (k in 1:30){
+    for (k in 1:nrow(clumpedMatrix)){
       for (j in 1:ncol(clumpedMatrix)){
         if(all(is.na(y[k, clumpStart[j]:clumpEnd[j]])) == TRUE) {
           clumpedMatrix[k,j] <- NA

@@ -7,7 +7,7 @@ rm(list = ls())
 # notes:
 
 
-setwd("~/Documents/amazon/RawDataFormatting")
+setwd("~/Documents/amazon")
 
 library(openxlsx)
 library(camtrapR)
@@ -24,10 +24,10 @@ require(lubridate)
 # Siona = SNA
 # Siekopai = SKP
 # Zabalo = ZAB
-community <- "Sinangoe"
-communityAbrv <- "SGE"
-Data <- read.csv(paste0(community, "/", communityAbrv, "IndependentRecordsFormatted.csv")) # just independent records
-Traps <- read.csv(paste0(community, "/", communityAbrv, "StationsFormatted.csv")) 
+community <- "Siona"
+communityAbrv <- "SNA"
+Data <- read.csv(paste0(community, "/Data/", communityAbrv, "IndependentRecordsFormatted.csv")) # just independent records
+Traps <- read.csv(paste0(community, "/Data/", communityAbrv, "StationsFormatted.csv")) 
 Data$DateTimeOriginal <- parse_date_time(Data$DateTimeOriginal, c("%Y-%m-%d", "%Y-%m-%d %H:%M:%S"))
 
 ##### Pick species of interest
@@ -89,7 +89,7 @@ DetHis = detectionHistory(recordTable = Data,
 justDetHis <- DetHis[["detection_history"]]
 
 write.csv(justDetHis, 
-          paste0("../", community, "/Data/", communityAbrv, gsub(" ", "", species[i]), ".csv"), 
+          paste0(community, "/Data/", communityAbrv, gsub(" ", "", species[i]), ".csv"), 
           row.names=T)
 }
 

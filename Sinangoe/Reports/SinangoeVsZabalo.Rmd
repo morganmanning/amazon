@@ -1,5 +1,5 @@
 ---
-title: "Sinangoe vs. Zabalo"
+title: "Sinangoe vs. Zábalo"
 author: "Morgan Manning"
 date: "2023-11-10"
 output:
@@ -10,7 +10,7 @@ editor_options:
     wrap: 72
 ---
 
-# Sinangoe versus Zabalo
+# Sinangoe versus Zábalo
 
 
 
@@ -305,7 +305,7 @@ names(bestOfTheBestSGE) <- listTitlesSGE
 
 
 
-```{r Zabalo, include = FALSE}
+```{r Zábalo, include = FALSE}
 speciesDFs <- c(
   "ZABDicotylestajacu.csv",
   "ZABMazamaamericana.csv",
@@ -327,7 +327,7 @@ listTitlesZAB <- c("Collared peccary", "Red brocket", "Lowland paca", "Grey-wing
 names(dfList) <- listTitlesZAB
 speciesNames <- listTitlesZAB
 
-# Zabalo occupancy covariates
+# Zábalo occupancy covariates
 load('../../Zabalo/Data/R Objects/siteCovs2018.RData')
 siteCovariateZAB <- siteCovariate
 
@@ -642,7 +642,7 @@ indivRecordsSKP <- read.csv("../../Siekopai/Data/SKPIndependentRecordsFormatted.
 
 ## Timeframe
 
-In Zabalo, camera trapping commenced on `r min(indivRecordsZAB$Date)`
+In Zábalo, camera trapping commenced on `r min(indivRecordsZAB$Date)`
 and ended on `r max(indivRecordsZAB$Date)`, spanning
 `r as.numeric(as.Date(max(indivRecordsZAB$Date)) - as.Date(min(indivRecordsZAB$Date)))`
 days. As for Sinangoe, trapping began on
@@ -657,7 +657,7 @@ days.
 
 ## Consolidating time steps
 The following plots show unconsolidated versus consolidated time steps
-for three species in Sinangoe and in Zabalo.
+for three species in Sinangoe and in Zábalo.
 
 ### Sinangoe
 
@@ -669,9 +669,9 @@ plot(unclumpPlotListSGE[[1]]); plot(unclumpPlotListSGE[[2]]); plot(unclumpPlotLi
 
 \
 
-### Zabalo
+### Zábalo
 
-```{r plot Zabalo clumped vs unclumped, echo=FALSE, fig.show="hold", out.width="25%"}
+```{r plot Zábalo clumped vs unclumped, echo=FALSE, fig.show="hold", out.width="25%"}
 par( mfrow= c(4, 2) )
 plot(unclumpPlotListZAB[[1]]); plot(unclumpPlotListZAB[[2]]); plot(unclumpPlotListZAB[[3]]); plot(unclumpPlotListZAB[[4]]); plot(clumpPlotListZAB[[1]]); plot(clumpPlotListZAB[[2]]); plot(clumpPlotListZAB[[3]]); plot(clumpPlotListZAB[[4]])
 
@@ -687,13 +687,13 @@ plot(unclumpPlotListZAB[[1]]); plot(unclumpPlotListZAB[[2]]); plot(unclumpPlotLi
 
 ## Top species
 
-### Zabalo
+### Zábalo
 
 ```{r, echo=FALSE}
 # explore total detections
 total <- data.frame(table(indivRecordsZAB$Species)) # number of detections / species
 colnames(total) <- c("Species", "Total")
-knitr::kable(head(total[order(-total$Total),], 15), format="markdown", caption = "Zabalo Species")
+knitr::kable(head(total[order(-total$Total),], 15), format="markdown", caption = "Zábalo Species")
 ```
 
 
@@ -718,13 +718,13 @@ knitr::kable(head(total[order(-total$Total),], 15), format="markdown", caption =
 ## Occupancy modeling
 
 Proceeding with all models for Sinangoe and models without missing
-estimates or disproportionately large standard errors for Zabalo.
+estimates or disproportionately large standard errors for Zábalo.
 
 \
 
-### Zabalo
+### Zábalo
 
-```{r Zabalo models, echo=FALSE}
+```{r Zábalo models, echo=FALSE}
 # OUTPUT:
   # bestModsFitListsZAB
   # topModelsZAB
@@ -817,7 +817,7 @@ bestOfTheBestSGE[[4]]@estimates
 ## Diversity and richness
 
 #### Species richness
-Zabalo and Sinangoe had `r (nrow(data.frame(table(indivRecordsZAB$Species)))-1)` and `r (nrow(data.frame(table(indivRecordsSGE$Species)))-1)` total species, respectively, with Menhinick's species richness indices of `r round((nrow(data.frame(table(indivRecordsZAB$Species)))-1)/(sqrt(sum(data.frame(table(indivRecordsZAB$Species))[,2]))), 3)` and `r round((nrow(data.frame(table(indivRecordsSGE$Species)))-1)/(sqrt(sum(data.frame(table(indivRecordsSGE$Species))[,2]))), 3)`. 
+Zábalo and Sinangoe had `r (nrow(data.frame(table(indivRecordsZAB$Species)))-1)` and `r (nrow(data.frame(table(indivRecordsSGE$Species)))-1)` total species, respectively, with Menhinick's species richness indices of `r round((nrow(data.frame(table(indivRecordsZAB$Species)))-1)/(sqrt(sum(data.frame(table(indivRecordsZAB$Species))[,2]))), 3)` and `r round((nrow(data.frame(table(indivRecordsSGE$Species)))-1)/(sqrt(sum(data.frame(table(indivRecordsSGE$Species))[,2]))), 3)`. 
 
 \
 
@@ -840,7 +840,7 @@ siteDiversitySGE <- siteDiversitySGE %>%
             shannonDiversity = -sum((abundance/sum(abundance))*log(abundance/sum(abundance))),
             simpsonDiversity = 1-sum((abundance/sum(abundance))^2))
 
-# Zabalo
+# Zábalo
 siteDiversityZAB <- noUnknownsZAB %>%
   group_by(Station, Species) %>%
   summarise(abundance = n()) 
@@ -885,7 +885,7 @@ wholeDiversitySGE <- noUnknownsSGE %>%
 wholeDiversityZAB <- noUnknownsZAB %>%
   group_by(Species) %>%
   summarise(abundance = n()) %>%
-  mutate(Community = "Zabalo")
+  mutate(Community = "Zábalo")
 wholeDiversitySNA <- noUnknownsSNA %>%
   group_by(Species) %>%
   summarise(abundance = n()) %>%
@@ -904,7 +904,7 @@ communityDiversity <- communityAbundance %>%
             simpsonIndex = 1-sum((abundance/sum(abundance))^2))
 
 ```
-Among Sinangoe stations, the Shannon Diversity Index ranged from `r round(min(siteDiversitySGE$shannonDiversity), 3)` to `r round(max(siteDiversitySGE$shannonDiversity), 3)`. Among Zabalo stations, the Shannon Diversity Index ranged from `r round(min(siteDiversityZAB$shannonDiversity), 3)` to `r round(max(siteDiversityZAB$shannonDiversity), 3)`. Among Siona stations, the Shannon Diversity Index ranged from `r round(min(siteDiversitySNA$shannonDiversity), 3)` to `r round(max(siteDiversitySNA$shannonDiversity), 3)`.
+Among Sinangoe stations, the Shannon Diversity Index ranged from `r round(min(siteDiversitySGE$shannonDiversity), 3)` to `r round(max(siteDiversitySGE$shannonDiversity), 3)`. Among Zábalo stations, the Shannon Diversity Index ranged from `r round(min(siteDiversityZAB$shannonDiversity), 3)` to `r round(max(siteDiversityZAB$shannonDiversity), 3)`. Among Siona stations, the Shannon Diversity Index ranged from `r round(min(siteDiversitySNA$shannonDiversity), 3)` to `r round(max(siteDiversitySNA$shannonDiversity), 3)`.
 Among Siekopai stations, the Shannon Diversity Index ranged from `r round(min(siteDiversitySKP$shannonDiversity), 3)` to `r round(max(siteDiversitySKP$shannonDiversity), 3)`.
 
 ```{r echo=FALSE}
@@ -987,7 +987,7 @@ plot(commPlots[[1]]) ; plot(commPlots[[2]]) ; plot(commPlots[[3]]) ; plot(commPl
 ```
 
 
-### Zabalo
+### Zábalo
 ```{r include=FALSE}
 speciesNames <- listTitlesZAB
 ############### TRAIL DISTANCE ##################
@@ -1179,7 +1179,7 @@ knitr::kable(detOccSGE, format="markdown", caption = "Sinangoe occupancy and det
 
 
 
-### Zabalo
+### Zábalo
 ```{r include=FALSE}
 ###### average occupancy and detection across sites
 # Model-averaged prediction of occupancy and confidence interval
@@ -1235,7 +1235,7 @@ detOccZAB <- data.frame(Species = listTitlesZAB,
                             estimatedParameters[[listTitlesZAB[3]]]$avgDetectionSE[1],
                             estimatedParameters[[listTitlesZAB[4]]]$avgDetectionSE[1]))
 
-knitr::kable(detOccZAB, format="markdown", caption = "Zabalo occupancy and detection estimates")
+knitr::kable(detOccZAB, format="markdown", caption = "Zábalo occupancy and detection estimates")
 # save(detOccZAB, file = '../../Zabalo/Data/R Objects/detOccEstimatesZAB.RData')
 
 ```
@@ -1255,7 +1255,7 @@ knitr::kable(detOccZAB, format="markdown", caption = "Zabalo occupancy and detec
 
 # throw into one df
 
-# Zabalo
+# Zábalo
 speciesNames <- c("Collared peccary", "Red brocket", "Lowland paca", "Grey-winged trumpeter")
 for (j in 1:length(speciesNames)) {
   unmarkedPredDetZAB[[j]]$Species <- speciesNames[j]
