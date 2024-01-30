@@ -14,6 +14,7 @@ require(unmarked)
 require(dplyr)
 require(ggplot2)
 require(reshape2)
+require(rphylopic)
 
 
 # input
@@ -23,7 +24,7 @@ communitiesAbrv <- c("SGE", "SNA", "SKP", "ZAB")
   # Siona = SNA
   # Siekopai = SKP
   # Zabalo = ZAB
-speciesNames <- c("Cuniculus paca", "Mazama americana", "Dicotyles tajacu", "Psophia crepitans")
+speciesNames <- c("Dicotyles tajacu", "Mazama americana", "Cuniculus paca", "Psophia crepitans")
 commonNames <- c("Collared peccary", "Red brocket", "Lowland paca", "Grey-winged trumpeter") # listTitles
   # paca = Cuniculus paca
   # brocket = Mazama americana
@@ -31,6 +32,7 @@ commonNames <- c("Collared peccary", "Red brocket", "Lowland paca", "Grey-winged
   # trumpeter = Psophia crepitans
   # brown four-eyed possum = Metachirus nudicaudatus (#1 species in SGE)
   # black agouti = Dasyprocta fuliginosa (#2 species in SGE)
+
 
 
 ################################################################################
@@ -471,6 +473,102 @@ names(masterEstimatedParameters) <- communities
 names(masterUnmarkedPredOcc) <- communities
 names(masterUnmarkedPredDet) <- communities
 
+
+################################################################################
+############################## PLOT ESTIMATES ##################################
+################################################################################
+
+communitiesAccent <- gsub(pattern = "Zabalo", replacement = "Zábalo", communities)
+speciesNames
+masterEstimatedParameters[[1]]
+
+# make a dataframe for facilitated plotting
+estimates <- data.frame(Community = rep(communitiesAccent, each = length(speciesNames)),
+                        Species = rep(speciesNames, times = length(communitiesAccent)),
+                        CommonNames = rep(commonNames, times = length(communitiesAccent)),
+                        avgOccupancy = NA,
+                        avgOccupancySE = NA,
+                        avgOccupancySEManual = NA,
+                        avgOccupancySD = NA,
+                        avgDetection = NA,
+                        avgDetectionSE = NA,
+                        avgDetectionSEManual = NA,
+                        avgDetectionSD = NA)
+for (i in 1:length(communitiesAccent)) {
+  for (j in 1:length(speciesNames)){
+    row <- estimates$Community == communitiesAccent[i] & estimates$Species == speciesNames[j]
+    estimates[row, "avgOccupancy"] <- masterEstimatedParameters[[i]][[j]]$avgOccupancy[1]
+    estimates[row, "avgOccupancySE"] <- masterEstimatedParameters[[i]][[j]]$avgOccupancySE[1]
+    #estimates[row, "avgOccupancySEManual"] <- sd(masterUnmarkedPredOcc[[i]][[j]]$Predicted)/sqrt(nrow(masterUnmarkedPredOcc[[i]][[j]]))
+    #estimates[row, "avgOccupancySD"] <- sd(masterUnmarkedPredOcc[[i]][[j]]$Predicted)
+    estimates[row, "avgDetection"] <- masterEstimatedParameters[[i]][[j]]$avgDetection[1]
+    estimates[row, "avgDetectionSE"] <- masterEstimatedParameters[[i]][[j]]$avgDetectionSE[1]
+    #estimates[row, "avgDetectionSEManual"] <- sd(masterUnmarkedPredDet[[i]][[j]]$Predicted)/sqrt(nrow(masterUnmarkedPredDet[[i]][[j]]))
+    #estimates[row, "avgDetectionSD"] <- sd(masterUnmarkedPredDet[[i]][[j]]$Predicted)
+  }
+}
+
+
+
+
+
+
+
+################################################################################
+################################################################################
+################## THINGS ARE NOT AUTOMATED FROM HERE!!! #######################
+######################## REQUIRES MANUAL INPUT!!! ##############################
+################################################################################
+################################################################################
+
+########## MANUALLY MAKE X-AXIS LABELS FOR EACH SPECIES: ENSURE IN CORRECT ORDER 
+# work around to make x-axis labels with italics and divided into two lines
+peccary <- ~ atop(paste("Collared peccary"), paste("(", italic("Dicotyles tajacu"), ")"))
+brocket <- ~ atop(paste("Red brocket"), paste("(", italic("Mazama americana"), ")"))
+paca <- ~ atop(paste("Lowland paca"), paste("(", italic("Cuniculus paca"), ")"))
+trumpeter <- ~ atop(paste("Grey-winged trumpeter"), paste("(", italic("Psophia crepitans"), ")"))
+
+#### in the correct order???
+speciesNames
+
+########## MANUALLY INPUT X-AXIS LABELS IN THE CORRECT ORDER
+# plot it
+dodge <- position_dodge(width = 0.3)
+plot <- ggplot(estimates, aes(x = Species,
+                           y = avgOccupancy,
+                           color = Community)) +
+  geom_point(aes(color = Community), position = dodge, size = 2.5) +
+  geom_errorbar(aes(ymin = avgOccupancy - avgOccupancySE, 
+                    ymax = avgOccupancy + avgOccupancySE, 
+                    color = Community), 
+                position = dodge, width = 0.2, linewidth = 1) +
+  scale_color_manual(values = c("darkorange", "royalblue", "green3", "yellow3")) +
+  scale_x_discrete(labels = c(peccary, brocket, paca, trumpeter)) +
+  labs(x = "Species", y = "Probability of Occupancy") +
+  ylim(c(0,1)) +
+  theme_classic() +
+  theme(text = element_text(family = "Times", colour = "black"),
+        axis.text = element_text(colour = "black"),
+        legend.title = element_blank(),
+        axis.title.x = element_blank(), 
+        legend.position="top")
+#plot
+
+# add animal silhouettes 
+peccPic <- get_phylopic(uuid = get_uuid(name = "Dicotyles tajacu", n = 1))
+brockPic <- get_phylopic(uuid = get_uuid(name = "Mazama americana", n = 1))
+pacaPic <- get_phylopic(uuid = get_uuid(name = "Cuniculus paca", n = 1))
+trumpPic <- get_phylopic(uuid = get_uuid(name = "Psophia crepitans", n = 1))
+
+# plot the animal silhouettes
+plot + 
+  add_phylopic(peccPic, alpha = 0.2, x = 1.0, y = 0.10, ysize = 0.25) +
+  add_phylopic(brockPic, alpha = 0.2, x = 2.0, y = 0.19, ysize = 0.45) +
+  add_phylopic(pacaPic, alpha = 0.2, x = 3.0, y = 0.10, ysize = 0.25) +
+  add_phylopic(trumpPic, alpha = 0.2, x = 4.0, y = 0.19, ysize = 0.45)
+
+# save it
+ggsave(filename = "Global/AllCommunitiesOccupancyEstimates.tiff", width = 8, height = 4)
 
 
 

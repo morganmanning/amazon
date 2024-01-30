@@ -29,6 +29,7 @@ speciesDFs <- c(
   "SGECuniculuspaca.csv",
   "SGEPsophiacrepitans.csv")
 
+
 # read in all .csv files and remove any ID rows or columns 
 dfList <- list()
 for (i in 1:length(speciesDFs)) {
@@ -40,6 +41,7 @@ for (i in 1:length(speciesDFs)) {
 # name dfs after their associated species
 # listTitlesSGE <- gsub('.csv', '', speciesDFs)
 listTitlesSGE <- c("Collared peccary", "Red brocket", "Lowland paca", "Grey-winged trumpeter")
+
 names(dfList) <- listTitlesSGE
 speciesNames <- listTitlesSGE
 
@@ -1166,7 +1168,6 @@ detOccSGE <- data.frame(Species = listTitlesZAB,
                             estimatedParameters[[listTitlesZAB[2]]]$avgDetectionSE[1],
                             estimatedParameters[[listTitlesZAB[3]]]$avgDetectionSE[1],
                             estimatedParameters[[listTitlesZAB[4]]]$avgDetectionSE[1]))
-
 knitr::kable(detOccSGE, format="markdown", caption = "Sinangoe occupancy and detection estimates")
 # save(detOccSGE, file = "../Data/R Objects/detOccEstimatesSGE.RData")
 
