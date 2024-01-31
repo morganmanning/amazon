@@ -3,8 +3,8 @@
 ############# OCCUPANCY ESTIMATES ACROSS COMMUNITIES AND SPECIES ###############
 ################################################################################
 
-# mission: 
-# requirements: 
+# mission: plot estimates for each species in each community
+# requirements: Siona and Siekopai have no covariates at this point
 
 setwd("~/Documents/amazon")
 
