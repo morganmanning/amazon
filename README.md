@@ -39,7 +39,8 @@ Scripts:
   
 
 
-Chapter 3 Schedule
+
+***Chapter 3 Schedule***
 | Week | Date | Task Due | Meeting Topic |
 | --- | --- | --- | --- |
 | 1 | February 8 | Pull questions from literature | Yay or nay questions/question topics |
