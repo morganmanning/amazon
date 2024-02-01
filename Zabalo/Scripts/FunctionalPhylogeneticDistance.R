@@ -1,6 +1,6 @@
 
 ##### CALCULATE FUNCTIONAL DIVERSITY #####
-
+setwd("/Users/morganmanning/Documents/amazon/Zabalo/Data")
 # load data
 peccary <- read.csv("CollaredPeccary.csv")
 peccary <- data.frame(peccary[,-1], row.names=peccary[,1]) #rownames = stations
@@ -24,7 +24,7 @@ pacaOccupancy <- pacaOccupancy[ order(as.numeric(row.names(pacaOccupancy))), ] #
 
 # occupancy covariates
 siteCovariate = read.csv("siteCovs2018.csv")
-siteCovariate$Station <- as.factor(siteCovariate$Station)
+siteCovariate$Station <- as.factor(siteCovariate$X)
 siteCovariate$Hunting <- as.factor(siteCovariate$Hunting)
 siteCovariate$Habitat <- as.factor(siteCovariate$Habitat)
 siteCovariate$Community <- siteCovariate$Community/1000
@@ -58,7 +58,11 @@ traits <- pantheria %>%
          ActivityCycle, # (1) nocturnal only, (2) nocturnal/crepuscular, cathemeral, crepuscular or diurnal/crepuscular and (3) diurnal only
          TrophicLevel, # (1) herbivore (not vertebrate and/or invertebrate), (2) omnivore (vertebrate and/or invertebrate plus any of the other categories) and (3) carnivore (vertebrate and/or invertebrate only)
          HabitatBreadth, # number of habitats used: above ground dwelling, aquatic, fossorial and ground dwelling
-         DietBreadth) # number of diets used: vertebrate, invertebrate, fruit, flowers/nectar/pollen, leaves/branches/bark, seeds, grass and roots/tubers
+         DietBreadth, # number of diets used: vertebrate, invertebrate, fruit, flowers/nectar/pollen, leaves/branches/bark, seeds, grass and roots/tubers
+         Order,
+         Family,
+         Genus,
+         Species)
 
 # reclassify factors
 traits$TrophicLevel <- ifelse(traits$TrophicLevel == 1, 'herbivore', 
@@ -81,6 +85,52 @@ FDist <- as.matrix(gowdis(traits))
 
 
 FDist[,c('Pecari_tajacu','Mazama_gouazoubira', 'Cuniculus_paca')]
+
+# export large matrix of similarity
+save(FDist, file = 'FuntionalDistance.RData')
+
+
+
+
+# look at the nearest five animals
+nSimilar <- 5
+
+# pull the most similar 5 animals for each animal and put it in a df
+mostSimilar <- data.frame()
+for (i in 1:ncol(FDist)){
+  speciesOfInterest <- data.frame(species = colnames(FDist)[i],
+                                  nearest = rownames(FDist),
+                                  functionalDist = FDist[,i])
+  speciesOfInterest <- speciesOfInterest[order(speciesOfInterest$functionalDist, 
+                                               decreasing = FALSE),] 
+  speciesOfInterestTop <- speciesOfInterest[2:(nSimilar+1),] # don't pull comparison of same spp.
+  mostSimilar <- rbind(mostSimilar, speciesOfInterestTop)
+}
+rownames(mostSimilar) <- 1:nrow(mostSimilar)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # # Only keep the animals of interest
@@ -230,7 +280,7 @@ phylo_names1 <- as.character(phylo_names$sp)
 # focalSpecies <- data.frame(sp = c('Pecari_tajacu', 'Cervus_elaphus', 'Cuniculus_paca'))
 
 # all combinations of species
-focalSpecies <- c('Pecari_tajacu', 'Mazama_gouazoubira', 'Cuniculus_paca')
+focalSpecies <- c('Pecari_tajacu', 'Mazama_americana', 'Cuniculus_paca')
 
 combos <- data.frame(Species1 = rep(focalSpecies, each = length(focalSpecies)),
                      Species2 = rep(focalSpecies, times = length(focalSpecies)))
@@ -277,6 +327,103 @@ for (i in 1:nrow(FPDistMatrix)) {
     
   }
 }
+
+
+# distance matrix with all species
+# all unique species 
+allSpecies <- unique(c(colnames(FDist), colnames(PDist)))
+FPDistMatrix <- matrix(NA, ncol = length(allSpecies), nrow = length(allSpecies))
+
+rownames(FPDistMatrix) <- allSpecies
+colnames(FPDistMatrix) <- allSpecies
+
+# goal: make a matrix with FPDist for each species
+
+for (i in 1:ncol(FPDistMatrix)){
+  
+  a <- 0.5 # based on https://onlinelibrary.wiley.com/doi/full/10.1111/geb.12908
+  p <- 2 # based on https://onlinelibrary.wiley.com/doi/full/10.1111/geb.12908
+  
+  columnAnimal <- colnames(FPDistMatrix)[i]
+  if (any(colnames(PDist) == columnAnimal)){ # make sure PDist has the animal in question
+    if (any(colnames(FDist) == columnAnimal)) { # if both datasets have the animal in question
+      
+      
+      
+      for (j in 1:nrow(FPDistMatrix)){
+        rowAnimal <- rownames(FPDistMatrix)[j]
+        
+        if (any(colnames(PDist) == rowAnimal)){ # make sure PDist has the animal in question
+          if (any(colnames(FDist) == rowAnimal)) { # if both datasets have the animal in question
+            
+            phylogeneticDistance <- PDist[rowAnimal, columnAnimal]
+            functionalDistance <- FDist[rowAnimal, columnAnimal]
+            
+            FPDistMatrix[rowAnimal, columnAnimal] <- ((a*(phylogeneticDistance^p)) + ((1-a)*(functionalDistance^p)))^(1/p)
+          
+            } else next
+          } else next
+        }  # closes j for loop
+        
+      
+      
+      
+      } else next
+    } else next
+  }  # closes i for loop
+  
+  
+  
+
+
+
+
+
+
+
+
+
+
+
+for (i in 1:nrow(FPDistMatrix)) {
+  rowAnimal <- rownames(FPDistMatrix)[i]
+  if (i %% 5000){
+    print(paste(i, "out of", nrow(FPDistMatrix, ":)")))
+  }
+  for (j in 1:ncol(FPDistMatrix)){
+    columnAnimal <- colnames(FPDistMatrix)[j]
+    a <- 0.5 # based on https://onlinelibrary.wiley.com/doi/full/10.1111/geb.12908
+    p <- 2 # based on https://onlinelibrary.wiley.com/doi/full/10.1111/geb.12908
+    
+    if (any(colnames(PDist) == rowAnimal) & 
+        any(colnames(PDist) == columnAnimal) &
+        any(colnames(FDist) == rowAnimal) &
+        any(colnames(FDist) == columnAnimal)){
+      
+      phylogeneticDistance <- PDist[rowAnimal, columnAnimal]
+      functionalDistance <- FDist[rowAnimal, columnAnimal]
+      
+      FPDistMatrix[i,j] <- ((a*(phylogeneticDistance^p)) + ((1-a)*(functionalDistance^p)))^(1/p)
+      
+      
+      
+    } else next
+    
+  }
+}
+save(FPDistMatrix, file = 'allSpeciesFPDist.RData')
+
+
+
+
+
+
+
+
+
+
+
+
 
 # make a list of biotic / FP distances for modeling
 
