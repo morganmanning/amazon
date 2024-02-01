@@ -1,27 +1,6 @@
 
-***Chapter 3 Schedule***
-| Week | Date | Task Due | Meeting Topic |
-| --- | --- | --- | --- |
-| 1 | February 8 | Pull questions from literature | Yay or nay questions/question topics |
-| 2 | February 15 | First very rough draft to MA | Discuss draft |
-| 3 | February 22 | Second less rough draft to MA | Discuss draft |
-| 4 | February 29 | Possible third least rough draft to MA | Discuss draft |
-| 5 | March 7 | First round of edits to GR | |
-| 6 | March 14 | Revise per GR edits and pass to MA | Discuss GR edits |
-| 7 | March 21 | Revise per MA edits | |
-| 8 | March 28 | Second round of edits to GR and MA | |
-| 9 | April 4 | Revise | Discuss final GR edits |
-| 10 | April 11 | Final touches and formatting | Final sign off on format |
-| 11 | April 18 | Give the survey | |
-| 12 | April 25 | Remind about the survey | | 
 
-
-
-
-
-
-
-Timeframe:
+**Timeframe:**
 - Zabalo: 2018-07-03 - 2018-10-09
 - Siekopai: 2022-07-14 - 2022-11-24
 - Siona: 2022-07-27 - 2022-11-25
@@ -29,7 +8,7 @@ Timeframe:
 
 
 
-Data:
+**Data:**
 - 'CollaredPeccary.csv': detection matrix for Pecari tajacu by Michael Esbach pulled from the Zabalo Google Drive
 - 'Deer.csv': detection matrix for Mazama americana by Michael Esbach pulled from the Zabalo Google Drive
 - 'Paca.csv': detection matrix for Cuniculus paca by Michael Esbach pulled from the Zabalo Google Drive
@@ -43,7 +22,7 @@ Data:
 
 
 
-Scripts:
+**Scripts:**
 - 'assessTemporalIndependence.R': function to assess temporal independence between camera trap detections (written by Michael Esbach)
 - 'formattingRawDates.R': pulls in raw camera trap records (e.g. ZABIndependentRecords.csv) and camera station (e.g. ZABStations.csv) information to standardize date format
 - 'rawToDetectionDF.R': imports camera trap data after date standardization and outputs detection history matrices per species using 'camtrapR' (imported data must include camera operability)
