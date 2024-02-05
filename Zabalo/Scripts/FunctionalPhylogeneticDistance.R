@@ -363,13 +363,12 @@ write.csv(data.frame(records), file = "Global/listOfSpecies.csv")
 traitsPHYLACINE <- read.csv("../../Global/Data/Trait_data.csv") # https://github.com/MegaPast2Future/PHYLACINE_1.2?tab=readme-ov-file
 colnames(traitsPHYLACINE)
 # Mass.g
+require(dplyr)
 
-
-c("Terrestrial", "Marine", "Freshwater", "Aerial")
-c("Diet.Plant", "Diet.Vertebrate", "Diet.Invertebrate")
-c("Order.1.2", "Family.1.2")
-
-
+traits$ActivityCycle
+traitsPHYLACINE[,c("Terrestrial", "Marine", "Freshwater", "Aerial",
+                   "Diet.Plant", "Diet.Vertebrate", "Diet.Invertebrate",
+                   "Order.1.2", "Family.1.2")]
 
 
 
