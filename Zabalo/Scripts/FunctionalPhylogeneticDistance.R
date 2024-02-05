@@ -74,7 +74,11 @@ traits$DietBreadth <- as.factor(traits$DietBreadth)
 traits$ActivityCycle <- as.factor(traits$ActivityCycle)
 traits$TrophicLevel <- as.factor(traits$TrophicLevel)
 str(traits)
+write.csv(traits, "Global/Data/animalTraits.csv")
 
+
+
+############## FDIST ##################
 # check out the animals of interest
 (check <- traits[rownames(traits) == 'Pecari_tajacu' | 
                    rownames(traits) == 'Mazama_gouazoubira' | 
@@ -329,61 +333,80 @@ for (i in 1:nrow(FPDistMatrix)) {
 }
 
 
-# distance matrix with all species
+# distance matrix with all species at the sites
+setwd("~/Documents/amazon")
+
+##### Pick a community
+# Sinangoe = SGE
+# Siona = SNA
+# Siekopai = SKP
+# Zabalo = ZAB
+SNArecords <- read.csv("Siona/Data/SNAIndependentRecordsFormatted.csv") # just independent records
+ZABrecords <- read.csv("Zabalo/Data/ZABIndependentRecordsFormatted.csv") # just independent records
+SGErecords <- read.csv("Sinangoe/Data/SGEIndependentRecordsFormatted.csv") # just independent records
+SKPrecords <- read.csv("Siekopai/Data/SKPIndependentRecordsFormatted.csv") # just independent records
+records <- rbind(SNArecords[,c("Species","Station")], 
+                 SGErecords[,c("Species","Station")], 
+                 ZABrecords[,c("Species","Station")], 
+                 SKPrecords[,c("Species","Station")])
+sum(records$Species== "Mazama sp.")
+records <- unique(records$Species)
+records <- records[! records %in% c("N/D N/D", "NAN NAN", "NA NA")] # remove N/D N/D, NAN NAN, NA NA
+write.csv(data.frame(records), file = "Global/listOfSpecies.csv")
+records <- data.frame(gsub(" ", "_", records))
+write.csv(data.frame(records), file = "Global/listOfSpecies.csv")
+
+
+
+
+#### MAKE MASTER TRAIT DATASET FOR SPECIES IN COMMUNITIES
+traitsPHYLACINE <- read.csv("../../Global/Data/Trait_data.csv") # https://github.com/MegaPast2Future/PHYLACINE_1.2?tab=readme-ov-file
+colnames(traitsPHYLACINE)
+# Mass.g
+
+
+c("Terrestrial", "Marine", "Freshwater", "Aerial")
+c("Diet.Plant", "Diet.Vertebrate", "Diet.Invertebrate")
+c("Order.1.2", "Family.1.2")
+
+
+
+
+
+# N/D N/D, NAN NAN, NA NA
+communitySpp <- matrix(NA, nrow = length(records), ncol = length(records))
+rownames(communitySpp) <- records
+colnames(communitySpp) <- records
+test <- data.frame(sort(rownames(FDist)))
+
+for (i in 1:nrow(communitySpp)) {
+  for (j in 1:ncol(communitySpp)){
+    a <- 0.5 # based on https://onlinelibrary.wiley.com/doi/full/10.1111/geb.12908
+    p <- 2 # based on https://onlinelibrary.wiley.com/doi/full/10.1111/geb.12908
+    
+    if (any(colnames(PDist) == rownames(communitySpp)[i]) & 
+        any(colnames(PDist) == rownames(communitySpp)[j]) &
+        any(colnames(FDist) == rownames(communitySpp)[i]) &
+        any(colnames(FDist) == rownames(communitySpp)[j])){
+      
+      phylogeneticDistance <- PDist[rownames(communitySpp)[i], rownames(communitySpp)[j]]
+      functionalDistance <- FDist[rownames(communitySpp)[i], rownames(communitySpp)[j]]
+      communitySpp[i,j] <- ((a*(phylogeneticDistance^p)) + ((1-a)*(functionalDistance^p)))^(1/p)
+      
+    } else next
+  }
+}
+
+save(communitySpp, file = 'communitySpeciesFPDist.RData')
+
+
+
 # all unique species 
 allSpecies <- unique(c(colnames(FDist), colnames(PDist)))
 FPDistMatrix <- matrix(NA, ncol = length(allSpecies), nrow = length(allSpecies))
 
 rownames(FPDistMatrix) <- allSpecies
 colnames(FPDistMatrix) <- allSpecies
-
-# goal: make a matrix with FPDist for each species
-
-for (i in 1:ncol(FPDistMatrix)){
-  
-  a <- 0.5 # based on https://onlinelibrary.wiley.com/doi/full/10.1111/geb.12908
-  p <- 2 # based on https://onlinelibrary.wiley.com/doi/full/10.1111/geb.12908
-  
-  columnAnimal <- colnames(FPDistMatrix)[i]
-  if (any(colnames(PDist) == columnAnimal)){ # make sure PDist has the animal in question
-    if (any(colnames(FDist) == columnAnimal)) { # if both datasets have the animal in question
-      
-      
-      
-      for (j in 1:nrow(FPDistMatrix)){
-        rowAnimal <- rownames(FPDistMatrix)[j]
-        
-        if (any(colnames(PDist) == rowAnimal)){ # make sure PDist has the animal in question
-          if (any(colnames(FDist) == rowAnimal)) { # if both datasets have the animal in question
-            
-            phylogeneticDistance <- PDist[rowAnimal, columnAnimal]
-            functionalDistance <- FDist[rowAnimal, columnAnimal]
-            
-            FPDistMatrix[rowAnimal, columnAnimal] <- ((a*(phylogeneticDistance^p)) + ((1-a)*(functionalDistance^p)))^(1/p)
-          
-            } else next
-          } else next
-        }  # closes j for loop
-        
-      
-      
-      
-      } else next
-    } else next
-  }  # closes i for loop
-  
-  
-  
-
-
-
-
-
-
-
-
-
-
 
 for (i in 1:nrow(FPDistMatrix)) {
   rowAnimal <- rownames(FPDistMatrix)[i]
@@ -412,14 +435,6 @@ for (i in 1:nrow(FPDistMatrix)) {
   }
 }
 save(FPDistMatrix, file = 'allSpeciesFPDist.RData')
-
-
-
-
-
-
-
-
 
 
 
