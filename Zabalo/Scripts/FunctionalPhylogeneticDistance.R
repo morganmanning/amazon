@@ -27,11 +27,10 @@ siteCovariate = read.csv("siteCovs2018.csv")
 siteCovariate$Station <- as.factor(siteCovariate$X)
 siteCovariate$Hunting <- as.factor(siteCovariate$Hunting)
 siteCovariate$Habitat <- as.factor(siteCovariate$Habitat)
-siteCovariate$Community <- siteCovariate$Community/1000
-siteCovariate$River <- siteCovariate$River/1000
+
 
 # Read in the animal-specific data
-masterlist<-read.csv("./FPDistData/master_species_list_updated_7April2014.csv",h=T) #master list from Beaudrot
+masterlist<-read.csv("./FPDistData/master_species_list_updated_7April2014.csv", h=T) #master list from Beaudrot
 pantheria <- read.delim("./FPDistData/PanTHERIA_1-0_WR05_Aug2008.txt", header = TRUE, sep = "\t") # https://esapubs.org/archive/ecol/E090/184/metadata.htm
 
 for ( col in 1:ncol(pantheria)){
@@ -74,7 +73,7 @@ traits$DietBreadth <- as.factor(traits$DietBreadth)
 traits$ActivityCycle <- as.factor(traits$ActivityCycle)
 traits$TrophicLevel <- as.factor(traits$TrophicLevel)
 str(traits)
-write.csv(traits, "Global/Data/animalTraits.csv")
+write.csv(traits, "../../Global/Data/animalTraits.csv")
 
 
 
@@ -113,7 +112,7 @@ for (i in 1:ncol(FDist)){
 rownames(mostSimilar) <- 1:nrow(mostSimilar)
 
 
-
+# find .csv with animal names for each 
 
 
 
@@ -284,10 +283,10 @@ phylo_names1 <- as.character(phylo_names$sp)
 # focalSpecies <- data.frame(sp = c('Pecari_tajacu', 'Cervus_elaphus', 'Cuniculus_paca'))
 
 # all combinations of species
-focalSpecies <- c('Pecari_tajacu', 'Mazama_americana', 'Cuniculus_paca')
+# focalSpecies <- c('Pecari_tajacu', 'Mazama_americana', 'Cuniculus_paca')
 
-combos <- data.frame(Species1 = rep(focalSpecies, each = length(focalSpecies)),
-                     Species2 = rep(focalSpecies, times = length(focalSpecies)))
+# combos <- data.frame(Species1 = rep(focalSpecies, each = length(focalSpecies)),
+#                      Species2 = rep(focalSpecies, times = length(focalSpecies)))
 
 # remove pairwise duplicates
 # combos <- data.frame(t(apply(combos,1,sort)))
@@ -296,41 +295,41 @@ combos <- data.frame(Species1 = rep(focalSpecies, each = length(focalSpecies)),
 # FDist <- FDist/max(FDist)
 # PDist <- PDist/max(PDist)
 
-# pull FDist and PDist from matrices to put into dataframe
-combos$FPDist <- NA
-for (i in 1:nrow(combos)){
-  
-  a <- 0.5 # based on https://onlinelibrary.wiley.com/doi/full/10.1111/geb.12908
-  p <- 2 # based on https://onlinelibrary.wiley.com/doi/full/10.1111/geb.12908
-  
-  phylogeneticDistance <- PDist[combos[i,1], combos[i,2]]
-  functionalDistance <- FDist[combos[i,1], combos[i,2]]
-  
-  combos$FPDist[i] <- ((a*(phylogeneticDistance^p)) + ((1-a)*(functionalDistance^p)))^(1/p)
-  
-}
-
-# remove comparison between the same species 
-combos <- combos[combos$Species1 != combos$Species2, ]
-combos
-
-
-# distance matrix with just focal species
-FPDistMatrix <- matrix(ncol = length(focalSpecies), nrow = length(focalSpecies))
-
-rownames(FPDistMatrix) <- focalSpecies
-colnames(FPDistMatrix) <- focalSpecies
-
-for (i in 1:nrow(FPDistMatrix)) {
-  for (j in 1:ncol(FPDistMatrix)){
-    
-    phylogeneticDistance <- PDist[rownames(FPDistMatrix)[i], rownames(FPDistMatrix)[j]]
-    functionalDistance <- FDist[rownames(FPDistMatrix)[i], rownames(FPDistMatrix)[j]]
-    
-    FPDistMatrix[i,j] <- ((a*(phylogeneticDistance^p)) + ((1-a)*(functionalDistance^p)))^(1/p)
-    
-  }
-}
+# # pull FDist and PDist from matrices to put into dataframe
+# combos$FPDist <- NA
+# for (i in 1:nrow(combos)){
+#   
+#   a <- 0.5 # based on https://onlinelibrary.wiley.com/doi/full/10.1111/geb.12908
+#   p <- 2 # based on https://onlinelibrary.wiley.com/doi/full/10.1111/geb.12908
+#   
+#   phylogeneticDistance <- PDist[combos[i,1], combos[i,2]]
+#   functionalDistance <- FDist[combos[i,1], combos[i,2]]
+#   
+#   combos$FPDist[i] <- ((a*(phylogeneticDistance^p)) + ((1-a)*(functionalDistance^p)))^(1/p)
+#   
+# }
+# 
+# # remove comparison between the same species 
+# combos <- combos[combos$Species1 != combos$Species2, ]
+# combos
+# 
+# 
+# # distance matrix with just focal species
+# FPDistMatrix <- matrix(ncol = length(focalSpecies), nrow = length(focalSpecies))
+# 
+# rownames(FPDistMatrix) <- focalSpecies
+# colnames(FPDistMatrix) <- focalSpecies
+# 
+# for (i in 1:nrow(FPDistMatrix)) {
+#   for (j in 1:ncol(FPDistMatrix)){
+#     
+#     phylogeneticDistance <- PDist[rownames(FPDistMatrix)[i], rownames(FPDistMatrix)[j]]
+#     functionalDistance <- FDist[rownames(FPDistMatrix)[i], rownames(FPDistMatrix)[j]]
+#     
+#     FPDistMatrix[i,j] <- ((a*(phylogeneticDistance^p)) + ((1-a)*(functionalDistance^p)))^(1/p)
+#     
+#   }
+# }
 
 
 # distance matrix with all species at the sites
@@ -349,23 +348,21 @@ records <- rbind(SNArecords[,c("Species","Station")],
                  SGErecords[,c("Species","Station")], 
                  ZABrecords[,c("Species","Station")], 
                  SKPrecords[,c("Species","Station")])
-sum(records$Species== "Mazama sp.")
-records <- unique(records$Species)
+sum(records$Species == "Mazama sp.")
+records <- sort(unique(records$Species))
 records <- records[! records %in% c("N/D N/D", "NAN NAN", "NA NA")] # remove N/D N/D, NAN NAN, NA NA
-write.csv(data.frame(records), file = "Global/listOfSpecies.csv")
-records <- data.frame(gsub(" ", "_", records))
-write.csv(data.frame(records), file = "Global/listOfSpecies.csv")
+records <- data.frame(Species = gsub(" ", "_", records))
+write.csv(data.frame(records), file = "Global/Data/listOfSpecies.csv")
 
 
 
 
 #### MAKE MASTER TRAIT DATASET FOR SPECIES IN COMMUNITIES
-traitsPHYLACINE <- read.csv("../../Global/Data/Trait_data.csv") # https://github.com/MegaPast2Future/PHYLACINE_1.2?tab=readme-ov-file
+traitsPHYLACINE <- read.csv("Global/Data/Trait_data.csv") # https://github.com/MegaPast2Future/PHYLACINE_1.2?tab=readme-ov-file
 colnames(traitsPHYLACINE)
 # Mass.g
 require(dplyr)
 
-traits$ActivityCycle
 traitsPHYLACINE[,c("Terrestrial", "Marine", "Freshwater", "Aerial",
                    "Diet.Plant", "Diet.Vertebrate", "Diet.Invertebrate",
                    "Order.1.2", "Family.1.2")]
@@ -373,17 +370,17 @@ traitsPHYLACINE[,c("Terrestrial", "Marine", "Freshwater", "Aerial",
 
 
 # N/D N/D, NAN NAN, NA NA
-communitySpp <- matrix(NA, nrow = length(records), ncol = length(records))
-rownames(communitySpp) <- records
-colnames(communitySpp) <- records
-test <- data.frame(sort(rownames(FDist)))
+communitySpp <- matrix(NA, nrow = nrow(records), ncol = nrow(records))
+rownames(communitySpp) <- sort(records$Species)
+colnames(communitySpp) <- sort(records$Species)
 
 for (i in 1:nrow(communitySpp)) {
   for (j in 1:ncol(communitySpp)){
     a <- 0.5 # based on https://onlinelibrary.wiley.com/doi/full/10.1111/geb.12908
     p <- 2 # based on https://onlinelibrary.wiley.com/doi/full/10.1111/geb.12908
     
-    if (any(colnames(PDist) == rownames(communitySpp)[i]) & 
+    # make sure both community species you're comparing are also in PDist and FDist
+    if (any(colnames(PDist) == rownames(communitySpp)[i]) &
         any(colnames(PDist) == rownames(communitySpp)[j]) &
         any(colnames(FDist) == rownames(communitySpp)[i]) &
         any(colnames(FDist) == rownames(communitySpp)[j])){
