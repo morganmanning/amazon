@@ -1,7 +1,7 @@
 
 ##### CALCULATE FUNCTIONAL DIVERSITY #####
 setwd("/Users/morganmanning/Documents/amazon/Zabalo/Data")
-setwd("Documents/amazon/Zabalo/Data")
+setwd("~/Documents/amazon/Zabalo/Data")
 # load data
 peccary <- read.csv("CollaredPeccary.csv")
 peccary <- data.frame(peccary[,-1], row.names=peccary[,1]) #rownames = stations
@@ -407,7 +407,7 @@ colnames(FPDistMatrix) <- allSpecies
 
 for (i in 1:nrow(FPDistMatrix)) {
   rowAnimal <- rownames(FPDistMatrix)[i]
-  if (i %% 5000){
+  if (i %% 5000 == 0){
     print(paste(i, "out of", nrow(FPDistMatrix), ":)"))
   }
   for (j in 1:ncol(FPDistMatrix)){
