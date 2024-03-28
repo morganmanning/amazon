@@ -22,7 +22,8 @@
 *** sort from most untouched to most fragmented
 *** Add interaction between buffer*community in model aside from buffer and community separate 
 
-** TODO 
+** TODO Run models with communities as covariates and buffer values
+** 
 
 
 
