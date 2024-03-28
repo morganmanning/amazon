@@ -3,11 +3,17 @@
 #+EMAIL: morgan.manning@ufl.edu
 #+OPTION:
 
-* 2024-03-28 -------------------------------------------------
-** Book plane/hotel for CLAG
+* 2024-03-28 ------------------------------------------------ :miguelacevedo:
+** CLAG travel update
+*** got WGSA travel grant
+*** filed duplicate TA authorization on 2024-03-27 with just the $250 chartfield info
+
+** TODO Book plane/hotel for CLAG
+   SCHEDULED: <2024-03-28 Thu>
 *** flight: Frontier (JAX -> SJU), 05/21/24 - 05/27/24
 *** hotel: The Gallery Inn, 05/21/24 - 05/25/24
 
+<<<<<<< HEAD
 ** Project for iQAAP
 *** 
 ** Stats concepts (basic)
@@ -23,6 +29,15 @@
 *** Add interaction between buffer*community in model aside from buffer and community separate 
 
 ** TODO 
+=======
+** Project for iQAAP?
+*** was going to look at occupancy across different functional groups 
+*** but that wouldn't be great for CLAG presentation
+
+** CLAG presentation
+*** Found "DISES_BufferAnalysis" sheet that has percents of natural vs. non-natural areas in buffer zones
+*** Michael won't get back to me about official "connectivity" measure
+>>>>>>> a3dca1ff7b59a03710f6d647c739070b31ab6153
 
 
 
