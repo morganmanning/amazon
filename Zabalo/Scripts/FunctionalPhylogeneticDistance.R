@@ -1,5 +1,47 @@
 
 
+##### CALCULATE FUNCTIONAL DIVERSITY #####
+setwd("/Users/morganmanning/Documents/amazon/Global/Data")
+setwd("~/Documents/amazon/Global/Data")
+
+# load in the manually input function data
+functionalTraits <- read.csv("speciesAttributesManualInput.csv")
+
+# load necessary packages
+require(FD)
+require(dplyr)
+
+# make the row names = Genus_species
+rownames(functionalTraits) <- functionalTraits$Name
+
+# only select the traits data you're interested in comparing between species
+traits <- functionalTraits %>%
+  select(Genus,
+         Order, 
+         Family, 
+         ActivityPeriod, 
+         BodySizeG, 
+         Locomotion, 
+         FeedingHabit, 
+         FeedingTechnique) 
+str(traits)
+
+# calculate functional distance (characters will convert to factors with gowdis())
+FDist <- as.matrix(gowdis(traits))
+
+# pull the most similar 5 animals for each animal and put it in a df
+nSimilar <- 5
+mostSimilar <- data.frame()
+for (i in 1:ncol(FDist)){
+  speciesOfInterest <- data.frame(species = colnames(FDist)[i],
+                                  nearest = rownames(FDist),
+                                  functionalDist = FDist[,i])
+  speciesOfInterest <- speciesOfInterest[order(speciesOfInterest$functionalDist, 
+                                               decreasing = FALSE),] 
+  speciesOfInterestTop <- speciesOfInterest[2:(nSimilar+1),] # don't pull comparison of same spp.
+  mostSimilar <- rbind(mostSimilar, speciesOfInterestTop)
+}
+rownames(mostSimilar) <- 1:nrow(mostSimilar)
 
 
 
@@ -18,11 +60,7 @@
 
 
 
-
-
-
-
-
+################################################################################
 
 ##### CALCULATE FUNCTIONAL DIVERSITY #####
 setwd("/Users/morganmanning/Documents/amazon/Zabalo/Data")
@@ -113,7 +151,7 @@ write.csv(traits, "../../Global/Data/animalTraits.csv")
 FDist <- as.matrix(gowdis(traits))
 
 
-FDist[,c('Pecari_tajacu','Mazama_gouazoubira', 'Cuniculus_paca')]
+head(FDist[,c('Pecari_tajacu','Mazama_gouazoubira', 'Cuniculus_paca')])
 
 # export large matrix of similarity
 save(FDist, file = 'FuntionalDistance.RData')
