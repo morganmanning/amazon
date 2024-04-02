@@ -1,4 +1,29 @@
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ##### CALCULATE FUNCTIONAL DIVERSITY #####
 setwd("/Users/morganmanning/Documents/amazon/Zabalo/Data")
 setwd("~/Documents/amazon/Zabalo/Data")

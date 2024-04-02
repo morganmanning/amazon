@@ -50,6 +50,9 @@ together <- merge(records, traits[,c("Name","Order","Family")], by = "Name", all
 head(together)
 
 write.csv(together, file = "Global/Data/speciesAttributes.csv")
+# this is bare bones and is filled in manually in "speciesAttributesManualInput.csv"
+
+
 
 
 
