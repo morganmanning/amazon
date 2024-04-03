@@ -1,7 +1,7 @@
 
 ######################## SETTING UP SITE COVARIATES ##########################
 # set my working directory
-# setwd("~/Documents/amazon/Data")
+# setwd("~/Documents/amazon/Zabalo/Data")
 
 # load required packages
 require(ggplot2)

@@ -1,5 +1,5 @@
 ########## Making a spreadsheet with our species and their traits
-
+setwd("~/Documents/amazon")
 SNArecords <- read.csv("Siona/Data/SNAIndependentRecordsFormatted.csv") # just independent records
 ZABrecords <- read.csv("Zabalo/Data/ZABIndependentRecordsFormatted.csv") # just independent records
 SGErecords <- read.csv("Sinangoe/Data/SGEIndependentRecordsFormatted.csv") # just independent records
