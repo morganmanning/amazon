@@ -17,7 +17,10 @@ stations <- stations %>%
   distinct(x, y, .keep_all = TRUE)
 trapRecords <- read.csv("RecordTable2018.csv") # trapped species records
 hunting <- read.csv("HuntingData2018.csv") # harvest species, location, and date
-
+ZABBuffer <- read.csv("../../Global/Data/ZABBuffer.csv", header = FALSE)
+SGEBuffer <- read.csv("../../Global/Data/SGEBuffer.csv", header = FALSE)
+SNABuffer <- read.csv("../../Global/Data/SNABuffer.csv", header = FALSE)
+SKPBuffer <- read.csv("../../Global/Data/SKPBuffer.csv", header = FALSE)
 
 
 
@@ -73,7 +76,37 @@ siteCovariate$Station <- NULL
 siteCovariate$RR <- NULL
 siteCovariate$CR <- NULL
 
+################################################################################
+######################## FORMAT BUFFER COMPOSITION #############################
+################################################################################
+## How natural vs. non-natural are classified:
+# (pulled from original DISES_BufferAnalysis Excel sheet by Michael W.)
+# natural areas: forest formation, flooded forest, wetland, grassland, other non-forest natural area
+# non-natural areas: farming, urban infrastructure, other non-vegetated area, mining
 
+# make sure all the first columns match so we can use it as column names
+all(all(ZABBuffer[,1]==SGEBuffer[,1]),
+    all(SGEBuffer[,1]==SNABuffer[,1]),
+    all(SNABuffer[,1]==SKPBuffer[,1]))
+columns <- ZABBuffer[,1]
+
+# transpose
+ZABBufferT <- as.data.frame(t(ZABBuffer[,-1]))
+colnames(ZABBufferT) <- columns
+
+SGEBufferT <- as.data.frame(t(SGEBuffer[,-1]))
+colnames(SGEBufferT) <- columns
+
+SNABufferT <- as.data.frame(t(SNABuffer[,-1]))
+colnames(SNABufferT) <- columns
+
+SKPBufferT <- as.data.frame(t(SKPBuffer[,-1]))
+colnames(SKPBufferT) <- columns
+
+allBuffer <- rbind(ZABBufferT, SGEBufferT, SNABufferT, SKPBufferT)
+
+# remove all rows with all NAs
+allBuffer <- allBuffer[rowSums(is.na(allBuffer)) != ncol(allBuffer),]
 
 
 
@@ -81,7 +114,15 @@ siteCovariate$CR <- NULL
 ################################## SAVE IT ##################################### 
 ################################################################################
 write.csv(siteCovariate, file = 'siteCovs2018.csv')
+write.csv(allBuffer, file = "../../Global/Data/allBuffer.csv")
 save(siteCovariate, file = 'R Objects/siteCovs2018.RData')
+
+
+
+
+
+
+
 
 
 
