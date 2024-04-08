@@ -1,5 +1,4 @@
 
-
 ##### CALCULATE FUNCTIONAL DIVERSITY #####
 setwd("/Users/morganmanning/Documents/amazon/Global/Data")
 setwd("~/Documents/amazon/Global/Data")
@@ -10,6 +9,7 @@ functionalTraits <- read.csv("speciesAttributesManualInput.csv")
 # load necessary packages
 require(FD)
 require(dplyr)
+require(cluster)
 
 # make the row names = Genus_species
 rownames(functionalTraits) <- functionalTraits$Name
@@ -44,13 +44,11 @@ for (i in 1:ncol(FDist)){
 rownames(mostSimilar) <- 1:nrow(mostSimilar)
 
 
+##########
+head(traits)
 
-
-
-
-
-
-
+clusters <- pam(x = FDist, k = 5, diss = TRUE)
+clusters$clustering
 
 
 

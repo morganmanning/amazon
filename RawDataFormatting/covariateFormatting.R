@@ -12,10 +12,12 @@ require(geosphere)
 
 # load files
 siteCovariate <- read.csv("siteCovs2018Raw.csv")
-stations <- read.csv("Stations2018Raw.csv")
+#stations <- read.csv("Stations2018Raw.csv")
+stations <- read.csv("ZABStationsFormatted.csv")
 stations <- stations %>% 
-  distinct(x, y, .keep_all = TRUE)
-trapRecords <- read.csv("RecordTable2018.csv") # trapped species records
+  distinct(gps_x, gps_y, .keep_all = TRUE)
+globalRecords <- read.csv("../../Global/Data/AllStationsFormatted.csv")
+trapRecords <- read.csv("ZABIndependentRecordsFormatted.csv") # trapped species records
 hunting <- read.csv("HuntingData2018.csv") # harvest species, location, and date
 ZABBuffer <- read.csv("../../Global/Data/ZABBuffer.csv", header = FALSE)
 SGEBuffer <- read.csv("../../Global/Data/SGEBuffer.csv", header = FALSE)
@@ -30,13 +32,13 @@ SKPBuffer <- read.csv("../../Global/Data/SKPBuffer.csv", header = FALSE)
 
 # formatting the data as spatial objects
 # latitude = y, longitude = x
-cameras <- st_as_sf(stations, coords = c("x", "y"),  crs = 4326) # EPSG:24878 = UTM zone 18S
+cameras <- st_as_sf(stations, coords = c("gps_x", "gps_y"),  crs = 4326) # EPSG:24878 = UTM zone 18S
 harvests <- st_as_sf(hunting, coords = c("x", "y"),  crs = 4326)
 mapview(harvests, col.regions = "red", alpha = 0.1) +
   mapview(cameras, alpha = 1)
 
 # just the coordinates
-cameraCoords <- stations[,c('x', 'y')]
+cameraCoords <- stations[,c('gps_x', 'gps_y')]
 huntingCoords <- hunting[,c('x', 'y')]
 
 # distance from each trap to each hunting occasion
@@ -63,18 +65,24 @@ huntingIntensity$huntingIntensity <- colSums(expDistances)
 ################################################################################
 
 #### edit site covariates ####
-siteCovariate$HuntingIntensity <- scale(huntingIntensity$huntingIntensity)
-siteCovariate$Station <- as.factor(siteCovariate$Station)
+siteCovariate$HuntingIntensityRaw <- huntingIntensity$huntingIntensity
+siteCovariate$HuntingIntensity <- c(scale(huntingIntensity$huntingIntensity))
+siteCovariate$Station <- as.factor(paste0("ZAB", siteCovariate$Station))
 siteCovariate$Hunting <- as.factor(siteCovariate$Hunting)
 siteCovariate$Habitat <- as.factor(siteCovariate$Habitat)
-siteCovariate$Community <- scale(siteCovariate$Community/1000)
-siteCovariate$River <- scale(siteCovariate$River/1000)
-siteCovariate$Effort <- scale(siteCovariate$Effort)
+siteCovariate$CommunityRaw <- siteCovariate$Community/1000 # convert to km
+siteCovariate$Community <- c(scale(siteCovariate$Community/1000))
+siteCovariate$RiverRaw <- siteCovariate$River/1000 # convert to km
+siteCovariate$River <- c(scale(siteCovariate$River/1000))
+siteCovariate$EffortRaw <- siteCovariate$Effort
+siteCovariate$Effort <- c(scale(siteCovariate$Effort))
 siteCovariate$OnTrail <- as.factor(ifelse(siteCovariate$Trail.Distance == 0, 1, 0))
-siteCovariate$Trail.Distance <- scale(siteCovariate$Trail.Distance)
-siteCovariate$Station <- NULL
+siteCovariate$Trail.DistanceRaw <- siteCovariate$Trail.Distance
+siteCovariate$Trail.Distance <- c(scale(siteCovariate$Trail.Distance))
+#siteCovariate$Station <- NULL
 siteCovariate$RR <- NULL
 siteCovariate$CR <- NULL
+
 
 ################################################################################
 ######################## FORMAT BUFFER COMPOSITION #############################
@@ -108,12 +116,19 @@ allBuffer <- rbind(ZABBufferT, SGEBufferT, SNABufferT, SKPBufferT)
 # remove all rows with all NAs
 allBuffer <- allBuffer[rowSums(is.na(allBuffer)) != ncol(allBuffer),]
 
+# extract only necessary values
+PercentNatural <- allBuffer[allBuffer$Year == "2020" & allBuffer$InOut == "Outside", 
+                            c("Community", "PercentNaturalArea")]
+names(PercentNatural)[names(PercentNatural) == 'Community'] <- 'CommunityName'
 
+# merge the percent of natural area outside the community with all the stations
+allRecords <- globalRecords[,c("CommunityName", "Station")]
 
 ################################################################################
 ################################## SAVE IT ##################################### 
 ################################################################################
 write.csv(siteCovariate, file = 'siteCovs2018.csv')
+write.csv(PercentNatural, file = '../../Global/Data/PercentNaturalOutside.csv')
 write.csv(allBuffer, file = "../../Global/Data/allBuffer.csv")
 save(siteCovariate, file = 'R Objects/siteCovs2018.RData')
 

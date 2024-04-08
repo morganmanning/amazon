@@ -15,6 +15,9 @@ Data$Species <- gsub("Tinamu major", "Tinamus major", Data$Species)
 Data$DateTimeOriginal <- parse_date_time(Data$DateTimeOriginal, "%m/%d/%y %H:%M")
 Data$Date <- as.Date(Data$Date, format = "%m/%d/%y")
 Data$DateTimeOriginal <- with(Data, ymd(Date) + hms(Time))
+Data$Station <- paste0("ZAB", Data$Station)
+Data$Camera <- paste0("ZAB", Data$Camera)
+
 Traps$Setup_date <-as.Date(Traps$Setup_date, format = "%m/%d/%y")
 Traps$Retrieval_date <- as.Date(Traps$Retrieval_date, format = "%m/%d/%y")
 Traps$Problem1_from <- parse_date_time(Traps$Problem1_from, "%m/%d/%y")
@@ -23,14 +26,15 @@ Traps$Problem2_from <- parse_date_time(Traps$Problem2_from, "%m/%d/%y")
 Traps$Problem2_to <- parse_date_time(Traps$Problem2_to, "%m/%d/%y")
 Traps$Problem3_from <- parse_date_time(Traps$Problem3_from, "%m/%d/%y")
 Traps$Problem3_to <- parse_date_time(Traps$Problem3_to, "%m/%d/%y")
-# Traps <- subset(Traps, Setup_date != Retrieval_date)
+Traps <- subset(Traps, Setup_date != Retrieval_date) # need this so don't get error in conversion to dectection matrix
+Traps$Station <- paste0("ZAB", Traps$Station)
+Traps$Camera <- paste0("ZAB", Traps$Camera)
 
-Data$Community <- "Zabalo"
+Data$CommunityName <- "Zabalo"
 names(Data)[names(Data) == 'Camera'] <- 'CameraName'
 names(Traps)[names(Traps) == 'x'] <- 'gps_x'
 names(Traps)[names(Traps) == 'y'] <- 'gps_y'
-Traps$Community <- "Zabalo"
-
+Traps$CommunityName <- "Zabalo"
 
 write.csv(Data, "../Zabalo/Data/ZABIndependentRecordsFormatted.csv")
 write.csv(Traps, "../Zabalo/Data/ZABStationsFormatted.csv")
@@ -45,8 +49,8 @@ Traps$Retrieval_date <- as.Date(Traps$Retrieval_date, tryFormats = c("%m/%d/%y",
 Traps$Problem1_from <- parse_date_time(Traps$Problem1_from, c("%d/%m/%Y", "%d/%m/%y", "%m/%d/%Y", "%m/%d/%y"))
 Traps$Problem1_to <- parse_date_time(Traps$Problem1_to, c("%d/%m/%Y", "%d/%m/%y", "%m/%d/%Y", "%m/%d/%y"))
 
-Data$Community <- "Sinangoe"
-Traps$Community <- "Sinangoe"
+Data$CommunityName <- "Sinangoe"
+Traps$CommunityName <- "Sinangoe"
 
 write.csv(Data, "../Sinangoe/Data/SGEIndependentRecordsFormatted.csv")
 write.csv(Traps, "../Sinangoe/Data/SGEStationsFormatted.csv")
@@ -63,9 +67,10 @@ Traps$Problem1_from <- parse_date_time(Traps$Problem1_from, "%d/%m/%Y")
 Traps$Problem1_to <- parse_date_time(Traps$Problem1_to, "%d/%m/%Y")
 Traps$Problem2_from <- parse_date_time(Traps$Problem2_from, "%d/%m/%Y")
 Traps$Problem2_to <- parse_date_time(Traps$Problem2_to, "%d/%m/%Y")
+Traps$Camera <- paste0("SNA", Traps$Camera)
 
-Data$Community <- "Siona"
-Traps$Community <- "Siona"
+Data$CommunityName <- "Siona"
+Traps$CommunityName <- "Siona"
 names(Traps)[names(Traps) == 'X'] <- 'Obs'
 
 write.csv(Data, "../Siona/Data/SNAIndependentRecordsFormatted.csv")
@@ -81,9 +86,10 @@ Traps$Setup_date <-as.Date(Traps$Setup_date, tryFormats = c("%m/%d/%y", "%d/%m/%
 Traps$Retrieval_date <- as.Date(Traps$Retrieval_date, tryFormats = c("%m/%d/%y", "%d/%m/%Y", "%m/%d/%Y"))
 Traps$Problem1_from <- parse_date_time(Traps$Problem1_from, c("%d/%m/%Y", "%d/%m/%y", "%m/%d/%Y", "%m/%d/%y"))
 Traps$Problem1_to <- parse_date_time(Traps$Problem1_to, c("%d/%m/%Y", "%d/%m/%y", "%m/%d/%Y", "%m/%d/%y"))
+Traps$Camera <- paste0("SKP", Traps$Camera)
 
-Data$Community <- "Siekopai"
-Traps$Community <- "Siekopai"
+Data$CommunityName <- "Siekopai"
+Traps$CommunityName <- "Siekopai"
 names(Traps)[names(Traps) == 'X'] <- 'Obs'
 
 write.csv(Data, "../Siekopai/Data/SKPIndependentRecordsFormatted.csv")
@@ -114,18 +120,18 @@ allCommunityRecords <- dplyr::bind_rows(SNArecords,
                                         SGErecords,
                                         SKPrecords)
 allCommunityRecords <- allCommunityRecords %>%
-  select(Station, CameraName, Species, DateTimeOriginal, Community)
+  select(Station, CameraName, Species, DateTimeOriginal, CommunityName)
 
 allCommunityStations <- dplyr::bind_rows(SNAstations,
                                         ZABstations,
                                         SGEstations,
                                         SKPstations)
 allCommunityStations <- allCommunityStations %>%
-  select(Community, Station, Camera, gps_y, gps_x, Setup_date, Retrieval_date, 
+  select(CommunityName, Station, Camera, gps_y, gps_x, Setup_date, Retrieval_date, 
          Problem1_from, Problem1_to, Problem2_from, Problem2_to, Problem3_from, Problem3_to,
          Total, Obs)
 
-write.csv(allCommunityRecords, "../Global/Data/allCommunityRecordsFormatted.csv")
-write.csv(allCommunityStations, "../Global/Data/allCommunityStationsFormatted.csv")
+write.csv(allCommunityRecords, "../Global/Data/AllIndependentRecordsFormatted.csv")
+write.csv(allCommunityStations, "../Global/Data/AllStationsFormatted.csv")
 
 

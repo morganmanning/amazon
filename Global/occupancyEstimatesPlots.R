@@ -18,12 +18,14 @@ require(rphylopic)
 
 
 # input
-communities <- c("Sinangoe", "Siona", "Siekopai", "Zabalo")
-communitiesAbrv <- c("SGE", "SNA", "SKP", "ZAB")
+#communities <- c("Sinangoe", "Siona", "Siekopai", "Zabalo")
+#communitiesAbrv <- c("SGE", "SNA", "SKP", "ZAB")
   # Sinangoe = SGE
   # Siona = SNA
   # Siekopai = SKP
   # Zabalo = ZAB
+communities <- "Global"
+communitiesAbrv <- "All"
 speciesNames <- c("Dicotyles tajacu", "Mazama americana", "Cuniculus paca", "Psophia crepitans")
 commonNames <- c("Collared peccary", "Red brocket", "Lowland paca", "Grey-winged trumpeter") # listTitles
   # paca = Cuniculus paca
@@ -71,9 +73,11 @@ for (i in 1:length(communities)) {
   
   # import site covariates for each community
   if (communities[i] == "Sinangoe"){
-    siteCovariate <- data.frame(DistToComm = scale(stations$Community/1000)) # site covariates (scaled)
+    siteCovariate <- data.frame(DistToComm = c(scale(stations$Community/1000))) # scale
       } else if (communities[i] == "Zabalo") {
         load('Zabalo/Data/R Objects/siteCovs2018.RData') # loads 'siteCovariate'
+        } else if (communities[i] == "Global") {
+         siteCovariate <- read.csv("Global/Data/PercentNaturalOutside.csv")
         } else {
           siteCovariate <- NULL # no covariates for remaining communities 
         }
@@ -210,9 +214,13 @@ names(unclumpedUFOMasterList) <- communities
   # detection: c("1")
   # occupancy: c("DistToComm")
 
-# REMAINING:
+# SIONA/SIEKOPAI:
   # detection: c("1")
   # occupancy: c("1)
+
+# ALL COMMUNITIES TOGETHER:
+  # Percentage natural area
+  # Community as a covariate
 
 # output lists:
 masterBestofTheBest <- list() # occu output for the best model for each species
@@ -228,9 +236,12 @@ for (i in 1:length(communities)) {
   } else if (communities[i] == "Sinangoe"){
     match_detection <- c("1")
     match_occupancy <- c("DistToComm")
-  } else {
+  } else if (communities[i] == "Siona" | communities[i] == "Siekopai"){
     match_detection <- c("1")
     match_occupancy <- c("1")
+  } else if (communities[i] == "Global") {
+    match_detection <- c("CommunityName")
+    match_occupancy <- c("PercentNaturalArea")
   }
   
   
