@@ -154,17 +154,33 @@ for (k in 1:length(clusterRange)) {
 
 # run single-species, single-season occupancy model for each cluster
 
-occupancyModelList <- list()
+occupancyModelList <- as.list(rep(0, length(allClusterDetHis)))
 
 for (i in 1:length(allClusterDetHis)){ # take the clusters that are clustered by __
   for (j in 1:length(allClusterDetHis[[i]])){ # take each cluster and run null occupancy on it
     ufo <- unmarkedFrameOccu(allClusterDetHis[[i]][[j]],
                              siteCovs = NULL,
                              obsCovs = NULL)
-    occupancyModelList[[i]][[j]] <- occu(~1 ~1, ufo)
+    occupancyModelList[[i]][[j]] <- occu(~1 ~1, ufo, 
+                                         control = 10000,
+                                         starts = c(0, 0)) # starting values for parameters
   }
   print(paste0("Just finished loop ", i, " out of ", length(allClusterDetHis), " :)"))
 }
+
+## TESTING
+ufo <- unmarkedFrameOccu(allClusterDetHis[[54]][[1]],
+                         siteCovs = NULL,
+                         obsCovs = NULL)
+occupancyModelList[[54]][[1]] <- occu(~1 ~1, ufo, 
+                                     control = 10000,
+                                     starts = c(0, 0))
+dim(allClusterDetHis[[54]][[1]]) # 120x66
+# ERROR: long vectors not supported yet: /Volumes/Builds/R4/R-4.3.2/src/main/subassign.c:1841
+
+
+
+
 
 
 
