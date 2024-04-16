@@ -9,7 +9,8 @@ Data <- read.csv("../Zabalo/Data/ZABIndependentRecords.csv") # just independent 
 Traps <- read.csv("../Zabalo/Data/ZABStations.csv") 
 
 Data$Species <- gsub("-", " ", Data$Species)
-Data$Species <- gsub("Pecari tajacu", "Dicotyles tajacu", Data$Species)
+Data$Species <- gsub("  ", " ", Data$Species)
+Data$Species <- gsub("Dicotyles tajacu", "Pecari tajacu", Data$Species)
 Data$Species <- gsub("Hadroscirus spadiceus", "Hadrosciurus spadiceus", Data$Species)
 Data$Species <- gsub("Tinamu major", "Tinamus major", Data$Species)
 Data$DateTimeOriginal <- parse_date_time(Data$DateTimeOriginal, "%m/%d/%y %H:%M")
@@ -44,6 +45,8 @@ rm(list=ls())
 Data <- read.csv("../Sinangoe/Data/SGEIndependentRecords.csv") # just independent records
 Traps <- read.csv("../Sinangoe/Data/SGEStations.csv") 
 
+Data$Species <- gsub("  ", " ", Data$Species)
+Data$Species <- gsub("Dicotyles tajacu", "Pecari tajacu", Data$Species)
 Traps$Setup_date <-as.Date(Traps$Setup_date, tryFormats = c("%m/%d/%y", "%d/%m/%Y", "%m/%d/%Y"))
 Traps$Retrieval_date <- as.Date(Traps$Retrieval_date, tryFormats = c("%m/%d/%y", "%d/%m/%Y", "%m/%d/%Y"))
 Traps$Problem1_from <- parse_date_time(Traps$Problem1_from, c("%d/%m/%Y", "%d/%m/%y", "%m/%d/%Y", "%m/%d/%y"))
@@ -61,6 +64,8 @@ rm(list=ls())
 Data <- read.csv("../Siona/Data/SNAIndependentRecords.csv") # just independent records
 Traps <- read.csv("../Siona/Data/SNAStations.csv") 
 
+Data$Species <- gsub("  ", " ", Data$Species)
+Data$Species <- gsub("Dicotyles tajacu", "Pecari tajacu", Data$Species)
 Traps$Setup_date <-as.Date(Traps$Setup_date, "%d/%m/%Y")
 Traps$Retrieval_date <- as.Date(Traps$Retrieval_date, "%d/%m/%Y")
 Traps$Problem1_from <- parse_date_time(Traps$Problem1_from, "%d/%m/%Y")
@@ -82,6 +87,8 @@ rm(list=ls())
 Data <- read.csv("../Siekopai/Data/SKPIndependentRecords.csv") # just independent records
 Traps <- read.csv("../Siekopai/Data/SKPStations.csv")
 
+Data$Species <- gsub("  ", " ", Data$Species)
+Data$Species <- gsub("Dicotyles tajacu", "Pecari tajacu", Data$Species)
 Traps$Setup_date <-as.Date(Traps$Setup_date, tryFormats = c("%m/%d/%y", "%d/%m/%Y", "%m/%d/%Y"))
 Traps$Retrieval_date <- as.Date(Traps$Retrieval_date, tryFormats = c("%m/%d/%y", "%d/%m/%Y", "%m/%d/%Y"))
 Traps$Problem1_from <- parse_date_time(Traps$Problem1_from, c("%d/%m/%Y", "%d/%m/%y", "%m/%d/%Y", "%m/%d/%y"))
