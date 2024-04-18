@@ -21,7 +21,6 @@ Data <- read.csv("AllIndependentRecordsFormatted.csv")
 Traps <- read.csv("AllStationsFormatted.csv")
 Data$DateTimeOriginal <- parse_date_time(Data$DateTimeOriginal, c("%Y-%m-%d", "%Y-%m-%d %H:%M:%S"))
 
-load('../../Zabalo/Data/R Objects/siteCovs2018.RData')
 
 ################################################################################
 # ----------------------------- CLUSTERING ------------------------------------#
@@ -184,6 +183,7 @@ for (i in 1:length(allClusterDetHis)){ # take the clusters that are clustered by
     occupancyModelList[[i]] <- middleman # have to do this or get a vector too long error
   print(paste0("Just finished loop ", i, " out of ", length(allClusterDetHis), " :)"))
 }
+
 
 
 ################################################################################
@@ -410,10 +410,6 @@ table(Data$CommunityName)
 
 
 
-
-
-
-
 ################################################################################
 # ----------------------- ABUNDANCE AND DIVERSITY -----------------------------#
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
@@ -496,17 +492,6 @@ communityDiversity <- communityAbundance %>%
             shannonIndex = -sum((abundance/sum(abundance))*log(abundance/sum(abundance))),
             simpsonIndex = 1-sum((abundance/sum(abundance))^2)) 
 communityDiversity
-
-
-
-
-
-
-# TO DO:
-  # X include all of above in for loop to run all of it for each number of clusters
-  # x run occupancy on each cluster for each cluster delineation
-  # X plot occupancy predictions for each of said occupancy models
-
 
 
 
