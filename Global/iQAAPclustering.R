@@ -14,12 +14,14 @@ require(lubridate)
 require(camtrapR)
 require(unmarked)
 require(ggplot2)
+require(rphylopic)
 
 # load in the necessary data
 functionalTraits <- read.csv("speciesAttributesManualInput.csv")
 Data <- read.csv("AllIndependentRecordsFormatted.csv") 
 Traps <- read.csv("AllStationsFormatted.csv")
 Data$DateTimeOriginal <- parse_date_time(Data$DateTimeOriginal, c("%Y-%m-%d", "%Y-%m-%d %H:%M:%S"))
+clusterings <- read.csv("sklearnClusterings.csv")
 
 
 ################################################################################
@@ -254,6 +256,7 @@ ggplot(estimates, aes(x = as.factor(clusterBy), y = detectionEstimate)) +
 
 brocketSpecies <- c("Mazama americana", "Mazama gouazoubira",
                     "Mazama nemorivaga", "Mazama sp.")
+brockPic <- get_phylopic(uuid = get_uuid(name = "Mazama americana", n = 1))
 
 # detection matrices for all brockets and all brockets
 brocketMatrices <- list()
@@ -313,34 +316,44 @@ brocketEstimates
 # plot null occupancy estimates
 ggplot(brocketEstimates, aes(x = c(as.character(gsub(" ", "\n", brocketEstimates$species))),
                              y = occupancyEstimate)) +
-    geom_errorbar(aes(ymin = occupancyEstimate - occupancySE,
+  geom_rect(xmin = 0, xmax = 1.5, ymin = -0.5, ymax = 1.5,
+            fill = 'yellow', linetype = "dashed", color = "yellow2", alpha = 0.05) +
+  geom_errorbar(aes(ymin = occupancyEstimate - occupancySE,
                     ymax = occupancyEstimate + occupancySE),
-               width = 0.2, color  = "darkgreen") +
-    geom_line(color = "darkgreen") +
-    geom_point(color = "darkgreen", size = 2) +
-    ylab("Occupancy estimate") +
-    xlab("Brocket species") +
-    theme_bw()
+                width = 0.2, color  = "darkgreen") +
+  add_phylopic(brockPic, alpha = 0.2, x = 4.75, y = 0.85, ysize = 0.3) +
+  geom_line(color = "darkgreen") +
+  geom_point(color = "darkgreen", size = 2) +
+  ylim(c(0,1)) +
+  ylab("Occupancy estimate") +
+  xlab("Brocket species") +
+  theme_bw()
+ggsave("../Figures/brocketClusteredOccupancy.png", width = 7, height = 5)
 
 # plot null detection estimates
 ggplot(brocketEstimates, aes(x = c(as.character(gsub(" ", "\n", brocketEstimates$species))),
                              y = detectionEstimate)) +
+  geom_rect(xmin = 0, xmax = 1.5, ymin = -0.5, ymax = 1.5,
+            fill = 'yellow',linetype = "dashed", color = "yellow2", alpha = 0.05) +
     geom_errorbar(aes(ymin = detectionEstimate - detectionSE,
                     ymax = detectionEstimate + detectionSE),
                width = 0.2, color  = "dodgerblue") +
     geom_line(color = "dodgerblue") +
     geom_point(color = "dodgerblue", size = 2) +
+  add_phylopic(brockPic, alpha = 0.2, x = 4.75, y = 0.85, ysize = 0.3) +
+  ylim(c(0,1)) +
     ylab("Detection estimate") +
     scale_x_discrete(name = "Brocket species") +
     theme_bw()
+ggsave("../Figures/brocketClusteredDetection.png", width = 7, height = 5)
 
 
 # run single-species, single-season occupancy model with covariates
 # prediction dataframes
-communityPrediction <- data.frame(Community = c("Zabalo", "Siekopai", "Sinangoe", "Siona"),
+communityPrediction <- data.frame(Community = c("Zábalo", "Siekopai", "Sinangoe", "Siona"),
                                   Year = as.factor(2022))
 communityPrediction$Community <- factor(communityPrediction$Community,
-                                        levels = c("Zabalo", "Siekopai", "Sinangoe", "Siona"))
+                                        levels = c("Zábalo", "Siekopai", "Sinangoe", "Siona"))
 yearPrediction <- data.frame(Community = "Siekopai",
                              Year = as.factor(unique(year(Data$DateTimeOriginal))))
 
@@ -357,12 +370,12 @@ for (i in 1:length(brocketMatrices)){ # take each cluster and run null occupancy
     siteCovariates <- data.frame(Station = rownames(brocketN),
                                  Community = NA,
                                  Year = NA)
-    siteCovariates$Community <- ifelse(grepl('^ZAB', siteCovariates$Station), 'Zabalo',
+    siteCovariates$Community <- ifelse(grepl('^ZAB', siteCovariates$Station), 'Zábalo',
                                 ifelse(grepl('^SKP', siteCovariates$Station), 'Siekopai',
                                 ifelse(grepl('^SGE', siteCovariates$Station), 'Sinangoe', "Siona")))
     siteCovariates$Community <- factor(siteCovariates$Community,
-                                       levels = c("Zabalo", "Siekopai", "Sinangoe", "Siona"))
-    siteCovariates$Year <- ifelse(siteCovariates$Community == "Zabalo", "2018", "2022")
+                                       levels = c("Zábalo", "Siekopai", "Sinangoe", "Siona"))
+    siteCovariates$Year <- ifelse(siteCovariates$Community == "Zábalo", "2018", "2022")
     
         ufo <- unmarkedFrameOccu(brocketN,
                                  siteCovs = siteCovariates,
@@ -378,7 +391,7 @@ for (i in 1:length(brocketMatrices)){ # take each cluster and run null occupancy
     }
 
 names(brocketCommPred) <- names(brocketMatrices)
-names(brocketYearPred) <- names(brocketMatrices)
+#names(brocketYearPred) <- names(brocketMatrices)
 
 # make dataframe for community predictions
 brocketCommPredDF <- dplyr::bind_rows(brocketCommPred) 
@@ -391,17 +404,22 @@ brocketCommPredDF
 # brocketYearPredDF
 
 # plot occupancy by species and community
+colors <- c("Zábalo" = "darkgreen", "Siekopai" = "forestgreen", 
+            "Sinangoe" = "yellowgreen", "Siona" = "goldenrod")
 ggplot(brocketCommPredDF, aes(x = c(as.character(gsub(" ", "\n", brocketCommPredDF$Species))),
-                             y = Predicted, color = Community)) +
-    geom_errorbar(aes(ymin = Predicted - SE,
-                    ymax = Predicted + SE),
-               width = 0.2) +
-    geom_point(size = 2) +
-    ylab("Occupancy estimate") +
-    scale_x_discrete(name = "Brocket species") +
-    scale_color_manual(values = c("darkgreen", "forestgreen","yellowgreen","goldenrod")) +
-    theme_bw()
-        
+                              y = Predicted, color = Community)) +
+  geom_rect(xmin = 0, xmax = 1.5, ymin = -0.5, ymax = 1.5, 
+            fill = 'yellow', linetype = "dashed", color = "yellow2", alpha = 0.01) +
+  geom_errorbar(aes(ymin = Predicted - SE, ymax = Predicted + SE),
+                width = 0.2) +
+  geom_point(size = 2) +
+  add_phylopic(brockPic, alpha = 0.2, x = 4.75, y = 0.85, ysize = 0.3) +
+  ylab("Occupancy estimate") +
+  scale_x_discrete(name = "Brocket species") +
+  scale_color_manual(values = colors) +
+  theme_bw()
+ggsave("../Figures/brocketCommunityOccupancy.png", width = 7, height = 5)
+
 
 ## other potentially useful stats for paper
 table(Data$CommunityName)
@@ -416,7 +434,7 @@ table(Data$CommunityName)
 
 # remove all unknown species
 noUnknownsSGE <- Data[(Data$Species != "N/D N/D" & Data$CommunityName == "Sinangoe"),]
-noUnknownsZAB <- Data[(Data$Species != "NAN NAN" & Data$Species != "NA NA" & Data$CommunityName == "Zabalo"),]
+noUnknownsZAB <- Data[(Data$Species != "NAN NAN" & Data$Species != "NA NA" & Data$CommunityName == "Zábalo"),]
 noUnknownsSNA <- Data[(Data$Species != "N/D N/D" & Data$CommunityName == "Siona"),]
 noUnknownsSKP <- Data[(Data$Species != "N/D N/D" & Data$CommunityName == "Siekopai"),]
 
@@ -485,13 +503,30 @@ wholeDiversitySKP <- noUnknownsSKP %>%
 
 # abundance and diversity for all communities
 communityAbundance <- rbind(wholeDiversityZAB, wholeDiversitySKP, wholeDiversitySGE, wholeDiversitySNA)
+
 communityDiversity <- communityAbundance %>%
-    group_by(Community, PercentNaturalArea) %>%
+  group_by(Community, PercentNaturalArea) %>%
   summarise(nIndiv=sum(abundance),
             nSpecies = length(unique(Species)),
             shannonIndex = -sum((abundance/sum(abundance))*log(abundance/sum(abundance))),
             simpsonIndex = 1-sum((abundance/sum(abundance))^2)) 
+communityDiversity <- arrange(communityDiversity, desc(PercentNaturalArea))
+communityDiversity$Community <- factor(communityDiversity$Community, 
+                                       levels = communityDiversity$Community)
 communityDiversity
+
+
+ggplot(communityDiversity, aes(x = Community, y = PercentNaturalArea, fill = Community)) +
+  geom_bar(stat="identity") +
+  ylab("Percent natural surrounding area") +
+  scale_fill_manual(values = colors) +
+  ylim(c(0,1)) +
+  theme_bw()
+ggsave("../Figures/percentNatArea.png", width = 7, height = 5)
+
+
+
+
 
 
 
