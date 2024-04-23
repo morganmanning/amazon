@@ -329,6 +329,8 @@ ggplot(brocketEstimates, aes(x = c(as.character(gsub(" ", "\n", brocketEstimates
   xlab("Brocket species") +
   theme_bw()
 ggsave("../Figures/brocketClusteredOccupancy.png", width = 7, height = 5)
+ggsave("~/Dropbox/UF/Spring2024/WIS6505CQuantitativeAnalysis/Final/brocketClusteredOccupancy.png", 
+       width = 7, height = 5)
 
 # plot null detection estimates
 ggplot(brocketEstimates, aes(x = c(as.character(gsub(" ", "\n", brocketEstimates$species))),
@@ -346,6 +348,8 @@ ggplot(brocketEstimates, aes(x = c(as.character(gsub(" ", "\n", brocketEstimates
     scale_x_discrete(name = "Brocket species") +
     theme_bw()
 ggsave("../Figures/brocketClusteredDetection.png", width = 7, height = 5)
+ggsave("~/Dropbox/UF/Spring2024/WIS6505CQuantitativeAnalysis/Final/brocketClusteredDetection.png", 
+       width = 7, height = 5)
 
 
 # run single-species, single-season occupancy model with covariates
@@ -419,6 +423,8 @@ ggplot(brocketCommPredDF, aes(x = c(as.character(gsub(" ", "\n", brocketCommPred
   scale_color_manual(values = colors) +
   theme_bw()
 ggsave("../Figures/brocketCommunityOccupancy.png", width = 7, height = 5)
+ggsave("~/Dropbox/UF/Spring2024/WIS6505CQuantitativeAnalysis/Final/brocketCommunityOccupancy.png", 
+       width = 7, height = 5)
 
 
 ## other potentially useful stats for paper
@@ -437,6 +443,21 @@ noUnknownsSGE <- Data[(Data$Species != "N/D N/D" & Data$CommunityName == "Sinang
 noUnknownsZAB <- Data[(Data$Species != "NAN NAN" & Data$Species != "NA NA" & Data$CommunityName == "Zabalo"),]
 noUnknownsSNA <- Data[(Data$Species != "N/D N/D" & Data$CommunityName == "Siona"),]
 noUnknownsSKP <- Data[(Data$Species != "N/D N/D" & Data$CommunityName == "Siekopai"),]
+
+cameraInfo <- Data %>% 
+  filter(Species != "N/D N/D" & Species != "NAN NAN" & Species != "NA NA") %>%
+  group_by(CommunityName) %>%
+  mutate(StartDate = min(DateTimeOriginal),
+         EndDate = max(as.Date(DateTimeOriginal)),
+            Year = year(DateTimeOriginal)) %>%
+  summarise(OperatingDays = round(as.numeric(max(DateTimeOriginal)-
+                                               min(DateTimeOriginal)), 3),
+            StartDate = min(DateTimeOriginal),
+            EndDate = max(DateTimeOriginal),
+            numberOfStations = length(unique(Station)),
+            numberOfCamerasPerStation = round(length(unique(CameraName))/length(unique(Station)))) 
+cameraInfo$StartDate <- format(cameraInfo$StartDate, "%Y-%m-%d")
+cameraInfo$EndDate <- format(cameraInfo$EndDate, "%Y-%m-%d")
 
 # per station
   # Sinangoe
@@ -487,19 +508,31 @@ siteDiversitySKP <- siteDiversitySKP %>%
 wholeDiversitySGE <- noUnknownsSGE %>%
   group_by(Species) %>%
   summarise(abundance = n()) %>%
-  mutate(Community = "Sinangoe", PercentNaturalArea = 0.766)
+  mutate(Community = "Sinangoe", PercentNaturalArea = 0.766, 
+         OperatingDays = round(as.numeric(max(noUnknownsSGE$DateTimeOriginal)-
+                                            min(noUnknownsSGE$DateTimeOriginal)), 3))
 wholeDiversityZAB <- noUnknownsZAB %>%
   group_by(Species) %>%
   summarise(abundance = n()) %>%
-  mutate(Community = "Zábalo", PercentNaturalArea = 0.936)
+  mutate(Community = "Zábalo", PercentNaturalArea = 0.936, 
+         OperatingDays = round(as.numeric(max(noUnknownsZAB$DateTimeOriginal)-
+                                            min(noUnknownsZAB$DateTimeOriginal)), 3))
 wholeDiversitySNA <- noUnknownsSNA %>%
   group_by(Species) %>%
   summarise(abundance = n()) %>%
-  mutate(Community = "Siona", PercentNaturalArea = 0.754)
+  mutate(Community = "Siona", PercentNaturalArea = 0.754, 
+         OperatingDays = round(as.numeric(max(noUnknownsSNA$DateTimeOriginal)-
+                                            min(noUnknownsSNA$DateTimeOriginal)), 3))
 wholeDiversitySKP <- noUnknownsSKP %>%
   group_by(Species) %>%
   summarise(abundance = n()) %>%
-  mutate(Community = "Siekopai", PercentNaturalArea = 0.807)
+  mutate(Community = "Siekopai", PercentNaturalArea = 0.807, 
+         OperatingDays = round(as.numeric(max(noUnknownsSKP$DateTimeOriginal)-
+                                      min(noUnknownsSKP$DateTimeOriginal)), 3))
+
+
+
+
 
 # abundance and diversity for all communities
 communityAbundance <- rbind(wholeDiversityZAB, wholeDiversitySKP, wholeDiversitySGE, wholeDiversitySNA)
@@ -508,6 +541,7 @@ communityDiversity <- communityAbundance %>%
   group_by(Community, PercentNaturalArea) %>%
   summarise(nIndiv=sum(abundance),
             nSpecies = length(unique(Species)),
+            OperatingDays = mean(OperatingDays),
             shannonIndex = round(-sum((abundance/sum(abundance))*log(abundance/sum(abundance))), 3),
             simpsonIndex = round(1-sum((abundance/sum(abundance))^2), 3)) 
 communityDiversity <- arrange(communityDiversity, desc(PercentNaturalArea))
@@ -523,6 +557,8 @@ ggplot(communityDiversity, aes(x = Community, y = PercentNaturalArea, fill = Com
   ylim(c(0,1)) +
   theme_bw()
 ggsave("../Figures/percentNatArea.png", width = 7, height = 5)
+ggsave("~/Dropbox/UF/Spring2024/WIS6505CQuantitativeAnalysis/Final/percentNatArea.png", 
+       width = 7, height = 5)
 
 
 ########## Make the table
@@ -531,11 +567,33 @@ require(kableExtra)
 head(communityDiversity)
 kbl(communityDiversity, col.names = c("Community", "Percent Natural Area", 
                                       "Number of Individuals", "Number of Species",
+                                      "Number of Sampling Days",
                                       "Shannon Diversity Index", "Simpson Diversity Index")) %>%
   kable_classic(full_width = T, html_font = "TimesNewRoman") %>%
   save_kable(file = "../Figures/communityDiversity.png", zoom = 1.5)
 
+kbl(communityDiversity, col.names = c("Community", "Percent Natural Area", 
+                                      "Number of Individuals", "Number of Species",
+                                      "Number of Sampling Days",
+                                      "Shannon Diversity Index", "Simpson Diversity Index")) %>%
+  kable_classic(full_width = T, html_font = "TimesNewRoman") %>%
+  save_kable(file = "~/Dropbox/UF/Spring2024/WIS6505CQuantitativeAnalysis/Final/communityDiversity.png",
+             zoom = 1.5)
 
-
-
+## Camera info
+head(cameraInfo)
+kbl(cameraInfo, col.names = c("Community", "Number of Sampling Days", 
+                              "Sampling Start Date", "Sampling End Date",
+                              "Number of Sites",
+                              "Number of Cameras per Site")) %>%
+  kable_classic(full_width = T, html_font = "TimesNewRoman") %>%
+  save_kable(file = "../Figures/siteInfo.png",
+             zoom = 1.5)
+kbl(cameraInfo, col.names = c("Community", "Number of Sampling Days", 
+                                      "Sampling Start Date", "Sampling End Date",
+                                      "Number of Sites",
+                                      "Number of Cameras per Site")) %>%
+  kable_classic(full_width = T, html_font = "TimesNewRoman") %>%
+  save_kable(file = "~/Dropbox/UF/Spring2024/WIS6505CQuantitativeAnalysis/Final/siteInfo.png",
+             zoom = 1.5)
  
