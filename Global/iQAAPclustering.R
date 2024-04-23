@@ -434,7 +434,7 @@ table(Data$CommunityName)
 
 # remove all unknown species
 noUnknownsSGE <- Data[(Data$Species != "N/D N/D" & Data$CommunityName == "Sinangoe"),]
-noUnknownsZAB <- Data[(Data$Species != "NAN NAN" & Data$Species != "NA NA" & Data$CommunityName == "Zábalo"),]
+noUnknownsZAB <- Data[(Data$Species != "NAN NAN" & Data$Species != "NA NA" & Data$CommunityName == "Zabalo"),]
 noUnknownsSNA <- Data[(Data$Species != "N/D N/D" & Data$CommunityName == "Siona"),]
 noUnknownsSKP <- Data[(Data$Species != "N/D N/D" & Data$CommunityName == "Siekopai"),]
 
@@ -487,19 +487,19 @@ siteDiversitySKP <- siteDiversitySKP %>%
 wholeDiversitySGE <- noUnknownsSGE %>%
   group_by(Species) %>%
   summarise(abundance = n()) %>%
-  mutate(Community = "Sinangoe", PercentNaturalArea = 0.7660)
+  mutate(Community = "Sinangoe", PercentNaturalArea = 0.766)
 wholeDiversityZAB <- noUnknownsZAB %>%
   group_by(Species) %>%
   summarise(abundance = n()) %>%
-  mutate(Community = "Zábalo", PercentNaturalArea = 0.9356)
+  mutate(Community = "Zábalo", PercentNaturalArea = 0.936)
 wholeDiversitySNA <- noUnknownsSNA %>%
   group_by(Species) %>%
   summarise(abundance = n()) %>%
-  mutate(Community = "Siona", PercentNaturalArea = 0.7538)
+  mutate(Community = "Siona", PercentNaturalArea = 0.754)
 wholeDiversitySKP <- noUnknownsSKP %>%
   group_by(Species) %>%
   summarise(abundance = n()) %>%
-  mutate(Community = "Siekopai", PercentNaturalArea = 0.8071)
+  mutate(Community = "Siekopai", PercentNaturalArea = 0.807)
 
 # abundance and diversity for all communities
 communityAbundance <- rbind(wholeDiversityZAB, wholeDiversitySKP, wholeDiversitySGE, wholeDiversitySNA)
@@ -508,8 +508,8 @@ communityDiversity <- communityAbundance %>%
   group_by(Community, PercentNaturalArea) %>%
   summarise(nIndiv=sum(abundance),
             nSpecies = length(unique(Species)),
-            shannonIndex = -sum((abundance/sum(abundance))*log(abundance/sum(abundance))),
-            simpsonIndex = 1-sum((abundance/sum(abundance))^2)) 
+            shannonIndex = round(-sum((abundance/sum(abundance))*log(abundance/sum(abundance))), 3),
+            simpsonIndex = round(1-sum((abundance/sum(abundance))^2), 3)) 
 communityDiversity <- arrange(communityDiversity, desc(PercentNaturalArea))
 communityDiversity$Community <- factor(communityDiversity$Community, 
                                        levels = communityDiversity$Community)
@@ -525,8 +525,15 @@ ggplot(communityDiversity, aes(x = Community, y = PercentNaturalArea, fill = Com
 ggsave("../Figures/percentNatArea.png", width = 7, height = 5)
 
 
-
-
+########## Make the table
+require(knitr)
+require(kableExtra)
+head(communityDiversity)
+kbl(communityDiversity, col.names = c("Community", "Percent Natural Area", 
+                                      "Number of Individuals", "Number of Species",
+                                      "Shannon Diversity Index", "Simpson Diversity Index")) %>%
+  kable_classic(full_width = T, html_font = "TimesNewRoman") %>%
+  save_kable(file = "../Figures/communityDiversity.png", zoom = 1.5)
 
 
 
