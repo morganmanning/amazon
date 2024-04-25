@@ -597,3 +597,63 @@ kbl(cameraInfo, col.names = c("Community", "Number of Sampling Days",
   save_kable(file = "~/Dropbox/UF/Spring2024/WIS6505CQuantitativeAnalysis/Final/siteInfo.png",
              zoom = 1.5)
  
+
+
+
+####### DETECTION:
+brocketN <- brocketMatrices[['All brockets']]
+ufo <- unmarkedFrameOccu(brocketN,
+                         siteCovs = NULL,
+                         obsCovs = NULL)
+colnames(ufo@y) <- 1:ncol(ufo@y)
+rownames(ufo@y) <- 1:nrow(ufo@y)
+require(reshape2)
+meltedComb <- melt(ufo@y)
+meltedComb$value <- as.factor(meltedComb$value)
+
+ggplot(meltedComb, aes(Var2, Var1, fill = value)) + 
+  geom_tile(colour = "gray50") +
+  scale_fill_manual(values=c("gray75", "red3"), na.value="white", name = "") +
+  scale_x_continuous(breaks = seq(0, ncol(ufo@y), by = 2)) +
+  scale_alpha_identity(guide = "none") +
+  coord_equal(expand = 0) +
+  xlab(paste("Time (1 unit = ~", 
+             10*2,
+             # number of columns/time steps divided by the clumping factor, times 2
+             "days)")) +
+  ylab("Camera trap site") +
+  #ggtitle("Grouped brocket detection matrix") +
+  theme_bw() +
+  theme(aspect.ratio = 1) +
+  theme(plot.title = element_text(size = 25, hjust = 0.5))
+ggsave("~/Dropbox/UF/Spring2024/WIS6505CQuantitativeAnalysis/Final/groupedBrocketDetection.png", 
+       width = 5, height = 5)
+
+# one species of brocket
+brocketN <- brocketMatrices[['Mazama americana']]
+ufo <- unmarkedFrameOccu(brocketN,
+                         siteCovs = NULL,
+                         obsCovs = NULL)
+colnames(ufo@y) <- 1:ncol(ufo@y)
+rownames(ufo@y) <- 1:nrow(ufo@y)
+require(reshape2)
+meltedComb <- melt(ufo@y)
+meltedComb$value <- as.factor(meltedComb$value)
+
+ggplot(meltedComb, aes(Var2, Var1, fill = value)) + 
+  geom_tile(colour = "gray50") +
+  scale_fill_manual(values=c("gray75", "red3"), na.value="white", name = "") +
+  scale_x_continuous(breaks = seq(0, ncol(ufo@y), by = 2)) +
+  scale_alpha_identity(guide = "none") +
+  coord_equal(expand = 0) +
+  xlab(paste("Time (1 unit = ~", 
+             10*2,
+             # number of columns/time steps divided by the clumping factor, times 2
+             "days)")) +
+  ylab("Camera trap site") +
+  theme_bw() +
+  theme(aspect.ratio = 1) +
+  theme(plot.title = element_text(size = 25, hjust = 0.5))
+ggsave("~/Dropbox/UF/Spring2024/WIS6505CQuantitativeAnalysis/Final/MamericanaDetection.png", 
+       width = 5, height = 5)
+
