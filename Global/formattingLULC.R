@@ -2,7 +2,7 @@
 # SOURCE: https://www.arcgis.com/home/item.html?id=cfcb7609de5f478eb7666240902d4d3d
 # PROCESS: downloaded LULC data at a 10m resolution for the entire area
 # PURPOSE: cut down these .tif files because they're too big to put on GitHub right now
-# Coordinate system: WGS84; UTM; ESPG:3857
+# Coordinate system of TIFs: WGS84; UTM; ESPG:3857
 
 ############ SET UP ############ 
 # set working directory
@@ -28,24 +28,47 @@ r18N2022 <- rast("../../../Downloads/18N_20220101-20230101.tif")
 cameras <- read.csv("Data/AllStationsFormatted.csv")
 
 ################ COMBINE AND CUT THE RASTERS ##################
+# make the camera coordinates into a matrix and project them
+cameraCRS <- "+proj=longlat +datum=WGS84 +no_defs +type=crs" # cameras coming from: crs = 4326
+tifCRS <- crs(r17M2018, proj = TRUE)
+camCoordMatrix <- as.matrix(cameras[,c("gps_x", "gps_y")])
+projectedPoints <- project(camCoordMatrix, from = cameraCRS, to = tifCRS)
+
+# buffered extent
+e <- as.vector(ext(projectedPoints)) 
+e["xmin"] <- e["xmin"] - (1000*100) # buffer by 100km
+e["ymin"] <- e["ymin"] - (1000*100) # buffer by 100km
+e["xmax"] <- e["xmax"] + (1000*100) # buffer by 100km
+e["ymax"] <- e["ymax"] + (1000*100) # buffer by 100km
+eProjected <- ext(e)
+
+# crop them
+# 2018
+cr17M2018 <- crop(r17M2018, eProjected)
+# cr17N2018 <- crop(r17N2018, eProjected) # Error: [crop] extents do not overlap
+cr18M2018 <- crop(r18M2018, eProjected)
+# cr18N2018 <- crop(r18N2018, eProjected) # Error: [crop] extents do not overlap
+
+# 2022
+cr17M2022 <- crop(r17M2022, eProjected)
+# cr17N2022 <- crop(r17N2022, eProjected) # Error: [crop] extents do not overlap
+cr18M2022 <- crop(r18M2022, eProjected)
+# cr18N2022 <- crop(r18N2022, eProjected) # Error: [crop] extents do not overlap
+
 # combine them by year
-raster2018 <- mosaic(r17M2018, r17N2018, r18M2018, r18N2018)
-raster2022 <- mosaic(r17M2022, r17N2022, r18M2022, r18N2022)
+raster2018 <- merge(cr17M2018, cr18M2018)
+raster2022 <- merge(cr17M2022, cr18M2022)
 
-# make a bounding box
-maxX <- max(cameras$gps_x) + 1 # longitude
-minX <- min(cameras$gps_x) - 1 # longitude
-maxY <- max(cameras$gps_y) + 1 # latitude
-minY <- min(cameras$gps_y) - 1 # latitude
-e <- ext(minX, maxX, minY, maxY) # xmin, xmax, ymin, ymax
 
-# crop each raster with the bounding box
-cropped2018 <- crop(raster2018, e)
-cropped2022 <- crop(raster2022, e)
+### something is wrong because these don't look the same
+plot(raster2018)
+points(projectedPoints)
+
+
 
 # save them
-writeRaster(cropped2018, "Data/cropped2018raster.tif", overwrite = TRUE)
-writeRaster(cropped2022, "Data/cropped2022raster.tif", overwrite = TRUE)
+writeRaster(raster2018, "Data/cropped2018raster.tif", overwrite = TRUE)
+writeRaster(raster2022, "Data/cropped2022raster.tif", overwrite = TRUE)
 
 
 
