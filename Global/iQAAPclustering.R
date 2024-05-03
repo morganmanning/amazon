@@ -15,6 +15,8 @@ require(camtrapR)
 require(unmarked)
 require(ggplot2)
 require(rphylopic)
+require(knitr)
+require(kableExtra)
 
 # load in the necessary data
 functionalTraits <- read.csv("speciesAttributesManualInput.csv")
@@ -31,7 +33,7 @@ clusterings <- read.csv("sklearnClusterings.csv")
 # make the row names = Genus_species
 rownames(functionalTraits) <- functionalTraits$Name
 
-# remove M. rufina
+# remove M. rufina bc it's not one of the detected species
 functionalTraits <- subset(functionalTraits, Name != "Mazama_rufina")
 
 # only select the traits data you're interested in comparing between species
@@ -212,8 +214,10 @@ ggplot(averagedByClustering, aes(x = clusterBy,  y = averagedOccupancy)) +
     coord_cartesian(ylim = (c(0.75,1))) +
     scale_x_discrete(name ="Number of clusters", 
                      limits=seq(min(clusterRange), max(clusterRange), by = 4)) +
-    ylab("Averaged occupancy estimate") +             
+    ylab("Averaged occupancy probability estimate") +             
     theme_bw()
+ggsave("~/Dropbox/UF/Spring2024/WIS6505CQuantitativeAnalysis/Final/clustersOccupancy.png", 
+       width = 7, height = 5)
 
 # plotting averaged detection estimates
 ggplot(averagedByClustering, aes(x = clusterBy, y = averagedDetection)) +
@@ -225,28 +229,28 @@ ggplot(averagedByClustering, aes(x = clusterBy, y = averagedDetection)) +
     coord_cartesian(ylim = (c(0.45,.75))) +
     scale_x_discrete(name ="Number of clusters", 
                      limits=seq(min(clusterRange), max(clusterRange), by = 4)) +
-    ylab("Averaged detection estimate") +             
+    ylab("Averaged detection probability estimate") +             
     theme_bw()
+ggsave("~/Dropbox/UF/Spring2024/WIS6505CQuantitativeAnalysis/Final/clustersDetection.png", 
+       width = 7, height = 5)
 
 # plotting occupancy estimates
 ggplot(estimates, aes(x = clusterBy, y = occupancyEstimate)) +
     geom_point() +
     #geom_line() +
-    geom_ribbon(aes(ymin = occupancyEstimate - occupancySE,
-                    ymax = occupancyEstimate + occupancySE), alpha = 0.5) +
+    geom_errorbar(aes(ymin = occupancyEstimate - occupancySE,
+                    ymax = occupancyEstimate + occupancySE)) +
+  ylim(c(0,1)) +
     theme_bw()
 
 # plotting detection estimates
 ggplot(estimates, aes(x = as.factor(clusterBy), y = detectionEstimate)) +
     geom_point() +
     #geom_line() +
-    geom_ribbon(aes(ymin = detectionEstimate - detectionSE,
-                    ymax = detectionEstimate + detectionSE), alpha = 0.5) +
+    geom_errorbar(aes(ymin = detectionEstimate - detectionSE,
+                    ymax = detectionEstimate + detectionSE)) +
+  ylim(c(0,1)) +
     theme_bw()
-
-
-
-
 
 
 
@@ -325,7 +329,7 @@ ggplot(brocketEstimates, aes(x = c(as.character(gsub(" ", "\n", brocketEstimates
   geom_line(color = "darkgreen") +
   geom_point(color = "darkgreen", size = 2) +
   ylim(c(0,1)) +
-  ylab("Occupancy estimate") +
+  ylab("Occupancy probability estimate") +
   xlab("Brocket species") +
   theme_bw()
 ggsave("../Figures/brocketClusteredOccupancy.png", width = 7, height = 5)
@@ -344,7 +348,7 @@ ggplot(brocketEstimates, aes(x = c(as.character(gsub(" ", "\n", brocketEstimates
     geom_point(color = "dodgerblue", size = 2) +
   add_phylopic(brockPic, alpha = 0.2, x = 4.75, y = 0.85, ysize = 0.3) +
   ylim(c(0,1)) +
-    ylab("Detection estimate") +
+    ylab("Detection probability estimate") +
     scale_x_discrete(name = "Brocket species") +
     theme_bw()
 ggsave("../Figures/brocketClusteredDetection.png", width = 7, height = 5)
@@ -418,7 +422,7 @@ ggplot(brocketCommPredDF, aes(x = c(as.character(gsub(" ", "\n", brocketCommPred
                 width = 0.2) +
   geom_point(size = 2) +
   add_phylopic(brockPic, alpha = 0.2, x = 4.75, y = 0.85, ysize = 0.3) +
-  ylab("Occupancy estimate") +
+  ylab("Occupancy probability estimate") +
   scale_x_discrete(name = "Brocket species") +
   scale_color_manual(values = colors) +
   theme_bw()
@@ -429,8 +433,6 @@ ggsave("~/Dropbox/UF/Spring2024/WIS6505CQuantitativeAnalysis/Final/brocketCommun
 
 ## other potentially useful stats for paper
 table(Data$CommunityName)
-
-
 
 
 
@@ -458,6 +460,7 @@ cameraInfo <- Data %>%
             numberOfCamerasPerStation = round(length(unique(CameraName))/length(unique(Station)))) 
 cameraInfo$StartDate <- format(cameraInfo$StartDate, "%Y-%m-%d")
 cameraInfo$EndDate <- format(cameraInfo$EndDate, "%Y-%m-%d")
+cameraInfo <- arrange(cameraInfo, desc(PercentNaturalArea))
 
 # per station
   # Sinangoe
@@ -530,10 +533,6 @@ wholeDiversitySKP <- noUnknownsSKP %>%
          OperatingDays = round(as.numeric(max(noUnknownsSKP$DateTimeOriginal)-
                                       min(noUnknownsSKP$DateTimeOriginal)), 3))
 
-
-
-
-
 # abundance and diversity for all communities
 communityAbundance <- rbind(wholeDiversityZAB, wholeDiversitySKP, wholeDiversitySGE, wholeDiversitySNA)
 
@@ -561,19 +560,20 @@ ggsave("~/Dropbox/UF/Spring2024/WIS6505CQuantitativeAnalysis/Final/percentNatAre
        width = 7, height = 5)
 
 
-########## Make the table
-require(knitr)
-require(kableExtra)
+################################################################################
+# ----------------------------- MAKE TABLES -----------------------------------#
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+
 head(communityDiversity)
 kbl(communityDiversity, col.names = c("Community", "Percent Natural Area", 
-                                      "Number of Individuals", "Number of Species",
+                                      "Number of Detections", "Number of Species",
                                       "Number of Sampling Days",
                                       "Shannon Diversity Index", "Simpson Diversity Index")) %>%
   kable_classic(full_width = T, html_font = "TimesNewRoman") %>%
   save_kable(file = "../Figures/communityDiversity.png", zoom = 1.5)
 
 kbl(communityDiversity, col.names = c("Community", "Percent Natural Area", 
-                                      "Number of Individuals", "Number of Species",
+                                      "Number of Detections", "Number of Species",
                                       "Number of Sampling Days",
                                       "Shannon Diversity Index", "Simpson Diversity Index")) %>%
   kable_classic(full_width = T, html_font = "TimesNewRoman") %>%
@@ -600,7 +600,10 @@ kbl(cameraInfo, col.names = c("Community", "Number of Sampling Days",
 
 
 
-####### DETECTION:
+################################################################################
+# ----------------------- BROCKET DETECTION PLOTS -----------------------------#
+#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
+
 brocketN <- brocketMatrices[['All brockets']]
 ufo <- unmarkedFrameOccu(brocketN,
                          siteCovs = NULL,
