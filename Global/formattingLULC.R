@@ -10,11 +10,15 @@ setwd("~/Documents/amazon/Global")
 
 # load packages
 require(terra)
+require(sf)
+require(exactextractr)
+require(dplyr)
 
 # load in TIFF files: https://storage.googleapis.com/earthenginepartners-hansen/GLCLU2000-2020/v2/download.html (2020)
 N00_W80 <- rast("../../../Downloads/00N_080W.tif")
 N00_W90 <- rast("../../../Downloads/00N_090W.tif")
 N10_W80 <- rast("../../../Downloads/10N_080W.tif")
+
 
 ## camera trap data
 cameras <- read.csv("Data/AllStationsFormatted.csv")
@@ -53,14 +57,34 @@ writeRaster(raster2020, "Data/cropped2020raster.tif", overwrite = TRUE)
 raster2020 <- rast("Data/cropped2020raster.tif")
 
 ################ EXTRACT LULC FROM BUFFERED SITES ##################
+
+# buffer the points 
 bufferKM <- 25
 bufferedPoints <- buffer(vect(camCoordMatrix, type = "points", crs = cameraCRS), width = bufferKM*1000)
 plot(bufferedPoints)
 
-# LULCperSite <- terra::extract(raster2020, bufferedPoints, xy = TRUE)
+# extract proportion of each land cover per each buffered site
+sites <- st_as_sf(cameras[,c("gps_x", "gps_y")], coords = c("gps_x", "gps_y"), crs = cameraCRS)
+sitesBuffered <- st_buffer(sites, bufferKM*1000)
 
-require(exactextractr)
-LULCperSite <- exact_extract(raster2020, bufferedPoints)
+sum_cover <- function(x){
+  list(x %>%
+         group_by(value) %>%
+         summarize(total_area = sum(coverage_area)) %>%
+         mutate(proportion = total_area/sum(total_area)))
+  
+}
+
+# extract the area of each raster cell covered by the plot and summarize
+x <- exact_extract(raster2020, sitesBuffered, coverage_area = TRUE, 
+                   summarize_df = TRUE, fun = sum_cover)
+
+# add plot names to the elements of the output list
+names(x) <- cameras$Station
+
+# merge the list elements into a df
+LULCperSite <- bind_rows(x, .id = "Station")
+
 
 
 
@@ -83,6 +107,7 @@ LULCperSite <- exact_extract(raster2020, bufferedPoints)
 
 ##################### BELOW WOULD NOT WORK
 # SOURCE: https://www.arcgis.com/home/item.html?id=cfcb7609de5f478eb7666240902d4d3d; 
+# DOWNLOAD: https://livingatlas.arcgis.com/landcoverexplorer/#mapCenter=39.18600%2C9.04200%2C10&mode=step&timeExtent=2017%2C2022&year=2020&downloadMode=true 
 
 # some of the .tifs had the same extents, making it impossible to crop
 # when I plotted the the extent box or points on top of the rasters that cropped, neither were visible
@@ -101,14 +126,78 @@ r17N2022 <- rast("../../../Downloads/17N_20220101-20230101.tif")
 r18M2022 <- rast("../../../Downloads/18M_20220101-20230101.tif")
 r18N2022 <- rast("../../../Downloads/18N_20220101-20230101.tif")
 
+require(raster)
+## 2020
+M18 <- rast("../../../Downloads/18M_20200101-20210101.tif")
+M17 <- rast("../../../Downloads/17M_20200101-20210101.tif")
+N18 <- rast("../../../Downloads/18N_20200101-20210101.tif")
+N17 <- rast("../../../Downloads/17N_20200101-20210101.tif")
+
+##### the issue
+par(mfrow = c(1,2))
+plot(M18) ; plot(M17)
+ext(M18) == ext(M17)
+
+## tried:
+# - using 'raster' package instead of 'terra'
+# - using different rasters (it just had land cover, not land use)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ## camera trap data
 cameras <- read.csv("Data/AllStationsFormatted.csv")
 
 ################ COMBINE AND CUT THE RASTERS ##################
 # make the camera coordinates into a matrix and project them
 cameraCRS <- "+proj=longlat +datum=WGS84 +no_defs +type=crs" # cameras coming from: crs = 4326
-tif17CRS <- crs(r17M2018, proj = TRUE)
-tif18CRS <- crs(r18M2018, proj = TRUE)
+camerasSV <- vect(as.matrix(cameras[,c("gps_x", "gps_y")]), crs = cameraCRS)
+
+# buffered extent
+bufferDegrees <- 1.5
+e <- as.vector(ext(camerasSV)) 
+e["xmin"] <- e["xmin"] - bufferDegrees
+e["ymin"] <- e["ymin"] - bufferDegrees
+e["xmax"] <- e["xmax"] + bufferDegrees
+e["ymax"] <- e["ymax"] + bufferDegrees
+eBuffered <- ext(e)
+ext(camerasSV); eBuffered
+
+# project camera extent into UTM to crop
+eUTM <- project(ext(eBuffered), from = cameraCRS, to = crs(M18, proj = TRUE))
+eUTM
+
+# crop
+M18_cropped <- crop(M18, eUTM)
+M17_cropped <- crop(M17, eUTM)
+# N18_cropped <- crop(N18, eUTM)
+# N17_cropped <- crop(N17, eUTM)
+
+
+# project tifs
+M18_latlon <- project(M18_cropped, y = "epsg:4326")
+M17_latlon <- project(M17_cropped, y = "epsg:4326")
+N18_latlon <- project(N18_cropped, y = "epsg:4326")
+N17_latlon <- project(N17_cropped, y = "epsg:4326")
+
+
+
+merged <- merge(M18, M17)
+merged <- merge(merged, N18)
+merged <- merge(merged, N17)
+
+
+
 
 camCoordMatrix <- as.matrix(cameras[,c("gps_x", "gps_y")])
 projectedPoints <- project(camCoordMatrix, from = cameraCRS, to = tif18CRS)
