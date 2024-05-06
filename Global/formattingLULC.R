@@ -49,14 +49,14 @@ plot(raster2020)
 
 # save it
 writeRaster(raster2020, "Data/cropped2020raster.tif", overwrite = TRUE)
+raster2020 <- rast("Data/cropped2020raster.tif")
 
+################ EXTRACT LULC FROM BUFFERED SITES ##################
+bufferKM <- 25
+bufferedPoints <- buffer(vect(camCoordMatrix, type = "points", crs = cameraCRS), width = bufferKM*1000)
+plot(bufferedPoints)
 
-
-
-
-
-
-
+LULCperSite <- terra::extract(raster2020, bufferedPoints, xy = TRUE)
 
 
 
