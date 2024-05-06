@@ -6,6 +6,7 @@
 ############ SET UP ############ 
 # set working directory
 setwd("/Users/morganmanning/Documents/amazon/Global")
+setwd("~/Documents/amazon/Global")
 
 # load packages
 require(terra)
@@ -56,7 +57,27 @@ bufferKM <- 25
 bufferedPoints <- buffer(vect(camCoordMatrix, type = "points", crs = cameraCRS), width = bufferKM*1000)
 plot(bufferedPoints)
 
-LULCperSite <- terra::extract(raster2020, bufferedPoints, xy = TRUE)
+# LULCperSite <- terra::extract(raster2020, bufferedPoints, xy = TRUE)
+
+require(exactextractr)
+LULCperSite <- exact_extract(raster2020, bufferedPoints)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
