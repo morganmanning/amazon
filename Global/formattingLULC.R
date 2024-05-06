@@ -123,11 +123,9 @@ raster2022 <- mosaic(cr17M2022, cr18M2022)
 plot(raster2018)
 plot(projectedPoints)
 
-
-
 # save them
-writeRaster(raster2018, "Data/cropped2018raster.tif", overwrite = TRUE)
-writeRaster(raster2022, "Data/cropped2022raster.tif", overwrite = TRUE)
+#writeRaster(raster2018, "Data/cropped2018raster.tif", overwrite = TRUE)
+#writeRaster(raster2022, "Data/cropped2022raster.tif", overwrite = TRUE)
 
 
 
