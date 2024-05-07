@@ -14,7 +14,8 @@ require(sf)
 require(exactextractr)
 require(dplyr)
 
-# SOURCE: https://www.arcgis.com/home/item.html?id=cfcb7609de5f478eb7666240902d4d3d; 
+# LAND COVER AND DISTANCE TO WATER SOURCE: https://www.arcgis.com/home/item.html?id=cfcb7609de5f478eb7666240902d4d3d; 
+# RAINFALL AND TEMP SOURCE: https://disc.gsfc.nasa.gov/datasets/GLDAS_NOAH025_M_2.1/summary 
 # DOWNLOAD: https://livingatlas.arcgis.com/landcoverexplorer/#mapCenter=39.18600%2C9.04200%2C10&mode=step&timeExtent=2017%2C2022&year=2020&downloadMode=true 
 
 # some of the .tifs had the same extents, making it impossible to crop
