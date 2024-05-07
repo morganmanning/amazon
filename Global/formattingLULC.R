@@ -14,6 +14,149 @@ require(sf)
 require(exactextractr)
 require(dplyr)
 
+# SOURCE: https://www.arcgis.com/home/item.html?id=cfcb7609de5f478eb7666240902d4d3d; 
+# DOWNLOAD: https://livingatlas.arcgis.com/landcoverexplorer/#mapCenter=39.18600%2C9.04200%2C10&mode=step&timeExtent=2017%2C2022&year=2020&downloadMode=true 
+
+# some of the .tifs had the same extents, making it impossible to crop
+# when I plotted the the extent box or points on top of the rasters that cropped, neither were visible
+
+#################################
+# read in all .tif files 
+## 2020
+M18 <- rast("../../../Downloads/18M.tif")
+M17 <- rast("../../../Downloads/17M.tif")
+N18 <- rast("../../../Downloads/18N.tif")
+N17 <- rast("../../../Downloads/17N.tif")
+
+# merge the rasters
+merged18 <- merge(M18, N18)
+merged17 <- merge(M17, N17)
+writeRaster(merged18, "Data/mergedUTM18.tif", overwrite = TRUE)
+writeRaster(merged17, "Data/mergedUTM17.tif", overwrite = TRUE)
+merged17 <- rast("Data/mergedUTM17.tif")
+merged18 <- rast("Data/mergedUTM18.tif")
+merged2020 <- merge(merged17, merged18)
+writeRaster(merged2020, "Data/mergedCroppedLULC.tif", overwrite = TRUE)
+
+
+# # won't work if you try to merge those because "different resolutions" 
+# # solution from: https://gis.stackexchange.com/questions/224781/merge-rasters-with-different-origins-in-r
+# # template is an empty raster that has the projected extent of r2 but is aligned with r1 (i.e. same resolution, origin, and crs of r1)
+# template <- project(merged18, merged17, align = TRUE)
+# m18_aligned <- project(merged18, template)
+# writeRaster(m18_aligned, "Data/mergedUTM18aligned.tif", overwrite = TRUE)
+# m18_aligned <- rast("Data/mergedUTM18aligned.tif")
+# merged2020 <- merge(merged17, m18_aligned) 
+# writeRaster(merged2020, "Data/mergedCroppedLULC.tif", overwrite = TRUE)
+
+
+################ EXTRACT LULC FROM BUFFERED SITES ##################
+merged2020 <- rast("Data/mergedCroppedLULC.tif")
+agg2020 <- aggregate(merged2020, fact = 3, fun = "modal") # becomes a raster of 3x3
+
+## camera trap data
+cameras <- read.csv("Data/AllStationsFormatted.csv")
+cameraCRS <- "+proj=longlat +datum=WGS84 +no_defs" # cameras coming from: crs = 4326
+camCoordMatrix <- as.matrix(cameras[,c("gps_x", "gps_y")])
+camSV <- vect(camCoordMatrix, type = "points", crs = cameraCRS, atts = as.data.frame(cameras$Station))
+
+# buffer the points 
+bufferKM <- 25
+bufferedPoints <- buffer(camSV, width = bufferKM*1000)
+plot(bufferedPoints)
+
+# extract proportion of each land cover per each buffered site
+sites <- st_as_sf(cameras[,c("gps_x", "gps_y")], coords = c("gps_x", "gps_y"), crs = cameraCRS)
+sitesBuffered <- st_buffer(sites, bufferKM*1000)
+sum_cover <- function(x){
+  list(x %>%
+         mutate(across('value', round)) %>%
+         group_by(value) %>%
+         summarize(total_area = sum(coverage_area)) %>%
+         mutate(proportion = total_area/sum(total_area)))
+}
+
+# extract the area of each raster cell covered by the plot and summarize
+x <- exact_extract(agg2020, sitesBuffered, coverage_area = TRUE, 
+                   summarize_df = TRUE, fun = sum_cover)
+
+# add plot names to the elements of the output list
+names(x) <- cameras$Station
+
+# merge the list elements into a df
+LULCperSite <- bind_rows(x, .id = "Station")
+
+# assign actual categories to each number (from source)
+LULCperSite$value <- as.integer(round(LULCperSite$value))
+LULCperSite$LULC <- NA
+for (i in 1:nrow(LULCperSite)) {
+  if (LULCperSite$value[i] == 1){
+    type <- "Water"
+  } else if (LULCperSite$value[i] == 2){
+    type <- "Trees"
+  } else if(LULCperSite$value[i] == 4) {
+    type <- "Flooded vegetation"
+  } else if (LULCperSite$value[i] == 5) {
+    type <- "Crops"
+  } else if (LULCperSite$value[i] == 7) {
+    type <- "Built area"
+  } else if (LULCperSite$value[i] == 8) {
+    type <- "Bare ground"
+  } else if (LULCperSite$value[i] == 9) {
+    type <- "Snow/ice"
+  } else if (LULCperSite$value[i] == 10) {
+    type <- "Clouds"
+  } else if (LULCperSite$value[i] == 11) {
+    type <- "Rangeland"
+  } else {
+    type <- NA
+  }
+  LULCperSite$LULC[i] <- type
+}
+
+# summarize table into natural vs. non-natural areas
+# divide into natural and unnatural areas
+justNatural <- LULCperSite[LULCperSite$value == 1 | LULCperSite$value == 2 | LULCperSite$value == 4,]
+justNatural <- justNatural %>% distinct()
+justNot <- LULCperSite[LULCperSite$value == 5 | LULCperSite$value == 7 | LULCperSite$value == 8 | LULCperSite$value == 11,]
+justNot <- justNot %>% distinct()
+
+# summarize
+JNat <- justNatural %>%
+  group_by(Station) %>%
+  summarize(percentNatural = sum(proportion))
+JNot <- justNot %>%
+  group_by(Station) %>%
+  summarize(percentNot = sum(proportion))
+naturalAndNot <- merge(JNat, JNot)
+
+# save it
+write.csv(naturalAndNot, file = "Data/naturalAreaPerSite.csv")
+
+
+#################### Calculate distance to nearest water source
+require(raster)
+z <- ifel(agg2020 > 1.5, NA, agg2020) # make everything except water (1) NA
+writeRaster(z, "Data/WaterOnly.tif")
+writeVector(camSV, "Data/camerasSV.shp", overwrite = TRUE)
+# took too long to run in R, so brought it over to QGIS
+
+# steps:
+# - turned water raster into points
+# - used "Distance Matrix" function to calculate distance from each station to the nearest water point
+# - exported attribute table as CSV
+
+
+
+
+
+
+
+
+
+################################ OLD WORK
+
+
 # load in TIFF files: https://storage.googleapis.com/earthenginepartners-hansen/GLCLU2000-2020/v2/download.html (2020)
 N00_W80 <- rast("../../../Downloads/00N_080W.tif")
 N00_W90 <- rast("../../../Downloads/00N_090W.tif")
@@ -91,29 +234,30 @@ LULCperSite <- bind_rows(x, .id = "Station")
 
 
 
+##### the issue
+par(mfrow = c(1,2))
+plot(M17) ; plot(M18)
+ext(M17) == ext(M18)
+
+plot(N17) ; plot(N18)
+ext(N17) == ext(N18)
+
+# but...
+ext(N17) == ext(M17)
+
+
+## tried:
+# - using 'raster' package instead of 'terra'
+# - using different rasters (it just had land cover, not land use)
+
+
+writeVector(camerasSV, "camerasSV.shp")
 
 
 
 
 
 
-
-
-
-
-
-
-
-
-##################### BELOW WOULD NOT WORK
-# SOURCE: https://www.arcgis.com/home/item.html?id=cfcb7609de5f478eb7666240902d4d3d; 
-# DOWNLOAD: https://livingatlas.arcgis.com/landcoverexplorer/#mapCenter=39.18600%2C9.04200%2C10&mode=step&timeExtent=2017%2C2022&year=2020&downloadMode=true 
-
-# some of the .tifs had the same extents, making it impossible to crop
-# when I plotted the the extent box or points on top of the rasters that cropped, neither were visible
-
-#################################
-# read in all .tif files 
 ## 2018
 r17M2018 <- rast("../../../Downloads/17M_20180101-20190101.tif")
 r17N2018 <- rast("../../../Downloads/17N_20180101-20190101.tif")
@@ -125,31 +269,6 @@ r17M2022 <- rast("../../../Downloads/17M_20220101-20230101.tif")
 r17N2022 <- rast("../../../Downloads/17N_20220101-20230101.tif")
 r18M2022 <- rast("../../../Downloads/18M_20220101-20230101.tif")
 r18N2022 <- rast("../../../Downloads/18N_20220101-20230101.tif")
-
-require(raster)
-## 2020
-M18 <- rast("../../../Downloads/18M_20200101-20210101.tif")
-M17 <- rast("../../../Downloads/17M_20200101-20210101.tif")
-N18 <- rast("../../../Downloads/18N_20200101-20210101.tif")
-N17 <- rast("../../../Downloads/17N_20200101-20210101.tif")
-
-##### the issue
-par(mfrow = c(1,2))
-plot(M18) ; plot(M17)
-ext(M18) == ext(M17)
-
-## tried:
-# - using 'raster' package instead of 'terra'
-# - using different rasters (it just had land cover, not land use)
-
-
-
-
-
-
-
-
-
 
 
 
@@ -174,7 +293,7 @@ eBuffered <- ext(e)
 ext(camerasSV); eBuffered
 
 # project camera extent into UTM to crop
-eUTM <- project(ext(eBuffered), from = cameraCRS, to = crs(M18, proj = TRUE))
+eUTM <- terra::project(ext(eBuffered), from = cameraCRS, to = crs(M18, proj = TRUE))
 eUTM
 
 # crop
