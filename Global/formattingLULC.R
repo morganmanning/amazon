@@ -149,6 +149,62 @@ writeVector(camSV, "Data/camerasSV.shp", overwrite = TRUE)
 
 
 
+###################### Format rainfall, dist to water, and percent natural cover
+# set working directory
+setwd("/Users/morganmanning/Documents/amazon/Global")
+setwd("~/Documents/amazon/Global")
+
+# load data
+naturalArea <- read.csv("Data/naturalAreaPerSite.csv")
+rainfall <- read.csv("Data/avgRainfallJuly_November.csv")
+distToWater <- read.csv("Data/distanceFromStationsToWater.csv")
+temperature <- read.csv("Data/avgTempKJuly_Nov2020.csv")
+
+# standardize the station column name
+rainfall$Station <- rainfall$cameras.St
+rainfall$Rainfall <- rainfall$SAMPLE_1
+distToWater$Station <- distToWater$InputID
+distToWater$DistToWater <- distToWater$Distance
+temperature$Station <- temperature$cameras.St
+temperature$Temperature <- (temperature$SAMPLE_1) - 273.15 # convert to Celsius
+
+# merge all the covariates
+communityCovariates <- merge(rainfall, naturalArea, by = "Station", all.x = TRUE)
+communityCovariates <- merge(communityCovariates, distToWater, by = "Station", all.x = TRUE)
+communityCovariates <- merge(communityCovariates, temperature, by = "Station", all.x = TRUE)
+
+# format the covariate data frame
+communityCovariates <- communityCovariates[c("Station", "Rainfall", "Temperature", "DistToWater", "percentNatural")]
+communityCovariates <- communityCovariates %>%
+  select(Station, Rainfall, Temperature, DistToWater, percentNatural) %>%
+  distinct()
+
+# add community name as a covariate based on Station
+communityCovariates$Community <- ifelse(grepl('^ZAB', communityCovariates$Station), 'Zabalo',
+                                   ifelse(grepl('^SKP', communityCovariates$Station), 'Siekopai',
+                                          ifelse(grepl('^SGE', communityCovariates$Station), 'Sinangoe', "Siona")))
+communityCovariates$Community <- factor(communityCovariates$Community,
+                                   levels = c("Zabalo", "Siekopai", "Sinangoe", "Siona"))
+communityCovariates$Year <- ifelse(communityCovariates$Community == "Zabalo", "2018", "2022")
+
+# save it
+write.csv(communityCovariates, file = "Data/AllCommunityCovariates.csv")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

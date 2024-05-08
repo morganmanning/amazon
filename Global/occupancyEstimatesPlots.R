@@ -77,7 +77,7 @@ for (i in 1:length(communities)) {
       } else if (communities[i] == "Zabalo") {
         load('Zabalo/Data/R Objects/siteCovs2018.RData') # loads 'siteCovariate'
         } else if (communities[i] == "Global") {
-         siteCovariate <- read.csv("Global/Data/PercentNaturalOutside.csv")
+         siteCovariate <- read.csv("Global/Data/AllCommunityCovariates.csv")
         } else {
           siteCovariate <- NULL # no covariates for remaining communities 
         }
@@ -219,8 +219,11 @@ names(unclumpedUFOMasterList) <- communities
   # occupancy: c("1)
 
 # ALL COMMUNITIES TOGETHER:
-  # Percentage natural area
+  # Percentage natural area (see formattingLULC.R for buffer size)
   # Community as a covariate
+  # Average monthly rainfall from July-November (kg/m^2/s)
+  # Temperature (C)
+  # Distance to a water source (m)
 
 # output lists:
 masterBestofTheBest <- list() # occu output for the best model for each species
@@ -240,8 +243,8 @@ for (i in 1:length(communities)) {
     match_detection <- c("1")
     match_occupancy <- c("1")
   } else if (communities[i] == "Global") {
-    match_detection <- c("CommunityName")
-    match_occupancy <- c("PercentNaturalArea")
+    match_detection <- c("Community")
+    match_occupancy <- c("Community", "Rainfall", "percentNatural", "DistToWater", "Temperature")
   }
   
   
@@ -386,6 +389,12 @@ for (i in 1:length(communities)) {
 masterEstimatedParameters <- list() # df of occ/det and their SE/range
 masterUnmarkedPredOcc <- list() # unmarked::predict() output
 masterUnmarkedPredDet <- list() # unmarked::predict() output
+perCovPerCommDetection <- list()
+perCovPerCommOccupancy <- list()
+perCovDetection <- list()
+perCovOccupancy <- list()
+masterGlobalDetectionEstimates <- list()
+masterGlobalOccupancyEstimates <- list()
 
 for (i in 1:length(communities)) {
   
@@ -410,7 +419,7 @@ for (i in 1:length(communities)) {
                                                 type = 'state', new = df, appendData = TRUE)
       # det = detection
       bestModel <- occu(formula(masterTopModels[[i]][[j]]$ModelName[1]), 
-                                   ufoMasterList[[i]][[j]])
+                        ufoMasterList[[i]][[j]])
       nullDetPred <- backTransform(bestModel, "det")
       
       # average
@@ -448,7 +457,7 @@ for (i in 1:length(communities)) {
                                              detectionRange = range(unmarkedPredDet[[j]]$Predicted))  
     }
     
-  } else {
+  } else if (communities[i] == "Siona" | communities[i] == "Siekopai") {
     
     # for Siona and Siekopai who don't have covariates
     siteCovariate <- NULL # no covariates for remaining communities 
@@ -468,21 +477,103 @@ for (i in 1:length(communities)) {
                                              avgDetectionSE = SE(nullDetPred),
                                              detectionRange = NA)  
     }
-
     
-  }
+    
+  } else if (communities[i] == "Global"){
+    covariates <- c("Community", "Rainfall", "percentNatural", "DistToWater", "Temperature")
+    siteCovariate <- read.csv("Global/Data/AllCommunityCovariates.csv")
+    allCommunities <- unique(siteCovariate$Community)
+    dfTemplate <- data.frame(
+      Community = rep("Sinangoe", 100), # picked because it's kind of a middle community
+      Rainfall = mean(siteCovariate$Rainfall),
+      percentNatural = mean(siteCovariate$percentNatural),
+      DistToWater = mean(siteCovariate$DistToWater),
+      Temperature = mean(siteCovariate$Temperature)
+    ) 
+    
+    for (j in 1:length(speciesNames)) { # for each species
+      dfEdited <- dfTemplate
+      ########## average overall
+      # state = occupancy
+      unmarkedPredOcc[[j]] <- unmarked::predict(masterBestModsFitLists[[i]][[j]], 
+                                                type = 'state', new = dfTemplate, appendData = TRUE)
+      # det = detection
+      unmarkedPredDet[[j]] <- unmarked::predict(masterBestModsFitLists[[i]][[j]], 
+                                                type = 'det', new = dfTemplate, appendData = TRUE)
+      
+      # average
+      estimatedParameters[[j]] <- data.frame(avgOccupancy = mean(unmarkedPredOcc[[j]]$Predicted),
+                                             avgOccupancySE = mean(unmarkedPredOcc[[j]]$SE),
+                                             occupancyRange = range(unmarkedPredOcc[[j]]$Predicted),
+                                             avgDetection = mean(unmarkedPredDet[[j]]$Predicted),
+                                             avgDetectionSE = mean(unmarkedPredDet[[j]]$SE),
+                                             detectionRange = range(unmarkedPredDet[[j]]$Predicted))
+      for (m in 1:length(allCommunities)) {
+        dfEdited <- dfTemplate
+        dfEdited[,"Community"] <- allCommunities[m]
+        
+        ######## prediction per covariate
+        for (k in 1: length(covariates)) {
+          covariateInQuestion <- covariates[k]
+          
+          # prediction DF
+          if (covariateInQuestion == "Community"){
+            dfEdited[,covariateInQuestion] <- rep(unique(siteCovariate$Community), each = 25)
+          } else {
+            dfEdited[,"Community"] <- allCommunities[m]
+            dfEdited[,covariateInQuestion] <- seq(min(siteCovariate[,covariateInQuestion]), 
+                                                  max(siteCovariate[,covariateInQuestion]), 
+                                                  length.out = 100)
+          }
+          
+          # state = occupancy
+          df <- unmarked::predict(masterBestModsFitLists[[i]][[j]], 
+                                                    type = 'state', new = dfEdited, appendData = TRUE)
+          df$PredictedCovariate <- covariateInQuestion
+          df$CommunityHeldConstant <- allCommunities[m]
+          df$Species <- speciesNames[j]
+          perCovOccupancy[[k]] <- df
+          
+          # det = detection
+          df <- unmarked::predict(masterBestModsFitLists[[i]][[j]], 
+                                                    type = 'det', new = dfEdited, appendData = TRUE)
+          df$PredictedCovariate <- covariateInQuestion
+          df$CommunityHeldConstant <- allCommunities[m]
+          df$Species <- speciesNames[j]
+          perCovDetection[[k]] <- df
+          
+        }
+        names(perCovOccupancy) <- covariates
+        names(perCovDetection) <- covariates
+        
+        perCovPerCommOccupancy[[m]] <- perCovOccupancy
+        perCovPerCommDetection[[m]] <- perCovDetection
+      }
+      names(perCovPerCommOccupancy) <- allCommunities
+      names(perCovPerCommDetection) <- allCommunities
+      
+      masterGlobalOccupancyEstimates[[j]] <- perCovPerCommOccupancy
+      masterGlobalDetectionEstimates[[j]] <- perCovPerCommDetection
+      
+    }
+    names(masterGlobalOccupancyEstimates) <- speciesNames
+    names(masterGlobalDetectionEstimates) <- speciesNames
+  } 
+  
   names(estimatedParameters) <- speciesNames
   
-
   masterEstimatedParameters[[i]] <- estimatedParameters
   masterUnmarkedPredOcc[[i]] <- unmarkedPredOcc
   masterUnmarkedPredDet[[i]] <- unmarkedPredDet
   
 } 
-  
+
 names(masterEstimatedParameters) <- communities
 names(masterUnmarkedPredOcc) <- communities
 names(masterUnmarkedPredDet) <- communities
+
+
+
 
 
 ################################################################################
@@ -534,6 +625,7 @@ for (i in 1:length(communitiesAccent)) {
 
 ########## MANUALLY MAKE X-AXIS LABELS FOR EACH SPECIES: ENSURE IN CORRECT ORDER 
 # work around to make x-axis labels with italics and divided into two lines
+speciesNames
 peccary <- ~ atop(paste("Collared peccary"), paste("(", italic("Dicotyles tajacu"), ")"))
 brocket <- ~ atop(paste("Red brocket"), paste("(", italic("Mazama americana"), ")"))
 paca <- ~ atop(paste("Lowland paca"), paste("(", italic("Cuniculus paca"), ")"))
@@ -580,6 +672,64 @@ plot +
 
 # save it
 ggsave(filename = "Global/AllCommunitiesOccupancyEstimates.tiff", width = 8, height = 4)
+
+
+
+######################### GLOBAL 
+# GOAL:
+# - plot with four panels (one for each species) for each covariate with prediction lines for each community
+
+plottingDF <- as.data.frame(do.call(rbind, do.call(rbind, do.call(rbind, masterGlobalOccupancyEstimates))))
+plottingDF <- plottingDF[plottingDF$PredictedCovariate != "Community",]
+
+
+
+for (i in 1:(length(covariates))) {
+  if (covariates[i] == "Community"){
+    next
+  } else{
+    for (j in 1:length(speciesNames)){
+      for (k in 1:length(allCommunities)){
+        oneCovOneCommOneSp <- masterGlobalOccupancyEstimates[[j]][[k]][[i]]
+        
+        
+        
+        
+        
+        
+        
+      }
+      
+      
+      
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
