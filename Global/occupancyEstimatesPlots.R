@@ -677,49 +677,67 @@ ggsave(filename = "Global/AllCommunitiesOccupancyEstimates.tiff", width = 8, hei
 
 ######################### GLOBAL 
 # GOAL:
-# - plot with four panels (one for each species) for each covariate with prediction lines for each community
+# - one plot for each covariate with four panels (one for each species) with prediction lines for each community
+covariatesMinusCommunity <- c("Rainfall", "percentNatural", "DistToWater", "Temperature")
 
 plottingDF <- as.data.frame(do.call(rbind, do.call(rbind, do.call(rbind, masterGlobalOccupancyEstimates))))
 plottingDF <- plottingDF[plottingDF$PredictedCovariate != "Community",]
 
-
-
-for (i in 1:(length(covariates))) {
-  if (covariates[i] == "Community"){
-    next
-  } else{
-    for (j in 1:length(speciesNames)){
-      for (k in 1:length(allCommunities)){
-        oneCovOneCommOneSp <- masterGlobalOccupancyEstimates[[j]][[k]][[i]]
-        
-        
-        
-        
-        
-        
-        
-      }
-      
-      
-      
-    }
+plotsPerCovariate
+for (i in 1:length(covariatesMinusCommunity)){
+  
+  # x axis labels for each covariate
+  if (covariatesMinusCommunity[i] == "Rainfall") {
+    xlabel <- expression(paste0("Rainfall (kg*", m^{-2}, "*", s^{-1}, ")"))
+  } else if (covariatesMinusCommunity[i] == "Temperature"){
+    xlabel <- expression(paste0("Temperature (°C)"))
+  } else if (covariatesMinusCommunity[i] == "DistToWater") {
+    xlabel <- "Distance to water source (m)"
+  } else if (covariatesMinusCommunity[i] == "percentNatural"){
+    xlabel <- "Percent natural area within 25 km"
+  }
+  
+  
+  for (j in 1:length(speciesNames)) {
     
-    
-    
-    
-    
-    
-    
-    
-    
+    perCovSpp <- plottingDF[plottingDF$Species == speciesNames[j] & 
+                              plottingDF$PredictedCovariate == covariatesMinusCommunity[j],]
     
   }
+  
+  
+  
 }
-
-
-
-
-
+    
+    
+    
+    
+for (i in 1:length(covariatesMinusCommunity)) {
+  perCov <- plottingDF[plottingDF$PredictedCovariate == covariatesMinusCommunity[i],]
+  
+  
+  
+}
+  i <- 2  
+colors <- c("Zabalo" = "darkgreen", "Siekopai" = "forestgreen", 
+            "Sinangoe" = "yellowgreen", "Siona" = "goldenrod")
+animalPic <- get_phylopic(uuid = get_uuid(name = speciesNames[j], n = 1))
+covariateInQuestion <- perCov[,covariatesMinusCommunity[i]]
+ggplot(perCov, aes(x = covariateInQuestion, 
+                   y = Predicted, color = Community)) +
+  geom_line() +
+  geom_ribbon(aes(ymin = Predicted - SE, ymax = Predicted + SE)) +
+  geom_point(size = 2) +
+  #add_phylopic(animalPic, alpha = 0.2, x = 4.75, y = 0.85, ysize = 0.3) +
+  facet_wrap(~ Species, ncol = 2) +
+  ylab(expression(paste("Occupancy probability estimate (", psi, ")"))) +
+  xlab(xlabel) +
+  #scale_x_discrete(name = xlabel) +
+  xlim(c(min(covariateInQuestion)-(0.01 * min(covariateInQuestion)),
+         max(covariateInQuestion)+(0.01 * max(covariateInQuestion)))) +
+  scale_color_manual(values = colors) +
+  theme_bw()
+  
 
 
 
