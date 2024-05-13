@@ -572,6 +572,12 @@ kbl(communityDiversity, col.names = c("Community", "Percent Natural Area",
   kable_classic(full_width = T, html_font = "TimesNewRoman") %>%
   save_kable(file = "../Figures/communityDiversity.png", zoom = 1.5)
 
+kbl(communityDiversity[,c("Community", "PercentNaturalArea", "shannonIndex", "simpsonIndex")], 
+    col.names = c("Community", "Percent Natural Area", 
+                  "Shannon Diversity Index", "Simpson Diversity Index")) %>%
+  kable_classic(font_size = 22, html_font = "TimesNewRoman") %>%
+  save_kable(file = "../Figures/communityDiversitySummary.png", zoom = 2)
+
 kbl(communityDiversity, col.names = c("Community", "Percent Natural Area", 
                                       "Number of Detections", "Number of Species",
                                       "Number of Sampling Days",

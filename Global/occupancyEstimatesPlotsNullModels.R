@@ -462,6 +462,10 @@ commonNames
 
 ########## MANUALLY INPUT X-AXIS LABELS IN THE CORRECT ORDER
 # plot it
+estimates$Community <- factor(estimates$Community,
+                                        levels = c("Zábalo", "Siekopai", "Sinangoe", "Siona"))
+colors <- c("Zábalo" = "darkgreen", "Siekopai" = "forestgreen", 
+            "Sinangoe" = "yellowgreen", "Siona" = "goldenrod")
 dodge <- position_dodge(width = 0.3)
 plot <- ggplot(estimates, aes(x = Species,
                            y = avgOccupancy,
@@ -471,7 +475,7 @@ plot <- ggplot(estimates, aes(x = Species,
                     ymax = avgOccupancy + avgOccupancySE, 
                     color = Community), 
                 position = dodge, width = 0.2, linewidth = 1) +
-  scale_color_manual(values = c("darkorange", "royalblue", "green3", "yellow3")) +
+  scale_color_manual(values = colors) +
   scale_x_discrete(labels = c(peccary, brocket, paca, trumpeter)) +
   labs(x = "Species", y = "Probability of Occupancy") +
   ylim(c(0,1)) +
@@ -497,7 +501,7 @@ plot +
   add_phylopic(trumpPic, alpha = 0.2, x = 4.0, y = 0.19, ysize = 0.45)
 
 # save it
-ggsave(filename = "Global/AllCommunitiesOccupancyEstimatesNullModels.tiff", width = 8, height = 4)
+ggsave(filename = "Global/Figures/AllCommunitiesOccupancyEstimatesNullModels.tiff", width = 8, height = 4)
 
 
 

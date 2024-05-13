@@ -15,6 +15,7 @@ require(dplyr)
 require(ggplot2)
 require(reshape2)
 require(rphylopic)
+require(ggpubr)
 
 
 # input
@@ -78,6 +79,7 @@ for (i in 1:length(communities)) {
         load('Zabalo/Data/R Objects/siteCovs2018.RData') # loads 'siteCovariate'
         } else if (communities[i] == "Global") {
          siteCovariate <- read.csv("Global/Data/AllCommunityCovariates.csv")
+         siteCovariate$Rainfall <- siteCovariate$Rainfall*1000 # convert to grams/m^2/s
         } else {
           siteCovariate <- NULL # no covariates for remaining communities 
         }
@@ -482,9 +484,10 @@ for (i in 1:length(communities)) {
   } else if (communities[i] == "Global"){
     covariates <- c("Community", "Rainfall", "percentNatural", "DistToWater", "Temperature")
     siteCovariate <- read.csv("Global/Data/AllCommunityCovariates.csv")
+    siteCovariate$Rainfall <- siteCovariate$Rainfall * 1000
     allCommunities <- unique(siteCovariate$Community)
     dfTemplate <- data.frame(
-      Community = rep("Sinangoe", 100), # picked because it's kind of a middle community
+      Community = rep("Sinangoe", 40), # picked because it's kind of a middle community
       Rainfall = mean(siteCovariate$Rainfall),
       percentNatural = mean(siteCovariate$percentNatural),
       DistToWater = mean(siteCovariate$DistToWater),
@@ -514,16 +517,18 @@ for (i in 1:length(communities)) {
         
         ######## prediction per covariate
         for (k in 1: length(covariates)) {
+          dfEdited <- dfTemplate
+          dfEdited[,"Community"] <- allCommunities[m]
           covariateInQuestion <- covariates[k]
           
           # prediction DF
           if (covariateInQuestion == "Community"){
-            dfEdited[,covariateInQuestion] <- rep(unique(siteCovariate$Community), each = 25)
+            dfEdited[,covariateInQuestion] <- rep(unique(siteCovariate$Community), each = 40/4)
           } else {
             dfEdited[,"Community"] <- allCommunities[m]
             dfEdited[,covariateInQuestion] <- seq(min(siteCovariate[,covariateInQuestion]), 
                                                   max(siteCovariate[,covariateInQuestion]), 
-                                                  length.out = 100)
+                                                  length.out = 40)
           }
           
           # state = occupancy
@@ -582,7 +587,7 @@ names(masterUnmarkedPredDet) <- communities
 
 communitiesAccent <- gsub(pattern = "Zabalo", replacement = "Zábalo", communities)
 speciesNames
-masterEstimatedParameters[[1]]
+#masterEstimatedParameters[[1]]
 
 # make a dataframe for facilitated plotting
 estimates <- data.frame(Community = rep(communitiesAccent, each = length(speciesNames)),
@@ -671,83 +676,325 @@ plot +
   add_phylopic(trumpPic, alpha = 0.2, x = 4.0, y = 0.19, ysize = 0.45)
 
 # save it
-ggsave(filename = "Global/AllCommunitiesOccupancyEstimates.tiff", width = 8, height = 4)
+ggsave(filename = "Global/GlobalOccupancyEstimates.tiff", width = 8, height = 4)
 
 
 
 ######################### GLOBAL 
+require(ggpubr)
 # GOAL:
 # - one plot for each covariate with four panels (one for each species) with prediction lines for each community
 covariatesMinusCommunity <- c("Rainfall", "percentNatural", "DistToWater", "Temperature")
 
+# making the data frame to plot from
 plottingDF <- as.data.frame(do.call(rbind, do.call(rbind, do.call(rbind, masterGlobalOccupancyEstimates))))
 plottingDF <- plottingDF[plottingDF$PredictedCovariate != "Community",]
+plottingDF$Community <- gsub("Zabalo", "Zábalo", x = plottingDF$Community)
 
-plotsPerCovariate
+# order the communities by percent of natural cover
+plottingDF <- plottingDF %>% dplyr::filter(Community %in% c("Zábalo", "Siekopai", "Sinangoe", "Siona"))
+plottingDF$Community <- factor(plottingDF$Community, levels=c("Zábalo", "Siekopai", "Sinangoe", "Siona"))
+
+# add species common names
+crossList <- data.frame(commonNames = commonNames,
+                        Species = speciesNames)
+plottingDF <- merge(plottingDF, crossList, by = "Species")
+
+# make labels per covariate
+colors <- c("Zábalo" = "darkgreen", "Siekopai" = "forestgreen", 
+            "Sinangoe" = "yellowgreen", "Siona" = "goldenrod")
+covPlots <- list()
+allCovPlots <- list()
 for (i in 1:length(covariatesMinusCommunity)){
   
   # x axis labels for each covariate
   if (covariatesMinusCommunity[i] == "Rainfall") {
-    xlabel <- expression(paste0("Rainfall (kg*", m^{-2}, "*", s^{-1}, ")"))
+    xlabel <- expression(paste0("Rainfall (kg*", m^{-2}, "*", s^{-1}, ", scaled)"))
   } else if (covariatesMinusCommunity[i] == "Temperature"){
-    xlabel <- expression(paste0("Temperature (°C)"))
+    xlabel <- "Temperature (°C)"
   } else if (covariatesMinusCommunity[i] == "DistToWater") {
     xlabel <- "Distance to water source (m)"
   } else if (covariatesMinusCommunity[i] == "percentNatural"){
     xlabel <- "Percent natural area within 25 km"
   }
   
-  
   for (j in 1:length(speciesNames)) {
-    
+    # subset it to just the species j
     perCovSpp <- plottingDF[plottingDF$Species == speciesNames[j] & 
-                              plottingDF$PredictedCovariate == covariatesMinusCommunity[j],]
+                              plottingDF$PredictedCovariate == covariatesMinusCommunity[i],]
+    
+    # get phylopic and look at just the covariate in question
+    animalPic <- get_phylopic(uuid = get_uuid(name = speciesNames[j], n = 1))
+    covariateInQuestion <- perCovSpp[,covariatesMinusCommunity[i]]
+    bottomRightX <- max(covariateInQuestion)-(0.02 * max(covariateInQuestion))
+    bottomY <- 0.15
+    
+    # actually plot it
+    plotty <- ggplot(perCovSpp, aes(x = covariateInQuestion, 
+                          y = Predicted, color = Community)) +
+      geom_ribbon(aes(ymin = Predicted - SE, ymax = Predicted + SE, fill = Community), 
+                  alpha = 0.2, color = NA) +
+      geom_line(aes(x = covariateInQuestion, y = Predicted)) +
+      add_phylopic(animalPic, alpha = 0.2, x = bottomRightX, y = bottomY, ysize = 0.3) +
+      ylab(expression(paste("Occupancy probability estimate (", psi, ")"))) +
+      xlab(xlabel) +
+      ggtitle(commonNames[j]) +
+      coord_cartesian(ylim = c(0,1), 
+                      xlim = c(min(covariateInQuestion)-(0.001 * min(covariateInQuestion)),
+                               max(covariateInQuestion)+(0.005 * max(covariateInQuestion)))) +
+      scale_color_manual(values = colors) +
+      scale_fill_manual(values = colors) +
+      theme_bw() +
+      theme(plot.title = element_text(hjust = 0.5))
+    
+    covPlots[[j]] <- plotty
     
   }
   
+  names(covPlots) <- commonNames
   
-  
-}
-    
-    
-    
-    
-for (i in 1:length(covariatesMinusCommunity)) {
-  perCov <- plottingDF[plottingDF$PredictedCovariate == covariatesMinusCommunity[i],]
-  
-  
+  allCovPlots[[i]] <- covPlots
   
 }
-  i <- 2  
-colors <- c("Zabalo" = "darkgreen", "Siekopai" = "forestgreen", 
-            "Sinangoe" = "yellowgreen", "Siona" = "goldenrod")
+names(allCovPlots) <- covariatesMinusCommunity
+    
+    
+    
+ggarrange(plotlist = allCovPlots[["Rainfall"]], ncol = 2, nrow = 2, common.legend = TRUE)
+    
+    
+    
+  i <- 3  
+  j <- 1
+
 animalPic <- get_phylopic(uuid = get_uuid(name = speciesNames[j], n = 1))
-covariateInQuestion <- perCov[,covariatesMinusCommunity[i]]
-ggplot(perCov, aes(x = covariateInQuestion, 
+perCovSpp <- plottingDF[plottingDF$Species == speciesNames[j] & 
+                          plottingDF$PredictedCovariate == covariatesMinusCommunity[i],]
+covariateInQuestion <- perCovSpp[,covariatesMinusCommunity[i]]
+ggplot(perCovSpp, aes(x = covariateInQuestion, 
                    y = Predicted, color = Community)) +
-  geom_line() +
-  geom_ribbon(aes(ymin = Predicted - SE, ymax = Predicted + SE)) +
-  geom_point(size = 2) +
-  #add_phylopic(animalPic, alpha = 0.2, x = 4.75, y = 0.85, ysize = 0.3) +
-  facet_wrap(~ Species, ncol = 2) +
+  geom_ribbon(aes(ymin = Predicted - SE, ymax = Predicted + SE, fill = Community), 
+              alpha = 0.2, color = NA) +
+  geom_line(aes(x = covariateInQuestion, y = Predicted)) +
+  add_phylopic(animalPic, alpha = 0.2, x = 0.98, y = 0.15, ysize = 0.3) +
   ylab(expression(paste("Occupancy probability estimate (", psi, ")"))) +
   xlab(xlabel) +
-  #scale_x_discrete(name = xlabel) +
-  xlim(c(min(covariateInQuestion)-(0.01 * min(covariateInQuestion)),
-         max(covariateInQuestion)+(0.01 * max(covariateInQuestion)))) +
+  coord_cartesian(ylim = c(0,1), 
+                  xlim = c(min(covariateInQuestion)-(0.001 * min(covariateInQuestion)),
+                                               max(covariateInQuestion)+(0.005 * max(covariateInQuestion)))) +
   scale_color_manual(values = colors) +
+  scale_fill_manual(values = colors) +
   theme_bw()
+
+
+
+######## MANUALLY
+# animal silhouettes 
+peccPic <- get_phylopic(uuid = get_uuid(name = "Dicotyles tajacu", n = 1))
+brockPic <- get_phylopic(uuid = get_uuid(name = "Mazama americana", n = 1))
+pacaPic <- get_phylopic(uuid = get_uuid(name = "Cuniculus paca", n = 1))
+trumpPic <- get_phylopic(uuid = get_uuid(name = "Psophia crepitans", n = 1))
+
+
+
+#### RAINFALL 
+# just the covariate
+df <- plottingDF[plottingDF$PredictedCovariate == "percentNatural",]
+
+covPlots <- list()
+for (j in 1:length(speciesNames)) {
+  # subset it to just the species j
+  perCovSpp <- df[df$Species == speciesNames[j],]
   
+  # get phylopic and look at just the covariate in question
+  animalPic <- get_phylopic(uuid = get_uuid(name = speciesNames[j], n = 1))
+  covariateInQuestion <- perCovSpp[,"percentNatural"]
+  bottomRightX <- max(covariateInQuestion)-(0.02 * max(covariateInQuestion))
+  bottomY <- 0.15
+  
+  # actually plot it
+  plotty <- ggplot(df, aes(x = percentNatural, 
+                                  y = Predicted, color = Community)) +
+    geom_ribbon(aes(ymin = Predicted - SE, ymax = Predicted + SE, fill = Community), alpha = 0.2, color = NA) +
+    geom_line(aes(x = percentNatural, y = Predicted)) +
+    add_phylopic(animalPic, alpha = 0.2, x = bottomRightX, y = bottomY, ysize = 0.3) +
+    ylab(expression(paste("Occupancy probability estimate (", psi, ")"))) +
+    #facet_grid(~Species) +
+    xlab("Covariate") +
+    ggtitle(commonNames[j]) +
+    coord_cartesian(ylim = c(0,1), 
+                    xlim = c(min(covariateInQuestion),
+                             max(covariateInQuestion))) +
+    scale_color_manual(values = colors) +
+    scale_fill_manual(values = colors) +
+    theme_bw() +
+    theme(plot.title = element_text(hjust = 0.5))
+  
+  covPlots[[j]] <- plotty
+  
+}
+
+
+ggarrange(plotlist = covPlots, ncol = 2, nrow = 2, common.legend = TRUE)
 
 
 
+##### faceted way
+covPlots <- list()
+for (i in 1:length(covariatesMinusCommunity)) {
+  # subset it to just the species j
+  df <- plottingDF[plottingDF$PredictedCovariate == covariatesMinusCommunity[i],]
+  covariateInQuestion <- df[,covariatesMinusCommunity[i]]
+ 
+  # actually plot it
+  plotty <- ggplot(df, aes(x = covariateInQuestion, 
+                           y = Predicted, color = Community)) +
+    geom_ribbon(aes(ymin = Predicted - SE, ymax = Predicted + SE, fill = Community), 
+                alpha = 0.2, color = NA) +
+    geom_line(aes(x = covariateInQuestion, y = Predicted)) +
+    ylab(expression(paste("Occupancy probability estimate (", psi, ")"))) +
+    facet_wrap(~commonNames, nrow = 2, ncol = 2) +
+    xlab("Covariate") +
+    #ggtitle(covariatesMinusCommunity[i]) +
+    coord_cartesian(ylim = c(0,1), 
+                    xlim = c(min(covariateInQuestion),
+                             max(covariateInQuestion))) +
+    scale_color_manual(values = colors) +
+    scale_fill_manual(values = colors) +
+    theme_bw() 
+    #theme(plot.title = element_text(hjust = 0.5))
+  covPlots[[i]] <- plotty
+  
+}
+
+
+ggarrange(plotlist = covPlots, ncol = 2, nrow = 2, common.legend = TRUE)
 
 
 
+######## manually making and saving prediction plots 
+# covariate wanted
+cov <- "DistToWater" # percentNatural, Rainfall, Temperature, DistToWater
+
+# subset
+df <- plottingDF[plottingDF$PredictedCovariate == cov,]
+covariateInQuestion <- df[,cov]
+
+# actually plot it
+ggplot(df, aes(x = covariateInQuestion, 
+               y = Predicted, color = Community)) +
+  geom_ribbon(aes(ymin = Predicted - SE, ymax = Predicted + SE, fill = Community), 
+              alpha = 0.2, color = NA) +
+  geom_line(aes(x = covariateInQuestion, y = Predicted)) +
+  ylab(expression(paste("Occupancy probability estimate (", psi, ")"))) +
+  facet_wrap(~commonNames, nrow = 2, ncol = 2) +
+  xlab("Distance to water (m)") +
+  coord_cartesian(ylim = c(0,1), 
+                  xlim = c(min(covariateInQuestion),
+                           max(covariateInQuestion))) +
+  scale_color_manual(values = colors) +
+  scale_fill_manual(values = colors) +
+  theme_bw() 
+#theme(plot.title = element_text(hjust = 0.5))
+
+# save it
+ggsave(filename = "Global/Figures/distToWater.tiff", width = 8, height = 4)
 
 
+# xlab:
+# rainfall: expression(paste("Rainfall (g*", m^{-2}, s^{-1}, ")"))
+# percentNatural: Percent natural area within 25 km 
+# Temperature: Temperature (°C)
+# DistToWater: Distance to water (m)
 
 
+# plot stations on a map
+library(sf)
+library(spData)
+require(ggmagnify)
+require(terra)
+
+# load data
+data("world")
+stations <- read.csv("Global/Data/AllStationsFormatted.csv")
+stations <- stations %>%
+  select(c(Station, gps_x, gps_y, CommunityName)) %>%
+  distinct()
+stations$CommunityName <- gsub("Zabalo", "Zábalo", x = stations$CommunityName)
+
+# order the communities by percent of natural cover
+stations <- stations %>% dplyr::filter(CommunityName %in% c("Zábalo", "Siekopai", "Sinangoe", "Siona"))
+stations$Community <- factor(stations$CommunityName, levels=c("Zábalo", "Siekopai", "Sinangoe", "Siona"))
+stations$CommunityName <- NULL
+
+# only highlight Ecuador
+worldEdited <- world
+worldEdited$Ecu <- ifelse(worldEdited$name_long == "Ecuador", "A", "B")
+
+# make plot
+ecuadorMap <- worldEdited %>%
+  filter(continent == "South America") %>%
+  ggplot() +
+  geom_sf(aes(fill=Ecu)) +
+  geom_point(data = stations, aes(gps_x, gps_y, fill = Community), pch = 21) +
+  #scale_fill_manual(values = c("lightyellow", "white")) +
+  scale_fill_manual(name = "Community",
+                    values = c(colors, "A" = "lightyellow", "B" = "white"), 
+                    breaks = c("Zábalo", "Siekopai", "Sinangoe", "Siona")) +
+  coord_sf(default_crs = sf::st_crs(4326), xlim = c(-150, -37)) + 
+  #guides(fill = "none") +
+  theme_classic() +
+  theme(axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        text = element_text(family = "Times", colour = "black"),
+        axis.text = element_text(colour = "black"))
+
+# set bounding box to magnify
+coords <- as.matrix(stations[,c("gps_x","gps_y")])
+e <- as.vector(ext(coords)) 
+e["xmin"] <- e["xmin"] - 0.1
+e["ymin"] <- e["ymin"] - 0.5
+e["xmax"] <- e["xmax"] + 0.1
+e["ymax"] <- e["ymax"] + 0.5
+
+# plot map inlay
+together <- ecuadorMap + geom_magnify(from = e, 
+                          to = c(xmin = -150, xmax = -85, ymin = -45, ymax = 3))
+ggsave(plot = together, filename = "Global/Figures/mapInlayWithSites.png", width = 7, height = 5)
 
 
+# plot percent natural area within 25 km with SD
+siteCovariate <- read.csv("Global/Data/AllCommunityCovariates.csv")
+natStats <- siteCovariate %>% 
+  group_by(Community) %>%
+  summarize(avgNat = mean(percentNatural), sdNat = sd(percentNatural))
+natStats$Community <- gsub("Zabalo", "Zábalo", x = natStats$Community)
+
+# order the communities by percent of natural cover
+natStats <- natStats %>% dplyr::filter(Community %in% c("Zábalo", "Siekopai", "Sinangoe", "Siona"))
+natStats$Community <- factor(natStats$Community, levels=c("Zábalo", "Siekopai", "Sinangoe", "Siona"))
+
+# plot it
+ggplot(natStats, aes(x = Community, y = avgNat, fill = Community)) +
+  geom_bar(stat="identity") +
+  geom_errorbar(aes(ymin = avgNat - sdNat, ymax = avgNat + sdNat), width = 0.2) +
+  ylab("Percent natural area within 25 km") +
+  scale_fill_manual(values = colors) +
+  ylim(c(0,1)) +
+  theme_bw()+
+  theme(text = element_text(family = "Times", colour = "black"),
+        axis.text = element_text(colour = "black"))
+ggsave("Global/Figures/percentNatArea25km.png", width = 7, height = 5)
+
+# zoomed
+ggplot(natStats, aes(x = Community, y = avgNat, fill = Community)) +
+  geom_bar(stat="identity") +
+  geom_errorbar(aes(ymin = avgNat - sdNat, ymax = avgNat + sdNat), width = 0.2) +
+  ylab("Percent natural area within 25 km") +
+  scale_fill_manual(values = colors) +
+  coord_cartesian(ylim = c(0.825,1)) +
+  theme_bw() +
+  theme(text = element_text(family = "Times", colour = "black"),
+        axis.text = element_text(colour = "black"))
+ggsave("Global/Figures/percentNatArea25kmZoomed.png", width = 7, height = 5)
 

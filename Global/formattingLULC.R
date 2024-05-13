@@ -186,6 +186,7 @@ communityCovariates$Community <- ifelse(grepl('^ZAB', communityCovariates$Statio
 communityCovariates$Community <- factor(communityCovariates$Community,
                                    levels = c("Zabalo", "Siekopai", "Sinangoe", "Siona"))
 communityCovariates$Year <- ifelse(communityCovariates$Community == "Zabalo", "2018", "2022")
+communityCovariates$RainfallScaled <- c(scale(communityCovariates$Rainfall))
 
 # save it
 write.csv(communityCovariates, file = "Data/AllCommunityCovariates.csv")
