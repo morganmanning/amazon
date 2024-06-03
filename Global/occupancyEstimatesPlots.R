@@ -872,7 +872,7 @@ ggarrange(plotlist = covPlots, ncol = 2, nrow = 2, common.legend = TRUE)
 
 
 
-######## manually making and saving prediction plots 
+######## manually making and saving prediction plots # this is how I did it for CLAG
 # covariate wanted
 cov <- "DistToWater" # percentNatural, Rainfall, Temperature, DistToWater
 
@@ -997,4 +997,27 @@ ggplot(natStats, aes(x = Community, y = avgNat, fill = Community)) +
   theme(text = element_text(family = "Times", colour = "black"),
         axis.text = element_text(colour = "black"))
 ggsave("Global/Figures/percentNatArea25kmZoomed.png", width = 7, height = 5)
+
+
+
+### hunted species in Zabalo
+require(kableExtra)
+ZABhunting <- read.csv("../../Zabalo/Data/HuntingData2018.csv")
+
+ZABhuntingSum <- ZABhunting %>%
+  group_by(Species) %>%
+  summarize(count = sum(Count))
+
+together <- data.frame(Species = c("Peccaries", "Paca", "Trumpeter", "Brockets"),
+                       NumberHunted = c(sum(ZABhuntingSum$count[ZABhuntingSum$Species == "White-lipped Peccary" | ZABhuntingSum$Species == "Collared Peccary"]),
+                                        sum(ZABhuntingSum$count[ZABhuntingSum$Species == "Lowland Paca"]),
+                                        sum(ZABhuntingSum$count[ZABhuntingSum$Species == "Grey-winged Trumpeter"]),
+                                        sum(ZABhuntingSum$count[ZABhuntingSum$Species == "Red Brocket Deer" | ZABhuntingSum$Species == "Grey Brocket Deer"])))
+
+kbl(together, 
+    col.names = c("Species", "Number Hunted")) %>%
+  kable_classic(font_size = 22, html_font = "TimesNewRoman") %>%
+  save_kable(file = "../Figures/ZabaloHuntedSpecies.png", zoom = 2)
+
+
 
