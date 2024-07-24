@@ -231,6 +231,8 @@ names(unclumpedUFOMasterList) <- communities
 masterBestofTheBest <- list() # occu output for the best model for each species
 masterTopModels <- list() # df of the models within 2 AIC of the top model
 masterBestModsFitLists <- list() # fit list of the best models for model averaging
+bestModsOutputs <- list()
+masterBestModsOutputs <- list()
 
 for (i in 1:length(communities)) {
   
@@ -365,10 +367,13 @@ for (i in 1:length(communities)) {
                                    starts = c(rep(0, length(test@opt$par)))) 
     } 
     bestModsFitLists[[j]] <- fitList(speciesBestMods)
+    bestModsOutputs[[j]] <- speciesBestMods
   }
   names(bestModsFitLists) <- speciesNames
+  names(bestModsOutputs) <- speciesNames
   
   masterBestModsFitLists[[i]] <- bestModsFitLists
+  masterBestModsOutputs[[i]] <- bestModsOutputs
   
   # just the #1 model for each species
   bestOfTheBest <- list()
@@ -584,7 +589,6 @@ names(masterUnmarkedPredDet) <- communities
 ################################################################################
 ############################## PLOT ESTIMATES ##################################
 ################################################################################
-
 communitiesAccent <- gsub(pattern = "Zabalo", replacement = "Zábalo", communities)
 speciesNames
 #masterEstimatedParameters[[1]]
@@ -676,7 +680,7 @@ plot +
   add_phylopic(trumpPic, alpha = 0.2, x = 4.0, y = 0.19, ysize = 0.45)
 
 # save it
-ggsave(filename = "Global/GlobalOccupancyEstimates.tiff", width = 8, height = 4)
+ggsave(filename = "Global/GlobalOccupancyEstimates.png", width = 8, height = 4)
 
 
 
@@ -874,7 +878,7 @@ ggarrange(plotlist = covPlots, ncol = 2, nrow = 2, common.legend = TRUE)
 
 ######## manually making and saving prediction plots # this is how I did it for CLAG
 # covariate wanted
-cov <- "DistToWater" # percentNatural, Rainfall, Temperature, DistToWater
+cov <- "percentNatural" # percentNatural, Rainfall, Temperature, DistToWater
 
 # subset
 df <- plottingDF[plottingDF$PredictedCovariate == cov,]
@@ -898,7 +902,7 @@ ggplot(df, aes(x = covariateInQuestion,
 #theme(plot.title = element_text(hjust = 0.5))
 
 # save it
-ggsave(filename = "Global/Figures/distToWater.tiff", width = 8, height = 4)
+ggsave(filename = "Global/Figures/distToWater.png", width = 8, height = 4)
 
 
 # xlab:

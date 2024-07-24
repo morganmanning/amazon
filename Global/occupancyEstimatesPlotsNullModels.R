@@ -501,7 +501,7 @@ plot +
   add_phylopic(trumpPic, alpha = 0.2, x = 4.0, y = 0.19, ysize = 0.45)
 
 # save it
-ggsave(filename = "Global/Figures/AllCommunitiesOccupancyEstimatesNullModels.tiff", width = 8, height = 4)
+ggsave(filename = "Global/Figures/AllCommunitiesOccupancyEstimatesNullModels.png", width = 8, height = 4)
 
 
 
