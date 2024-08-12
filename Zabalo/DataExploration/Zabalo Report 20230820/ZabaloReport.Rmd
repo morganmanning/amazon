@@ -12,7 +12,7 @@ output:
 Mammal population dynamics are closely linked to human activity (Lee 1987, Ritzel and Gallo 2020). This tie of human culture to the environment is known as “biocultural heritage” (Davidson-Hunt et al. 2012, Gavin et al. 2015). Biocultural heritage includes the practices and knowledge of indigenous communities and positively affects local wildlife populations. Many of these indigenous communities have faced a loss of biocultural heritage (Davidson-Hunt et al. 2012, Gavin et al. 2015, Rotherham 2015). With this loss of biocultural heritage, indigenous communities interact less directly with the environment, but interactions tend to be more extractive than in communities with a stronger link to biocultural heritage (Peres 2001, Gavin et al. 2015, Rotherham 2015, de Araujo Lima Constantino 2016). One such example of this is hunting. Indigenous communities with strong ties to their biocultural heritage rely on daily subsistence hunting whereas communities with detachment from biocultural heritage rely on daily or weekly markets for food. Studies have shown that hunting increases with a community’s access to a market, where individuals are able to sell excess meat (de la Montaña et al. 2015, de Araujo Lima Constantino 2016). Conversely, communities that rely on subsistence hunting have lower harvest rates. This preliminary report will focus on Zabalo, one of the four indigenous communities in the Ecuadorian Amazon that will be included in our research on mammal occupancy across the gradient of detachment from biocultural heritage. Zabalo represents the community with the strongest ties to the environment, with members relying on daily subsistence hunting. 
 
 # Methodology
-We used single-species, single-season occupancy models within the *unmarked* package to explore the occupancy of three common species in the study area: the collared peccary, the lowland paca, and the brown brocket. Habitat type (lowland, swamp, or highland), effort (the number of days the camera at that site was operational), and whether the camera site was located on a trail were included as covariates of detection. Binary hunting presence, habitat type (lowland, swamp, or highland), hunting intensity, and the distances to Zabalo, rivers, and trails were considered as covariates to model occupancy. Hunting intensity was calculated for each camera trap site like so:
+We used single-species, single-season occupancy models within the *unmarked* package to explore the occupancy of three common species in the study area: the collared peccary, the lowland paca, and the red brocket. Habitat type (lowland, swamp, or highland), effort (the number of days the camera at that site was operational), and whether the camera site was located on a trail were included as covariates of detection. Binary hunting presence, habitat type (lowland, swamp, or highland), hunting intensity, and the distances to Zabalo, rivers, and trails were considered as covariates to model occupancy. Hunting intensity was calculated for each camera trap site like so:
 
 $$
 Hunting\ Intensity_j = \sum_{i = 1}^{777}{e^{-(distance_{ij})}}
@@ -36,7 +36,7 @@ require(rphylopic)
 
 ```{r load data, echo=FALSE}
 # occupancy data
-setwd("~/Documents/amazon/Data")
+setwd("~/Documents/amazon/Zabalo/Data")
 
 # occupancy covariates
 load('R Objects/siteCovs2018.RData')
@@ -326,7 +326,7 @@ arranged <- ggarrange(peccaryComm, peccaryRiver, peccaryTrail, peccaryHunting,
           #labels = c("A", "B", "C"),
           ncol = 4, nrow = 1)
 annotate_figure(arranged, top = text_grob("Collared peccary", face = "bold", size = 16))
-
+ggsave(filename = "Figures/PeccaryPredictions.png", width = 8, height = 4)
 
 ```
 
@@ -593,13 +593,14 @@ arranged <- ggarrange(pacaComm, pacaRiver, pacaTrail, pacaHunting,
           #labels = c("A", "B", "C"),
           ncol = 4, nrow = 1)
 annotate_figure(arranged, top = text_grob("Lowland paca", face = "bold", size = 16))
+ggsave(filename = "Figures/PacaPredictions.png", width = 8, height = 4)
 
 
 ```
 
 \
 
-## Brown brocket
+## Red brocket
 ### Best Model (based on AIC)
 
 ```{r brocket best model, echo=FALSE}
@@ -861,6 +862,7 @@ arranged <- ggarrange(pacaComm, pacaRiver, pacaTrail, pacaHunting,
           #labels = c("A", "B", "C"),
           ncol = 4, nrow = 1)
 annotate_figure(arranged, top = text_grob("Red brocket", face = "bold", size = 16))
+ggsave(filename = "Figures/BrocketPredictions.png", width = 8, height = 4)
 
 
 ```
