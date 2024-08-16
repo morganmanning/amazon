@@ -27,7 +27,7 @@ require(ggpubr)
   # Zabalo = ZAB
 communities <- "Global"
 communitiesAbrv <- "All"
-speciesNames <- c("Dicotyles tajacu", "Mazama americana", "Cuniculus paca", "Psophia crepitans")
+speciesNames <- c("Pecari tajacu", "Mazama americana", "Cuniculus paca", "Psophia crepitans")
 commonNames <- c("Collared peccary", "Red brocket", "Lowland paca", "Grey-winged trumpeter") # listTitles
   # paca = Cuniculus paca
   # brocket = Mazama americana
@@ -635,7 +635,7 @@ for (i in 1:length(communitiesAccent)) {
 ########## MANUALLY MAKE X-AXIS LABELS FOR EACH SPECIES: ENSURE IN CORRECT ORDER 
 # work around to make x-axis labels with italics and divided into two lines
 speciesNames
-peccary <- ~ atop(paste("Collared peccary"), paste("(", italic("Dicotyles tajacu"), ")"))
+peccary <- ~ atop(paste("Collared peccary"), paste("(", italic("Pecari tajacu"), ")"))
 brocket <- ~ atop(paste("Red brocket"), paste("(", italic("Mazama americana"), ")"))
 paca <- ~ atop(paste("Lowland paca"), paste("(", italic("Cuniculus paca"), ")"))
 trumpeter <- ~ atop(paste("Grey-winged trumpeter"), paste("(", italic("Psophia crepitans"), ")"))
