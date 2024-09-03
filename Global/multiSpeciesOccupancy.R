@@ -39,7 +39,7 @@ huntingTally <- ZABhunting |>
 ################################################################################
 # ------------------------- DETECTION MATRICES --------------------------------#
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
-#predator/prey; 
+# predator/prey; 
   # ocelot (Leopardus pardalis), uncommon prey (agouti/paca), common prey (green acouchi [Myoprocta pratti], brown four-eyed opossum [Metachirus nudicaudatus], red squirrel [Hadrosciurus spadiceus])
   # include time of day as a covariate (?) for prey since possum is nocturnal, squirrel is diurnal, and ocelot is crepsular
 
@@ -49,7 +49,7 @@ huntingTally <- ZABhunting |>
 # two species that are totally different with one hunted and one not hunted as a sort of control; 
   # trouble finding two hunted species that aren't predator prey
 
-# two brockets that are going to be competing in the same niche) !!!!!!!!!!
+# two species that are going to be competing in the same niche
   #
 
 # for fun

@@ -24,14 +24,14 @@ require(lubridate)
 # Siona = SNA
 # Siekopai = SKP
 # Zabalo = ZAB
-community <- "Sinangoe"
-communityAbrv <- "SGE"
+community <- "Zabalo"
+communityAbrv <- "ZAB"
 Data <- read.csv(paste0(community, "/Data/", communityAbrv, "IndependentRecordsFormatted.csv")) # just independent records
 Traps <- read.csv(paste0(community, "/Data/", communityAbrv, "StationsFormatted.csv")) 
 Data$DateTimeOriginal <- parse_date_time(Data$DateTimeOriginal, c("%Y-%m-%d", "%Y-%m-%d %H:%M:%S"))
 
 ##### Pick species of interest
-species <- c("Cuniculus paca", "Mazama americana", "Dicotyles tajacu", "Psophia crepitans")
+species <- c("Cuniculus paca", "Mazama americana", "Pecari tajacu", "Psophia crepitans")
 # paca = Cuniculus paca
 # brocket = Mazama americana
 # collared peccary = Dicotyles tajacu 
@@ -120,7 +120,7 @@ total <- total[order(-total$Total),]
 head(total, 10)
 
 ##### Pick species of interest
-species <- c("Cuniculus paca", "Mazama americana", "Dicotyles tajacu", "Psophia crepitans")
+species <- c("Cuniculus paca", "Mazama americana", "Pecari tajacu", "Psophia crepitans")
 # paca = Cuniculus paca
 # brocket = Mazama americana
 # collared peccary = Dicotyles tajacu 

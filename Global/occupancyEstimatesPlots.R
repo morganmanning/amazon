@@ -31,7 +31,7 @@ speciesNames <- c("Pecari tajacu", "Mazama americana", "Cuniculus paca", "Psophi
 commonNames <- c("Collared peccary", "Red brocket", "Lowland paca", "Grey-winged trumpeter") # listTitles
   # paca = Cuniculus paca
   # brocket = Mazama americana
-  # collared peccary = Dicotyles tajacu 
+  # collared peccary = Pecari tajacu 
   # trumpeter = Psophia crepitans
   # brown four-eyed possum = Metachirus nudicaudatus (#1 species in SGE)
   # black agouti = Dasyprocta fuliginosa (#2 species in SGE)
@@ -766,10 +766,6 @@ names(allCovPlots) <- covariatesMinusCommunity
     
 ggarrange(plotlist = allCovPlots[["Rainfall"]], ncol = 2, nrow = 2, common.legend = TRUE)
     
-    
-    
-  i <- 3  
-  j <- 1
 
 animalPic <- get_phylopic(uuid = get_uuid(name = speciesNames[j], n = 1))
 perCovSpp <- plottingDF[plottingDF$Species == speciesNames[j] & 
@@ -878,7 +874,7 @@ ggarrange(plotlist = covPlots, ncol = 2, nrow = 2, common.legend = TRUE)
 
 ######## manually making and saving prediction plots # this is how I did it for CLAG
 # covariate wanted
-cov <- "percentNatural" # percentNatural, Rainfall, Temperature, DistToWater
+cov <- "DistToWater" # percentNatural, Rainfall, Temperature, DistToWater
 
 # subset
 df <- plottingDF[plottingDF$PredictedCovariate == cov,]
