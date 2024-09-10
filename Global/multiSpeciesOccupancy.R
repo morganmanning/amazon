@@ -19,6 +19,7 @@ require(kableExtra)
 # load in the necessary data
 Data <- read.csv("AllIndependentRecordsFormatted.csv") 
 Traps <- read.csv("AllStationsFormatted.csv")
+covariates <- read.csv("AllCommunityCovariates.csv")
 Data$DateTimeOriginal <- parse_date_time(Data$DateTimeOriginal, c("%Y-%m-%d", "%Y-%m-%d %H:%M:%S"))
 ZABhunting <- read.csv("../../Zabalo/Data/HuntingData2018.csv")
 
@@ -36,38 +37,61 @@ huntingTally <- ZABhunting |>
   summarize(nHunted = n()) |>
   filter(nHunted > 10)
 
+
 ################################################################################
 # ------------------------- DETECTION MATRICES --------------------------------#
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
 # predator/prey; 
-  # ocelot (Leopardus pardalis), uncommon prey (agouti/paca), common prey (green acouchi [Myoprocta pratti], brown four-eyed opossum [Metachirus nudicaudatus], red squirrel [Hadrosciurus spadiceus])
+  # ocelot (Leopardus pardalis), common opossum (Didelphis marsupialis)
   # include time of day as a covariate (?) for prey since possum is nocturnal, squirrel is diurnal, and ocelot is crepsular
 
 # two most common species (e.g., P(peccary|paca) being lower in disintegrated spaces because people are going to hunt areas with more desirable species; 
-  # peccary, paca, black agouti (most spotted but not super hunted, Dasyprocta fuliginosa)
-
-# two species that are totally different with one hunted and one not hunted as a sort of control; 
-  # trouble finding two hunted species that aren't predator prey
+  # peccary (Pecari tajacu), paca (Cuniculus paca), black agouti (most spotted but not super hunted, Dasyprocta fuliginosa)
 
 # two species that are going to be competing in the same niche
-  #
+  # black agouti (Dasyprocta fuliginosa) and green acouchi (Myoprocta pratti)
 
 # for fun
   # (Panthera onca)
 
+
+
+
 # species of interest                       ************* INPUT ***************
-species <- c("Pecari tajacu", 
-             "Mazama americana", 
+species <- c("Leopardus pardalis",
+             "Didelphis marsupialis", 
+             "Pecari tajacu", 
              "Cuniculus paca", 
-             "Psophia crepitans",
              "Dasyprocta fuliginosa", # by FAR the most detected species, but not hunted in ZAB much
-             "Leopardus pardalis")
-commonNames <- c("Collared peccary", 
-                 "Red brocket", 
+             "Myoprocta pratti", 
+             "Panthera onca") # for funsies!
+commonNames <- c("Ocelot", 
+                 "Common opossum", 
+                 "Collared peccary", 
                  "Lowland paca", 
-                 "Grey-winged trumpeter", 
                  "Black agouti",
-                 "Ocelot") # listTitles
+                 "Green acouchi",
+                 "Jaguar") # listTitles
+casualNames <- c("ocelot",
+                 "opossum",
+                 "peccary",
+                 "paca",
+                 "agouti",
+                 "acouchi",
+                 "jaguar")
+
+# only the interactions we're interested in
+interactionsOfInterest <- c("[ocelot]",
+                            "[opossum]",
+                            "[peccary]",
+                            "[paca]",
+                            "[agouti]",
+                            "[acouchi]",
+                            "[jaguar]",
+                            "[ocelot:opossum]",
+                            "[agouti:acouchi]",
+                            "[peccary:paca]",
+                            "[paca:agouti]")
 
 # set up blank lists
 detection <- list()
@@ -106,15 +130,21 @@ for (i in 1:length(species)) {
                             #maxNumberDays = 90, #need to think about this
                             species = species[i]) #change species here
   detection[[i]] <- DetHis[["detection_history"]]
-  names(detection)[i] <- species[i]
+  names(detection)[i] <- casualNames[i]
 }
 
 
+# should i do time step consolidation here?
 
 
+# make the unmarked frame
+umf <- unmarkedFrameOccuMulti(y = detection, siteCovs = covariates, maxOrder = 2)
+summary(umf)
+str(umf)
 
 
+test <- umf@fDesign
+colnames(umf@fDesign)
 
-
-
+# how do I only do certain interactions of animals?
 
