@@ -109,6 +109,12 @@ Operation <- cameraOperation(CTtable = Traps,
                              dateFormat = "%Y-%m-%d",
                              writecsv = FALSE)
 
+
+
+################################################################################
+############################ DETECTION MATRICES ################################
+################################################################################
+
 # detection matrices
 for (i in 1:length(species)) {
   # occasion length
@@ -136,15 +142,80 @@ for (i in 1:length(species)) {
 
 # should i do time step consolidation here?
 
-
 # make the unmarked frame
 umf <- unmarkedFrameOccuMulti(y = detection, siteCovs = covariates, maxOrder = 2)
 summary(umf)
 str(umf)
 
 
-test <- umf@fDesign
-colnames(umf@fDesign)
 
-# how do I only do certain interactions of animals?
+
+################################################################################
+############################ OCCUPANCY MODELING ################################
+################################################################################
+
+# ALL COMMUNITIES TOGETHER:
+# Percentage natural area (see formattingLULC.R for buffer size)
+# Community as a covariate
+# Average monthly rainfall from July-November (kg/m^2/s)
+# Temperature (C)
+# Distance to a water source (m)
+
+match_detection <- c("Community")
+match_occupancy <- c("Community", "Rainfall", "percentNatural", "DistToWater", "Temperature")
+
+
+############### BEST DETECTION MODEL PER SPECIES
+# every possible combination of variables
+combos <- sapply(seq(length(match_detection)), function(k) {
+  as.list(as.data.frame(combn(x = match_detection, m = k)))
+})
+combos <- unlist(combos, recursive=FALSE)
+
+# all combinations of variables into formulas
+forms <- sapply(combos, function(x) paste("~ ", paste(x, collapse="+"), sep = ""))
+detectionFormulas <- as.vector(c(forms, "~ 1"))
+
+# get the best detection formula and stick with that for the occupancy formulas
+tempDF <- data.frame(detection = detectionFormulas,
+                     occupancy = "~ 1")
+allDetectionFormulas <- paste(tempDF$detection, tempDF$occupancy, sep = " ")
+bestDetectionModels <- data.frame(species = commonNames,
+                                  bestDetectionModel = NA)
+
+# see which detection model is the best with null occupancy
+for (i in 1:length(species)){
+  # make a df off all detection formulas and their AIC for each species
+  detectionMods <- list()
+  temp <- data.frame(Model = allDetectionFormulas,
+                     AIC = NA)
+  
+  # run occu model for every detection formula per species per community to compare AIC
+  for(j in 1:length(allDetectionFormulas)) {
+    test <- occuMulti(stateformulas = rep("~1", length(species)), 
+                      detformulas = rep(detectionFormulas[[j]], length(species)), 
+                      data = umf, maxOrder = 1)
+    
+    
+    detectionMods[[m]] <- occu(formula(allDetectionFormulas[[m]]), ufoMasterList[[i]][[j]], 
+                               control = 10000, 
+                               starts = c(rep(0, length(test@opt$par)))) 
+    temp$AIC[m] <- detectionMods[[m]]@AIC
+  }
+  # select the model with the lowest AIC
+  bestDetectionModels$bestDetectionModel[j] <- detectionFormulas[which(temp$AIC == min(temp$AIC))]
+  
+  # output is dataframe for community i with the best detection formulas for each species
+  
+}
+
+
+
+
+
+
+
+
+
+
 
