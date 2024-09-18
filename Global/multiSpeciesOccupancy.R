@@ -228,7 +228,7 @@ occupancyFormulas <- forms
     }
     names(occupancyMods) <- 1:length(occupancyMods)
     allModels[[j]] <- occupancyMods
-    print(paste0("Finishing species #"), j, " out of ", length(species))
+    print(paste0("Finishing species #", j, " out of ", length(species)))
   }
   
   # Make a data frame to show the model names and their AICs
@@ -260,12 +260,12 @@ occupancyFormulas <- forms
                  stringsAsFactors = FALSE)
 
   for (j in 1:length(topModels)) {
-    species <- casualNames[j]
+    speciesX <- casualNames[j]
     models <- topModels[[j]]
     n <- nrow(models)
     
     # create a temporary dataframe for each species
-    temp_df <- data.frame(Species = rep(species, n),
+    temp_df <- data.frame(Species = rep(speciesX, n),
               ModelName = models$ModelName,
               AIC = models$AIC,
               diffFromBest = models$diffFromBest)
@@ -310,10 +310,20 @@ bestCovariates <- modelCovariates_df |>
 bestCovariates <- bestCovariates[match(casualNames, bestCovariates$Species), ]
 bestCovariates
 
-
+# verify that the species are in identical orders
 if (all(bestCovariates$Species == names(detectionWithoutBlanks))) {
-  
   # use the formulas to run occuMulti (with ~Community as the detection formula)
+  multispecies_model <- occuMulti(detformulas = rep("~ Community", length(species)),
+                                  stateformulas = c(bestCovariates$BestCovariates, rep("~1, ")),
+                                  data = umf,
+                                  maxOrder = 2)
 
 }
+
+
+
+
+
+
+
 
