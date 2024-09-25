@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom">
+<Document>
+	<name>Secoya</name>
+	<Style id="sn_placemark_circle22">
+		<IconStyle>
+			<color>ff0880fd</color>
+			<scale>1.2</scale>
+			<Icon>
+				<href>https://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href>
+			</Icon>
+		</IconStyle>
+		<LineStyle>
+			<color>ff0880fd</color>
+		</LineStyle>
+		<PolyStyle>
+			<color>4d0880fd</color>
+		</PolyStyle>
+	</Style>
+	<Style id="sh_placemark_circle_highlight15">
+		<IconStyle>
+			<color>ff0880fd</color>
+			<scale>1.2</scale>
+			<Icon>
+				<href>https://maps.google.com/mapfiles/kml/shapes/placemark_circle_highlight.png</href>
+			</Icon>
+		</IconStyle>
+		<LineStyle>
+			<color>ff0880fd</color>
+		</LineStyle>
+		<PolyStyle>
+			<color>4d0880fd</color>
+		</PolyStyle>
+	</Style>
+	<StyleMap id="msn_placemark_circle0">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#sn_placemark_circle22</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#sh_placemark_circle_highlight15</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Placemark id="009188457D335F16A31D">
+		<name>Waiya</name>
+		<LookAt>
+			<longitude>-76.42649386215065</longitude>
+			<latitude>-0.2498401669933036</latitude>
+			<altitude>0</altitude>
+			<heading>0.05527635035683475</heading>
+			<tilt>20.29946054766729</tilt>
+			<range>2750.462706444898</range>
+			<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+		</LookAt>
+		<styleUrl>#msn_placemark_circle0</styleUrl>
+		<Point>
+			<gx:drawOrder>1</gx:drawOrder>
+			<coordinates>-76.42366148705008,-0.2542117243754182,0</coordinates>
+		</Point>
+	</Placemark>
+	<Placemark id="057E5E5EFB335F16A31E">
+		<name>Bellavista</name>
+		<LookAt>
+			<longitude>-76.42206737905533</longitude>
+			<latitude>-0.2971677507102188</latitude>
+			<altitude>0</altitude>
+			<heading>0.1686609279139569</heading>
+			<tilt>5.570286860331674</tilt>
+			<range>2476.962993377978</range>
+			<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+		</LookAt>
+		<styleUrl>#msn_placemark_circle0</styleUrl>
+		<Point>
+			<gx:drawOrder>1</gx:drawOrder>
+			<coordinates>-76.42400718845705,-0.2970876691936672,0</coordinates>
+		</Point>
+	</Placemark>
+	<Placemark id="1187C523A2335F16A31E">
+		<name>Remolino</name>
+		<LookAt>
+			<longitude>-76.27948127810295</longitude>
+			<latitude>-0.2945269466027373</latitude>
+			<altitude>0</altitude>
+			<heading>0.0502050031166124</heading>
+			<tilt>13.16900994716318</tilt>
+			<range>1211.896114698562</range>
+			<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+		</LookAt>
+		<styleUrl>#msn_placemark_circle0</styleUrl>
+		<Point>
+			<gx:drawOrder>1</gx:drawOrder>
+			<coordinates>-76.28420511078129,-0.2936477524942118,0</coordinates>
+		</Point>
+	</Placemark>
+	<Placemark id="0DBA0867FA335F16A31F">
+		<name>Sewaya</name>
+		<LookAt>
+			<longitude>-76.24835409470847</longitude>
+			<latitude>-0.2972240939818167</latitude>
+			<altitude>0</altitude>
+			<heading>0.03622809551578193</heading>
+			<tilt>22.16098724913675</tilt>
+			<range>1882.821869912443</range>
+			<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+		</LookAt>
+		<styleUrl>#msn_placemark_circle0</styleUrl>
+		<Point>
+			<gx:drawOrder>1</gx:drawOrder>
+			<coordinates>-76.24968568411101,-0.2978691705662687,0</coordinates>
+		</Point>
+	</Placemark>
+	<Placemark id="1CD4B582E0335F16A31D">
+		<name>San Pablo</name>
+		<Camera>
+			<longitude>-76.41045007488003</longitude>
+			<latitude>-0.2974988083094713</latitude>
+			<altitude>11985.05267716476</altitude>
+			<heading>46.41074642994904</heading>
+			<tilt>0.04577547511502501</tilt>
+			<roll>45.02061362870082</roll>
+			<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+		</Camera>
+		<styleUrl>#msn_placemark_circle0</styleUrl>
+		<Point>
+			<gx:drawOrder>1</gx:drawOrder>
+			<coordinates>-76.42755555099095,-0.2554432264178296,0</coordinates>
+		</Point>
+	</Placemark>
+</Document>
+</kml>

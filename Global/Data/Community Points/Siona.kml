@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom">
+<Document>
+	<name>Siona</name>
+	<Style id="sh_placemark_circle_highlight5">
+		<IconStyle>
+			<color>ff0880fd</color>
+			<scale>1.2</scale>
+			<Icon>
+				<href>https://maps.google.com/mapfiles/kml/shapes/placemark_circle_highlight.png</href>
+			</Icon>
+		</IconStyle>
+		<LineStyle>
+			<color>ff0880fd</color>
+		</LineStyle>
+		<PolyStyle>
+			<color>4d0880fd</color>
+		</PolyStyle>
+	</Style>
+	<Style id="sn_placemark_circle7">
+		<IconStyle>
+			<color>ff0880fd</color>
+			<scale>1.2</scale>
+			<Icon>
+				<href>https://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href>
+			</Icon>
+		</IconStyle>
+		<LineStyle>
+			<color>ff0880fd</color>
+		</LineStyle>
+		<PolyStyle>
+			<color>4d0880fd</color>
+		</PolyStyle>
+	</Style>
+	<StyleMap id="msn_placemark_circle22">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#sn_placemark_circle7</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#sh_placemark_circle_highlight5</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Placemark id="0F8D64518D335F184D7D">
+		<name>Sotosiaya</name>
+		<Camera>
+			<longitude>-76.43265393598777</longitude>
+			<latitude>-0.2493971988088329</latitude>
+			<altitude>8143.379311003091</altitude>
+			<heading>2.296417996765073</heading>
+			<tilt>2.047159788003265</tilt>
+			<roll>0.9059891463364088</roll>
+			<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+		</Camera>
+		<styleUrl>#msn_placemark_circle22</styleUrl>
+		<Point>
+			<gx:drawOrder>1</gx:drawOrder>
+			<coordinates>-76.43770186891898,-0.2407411036103717,0</coordinates>
+		</Point>
+	</Placemark>
+	<Placemark id="039F01FC01335F184D7E">
+		<name>Aboquehuira</name>
+		<LookAt>
+			<longitude>-76.4786863812045</longitude>
+			<latitude>-0.207271324878758</latitude>
+			<altitude>0</altitude>
+			<heading>1.611172076286004</heading>
+			<tilt>11.02883215026764</tilt>
+			<range>1020.209256464749</range>
+			<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+		</LookAt>
+		<styleUrl>#msn_placemark_circle22</styleUrl>
+		<Point>
+			<gx:drawOrder>1</gx:drawOrder>
+			<coordinates>-76.48151258775061,-0.2052813965919067,0</coordinates>
+		</Point>
+	</Placemark>
+	<Placemark id="10B43FD535335F184D7E">
+		<name>Orahuëaya</name>
+		<LookAt>
+			<longitude>-76.5345564275278</longitude>
+			<latitude>-0.1928519059589894</latitude>
+			<altitude>0</altitude>
+			<heading>1.511636957723509</heading>
+			<tilt>20.48701642459442</tilt>
+			<range>683.4458539404484</range>
+			<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+		</LookAt>
+		<styleUrl>#msn_placemark_circle22</styleUrl>
+		<Point>
+			<gx:drawOrder>1</gx:drawOrder>
+			<coordinates>-76.53475987881532,-0.1932795963053751,0</coordinates>
+		</Point>
+	</Placemark>
+</Document>
+</kml>

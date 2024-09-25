@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom">
+<Document>
+	<name>Sinangoe</name>
+	<Style id="sh_placemark_circle_highlight13">
+		<IconStyle>
+			<color>ff0880fd</color>
+			<scale>1.2</scale>
+			<Icon>
+				<href>https://maps.google.com/mapfiles/kml/shapes/placemark_circle_highlight.png</href>
+			</Icon>
+		</IconStyle>
+		<LineStyle>
+			<color>ff0880fd</color>
+		</LineStyle>
+		<PolyStyle>
+			<color>4d0880fd</color>
+		</PolyStyle>
+	</Style>
+	<Style id="sn_placemark_circle5">
+		<IconStyle>
+			<color>ff0880fd</color>
+			<scale>1.2</scale>
+			<Icon>
+				<href>https://maps.google.com/mapfiles/kml/shapes/placemark_circle.png</href>
+			</Icon>
+		</IconStyle>
+		<LineStyle>
+			<color>ff0880fd</color>
+		</LineStyle>
+		<PolyStyle>
+			<color>4d0880fd</color>
+		</PolyStyle>
+	</Style>
+	<StyleMap id="msn_placemark_circle13">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#sn_placemark_circle5</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#sh_placemark_circle_highlight13</styleUrl>
+		</Pair>
+	</StyleMap>
+	<Placemark id="0EEA59405D335F17EC5A">
+		<name>Sinangoe</name>
+		<open>1</open>
+		<LookAt>
+			<longitude>-77.42936013153545</longitude>
+			<latitude>0.1198208956761307</latitude>
+			<altitude>0</altitude>
+			<heading>3.276527746424516</heading>
+			<tilt>12.70947001394685</tilt>
+			<range>1932.81527016376</range>
+			<gx:altitudeMode>relativeToSeaFloor</gx:altitudeMode>
+		</LookAt>
+		<styleUrl>#msn_placemark_circle13</styleUrl>
+		<Point>
+			<gx:drawOrder>1</gx:drawOrder>
+			<coordinates>-77.43185766982727,0.1237161782644457,0</coordinates>
+		</Point>
+	</Placemark>
+</Document>
+</kml>
