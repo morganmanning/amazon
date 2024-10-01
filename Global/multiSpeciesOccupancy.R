@@ -228,7 +228,7 @@ occupancyFormulas <- forms
     }
     names(occupancyMods) <- 1:length(occupancyMods)
     allModels[[j]] <- occupancyMods
-    print(paste0("Finishing species #", j, " out of ", length(species)))
+    print(paste0("Finishing species ", j, " out of ", length(species)))
   }
   
   # Make a data frame to show the model names and their AICs
