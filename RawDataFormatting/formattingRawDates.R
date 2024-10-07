@@ -138,6 +138,24 @@ allCommunityStations <- allCommunityStations %>%
          Problem1_from, Problem1_to, Problem2_from, Problem2_to, Problem3_from, Problem3_to,
          Total, Obs)
 
+# need to divide Siekopai into Remolino and San Pablo
+# after looking at communities on QGIS and the territory shapefiles/vectors provided by Bob in the Teams drive, need to reclassify some communities
+# San Pablo is SNA3 and then SKP31-37
+allCommunityRecords$CommunityName[allCommunityRecords$Station == "SNA3"] <- "San Pablo"
+allCommunityStations$CommunityName[allCommunityStations$Station == "SNA3"] <- "San Pablo"
+for(i in 31:37){
+  site_to_change <- paste0("SKP", i)
+  allCommunityRecords$CommunityName[allCommunityRecords$Station == site_to_change] <- "San Pablo"
+  allCommunityStations$CommunityName[allCommunityStations$Station == site_to_change] <- "San Pablo"
+}
+
+# Remolino is SKP1-30
+for(i in 1:30){
+  site_to_change <- paste0("SKP", i)
+  allCommunityRecords$CommunityName[allCommunityRecords$Station == site_to_change] <- "Remolino"
+  allCommunityStations$CommunityName[allCommunityStations$Station == site_to_change] <- "Remolino"
+}
+
 write.csv(allCommunityRecords, "../Global/Data/AllIndependentRecordsFormatted.csv")
 write.csv(allCommunityStations, "../Global/Data/AllStationsFormatted.csv")
 

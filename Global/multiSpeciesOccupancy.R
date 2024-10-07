@@ -314,16 +314,13 @@ bestCovariates
 if (all(bestCovariates$Species == names(detectionWithoutBlanks))) {
   # use the formulas to run occuMulti (with ~Community as the detection formula)
   multispecies_model <- occuMulti(detformulas = rep("~ Community", length(species)),
-                                  stateformulas = c(bestCovariates$BestCovariates, rep("~1, ")),
+                                  stateformulas = c(bestCovariates$BestCovariates, 
+                                                    rep("~ 1", ((length(species)^2 + length(species))/2) - length(species))),
+                                                    # (n^2+n)/2 is the addition version of a factorial
+                                                    # use null for all animal interactions
                                   data = umf,
                                   maxOrder = 2)
 
+  
 }
-
-
-
-
-
-
-
 
