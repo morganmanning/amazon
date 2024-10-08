@@ -187,9 +187,42 @@ communityCovariates$Community <- factor(communityCovariates$Community,
                                    levels = c("Zabalo", "Siekopai", "Sinangoe", "Siona"))
 communityCovariates$Year <- ifelse(communityCovariates$Community == "Zabalo", "2018", "2022")
 communityCovariates$RainfallScaled <- c(scale(communityCovariates$Rainfall))
+communityCovariates$TemperatureScaled <- c(scale(communityCovariates$Temperature))
+
+
+#### added 10/08/24
+#communityCovariates <- read.csv("Data/AllCommunityCovariates.csv")
+distToCommunity <- read.csv("Data/distanceToCommunity.csv") %>% distinct()
+
+# need to divide Siekopai into Remolino and San Pablo
+# after looking at communities on QGIS and the territory shapefiles/vectors provided by Bob in the Teams drive, need to reclassify some communities
+# San Pablo is SNA3 and then SKP31-37
+communityCovariates$Community[communityCovariates$Station == "SNA3"] <- "San Pablo"
+for(i in 31:37){
+  site_to_change <- paste0("SKP", i)
+  communityCovariates$Community[communityCovariates$Station == site_to_change] <- "San Pablo"
+}
+
+# Remolino is SKP1-30
+for(i in 1:30){
+  site_to_change <- paste0("SKP", i)
+  communityCovariates$Community[communityCovariates$Station == site_to_change] <- "Remolino"
+}
+
+# distance to nearest community (took community points off Teams to calculate on QGIS; in KM)
+communityCovariates <- base::merge(communityCovariates, distToCommunity,
+                                  by = "Station")
+names(communityCovariates)[names(communityCovariates) == 'Distance'] <- 'DistToComm'
+communityCovariates$X <- NULL
 
 # save it
 write.csv(communityCovariates, file = "Data/AllCommunityCovariates.csv")
+
+
+
+
+
+
 
 
 

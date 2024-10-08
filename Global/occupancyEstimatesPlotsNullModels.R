@@ -18,8 +18,8 @@ require(rphylopic)
 
 
 # input
-communities <- c("Sinangoe", "Siona", "Siekopai", "Zabalo")
-communitiesAbrv <- c("SGE", "SNA", "SKP", "ZAB")
+communities <- c("Sinangoe", "Siona", "San Pablo", "Remolino", "Zabalo")
+communitiesAbrv <- c("SGE", "SNA", "SPA", "REM", "ZAB")
   # Sinangoe = SGE
   # Siona = SNA
   # Siekopai = SKP
@@ -463,9 +463,9 @@ commonNames
 ########## MANUALLY INPUT X-AXIS LABELS IN THE CORRECT ORDER
 # plot it
 estimates$Community <- factor(estimates$Community,
-                                        levels = c("Zábalo", "Siekopai", "Sinangoe", "Siona"))
-colors <- c("Zábalo" = "darkgreen", "Siekopai" = "forestgreen", 
-            "Sinangoe" = "yellowgreen", "Siona" = "goldenrod")
+                                        levels = c("Zábalo", "Remolino", "Sinangoe", "San Pablo", "Siona"))
+colors <- c("Zábalo" = "darkgreen", "Remolino" = "forestgreen", 
+            "Sinangoe" = "yellowgreen", "San Pablo" = "gold1", "Siona" = "darkgoldenrod3")
 dodge <- position_dodge(width = 0.3)
 plot <- ggplot(estimates, aes(x = Species,
                            y = avgOccupancy,

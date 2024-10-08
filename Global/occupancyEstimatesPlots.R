@@ -248,7 +248,8 @@ for (i in 1:length(communities)) {
     match_occupancy <- c("1")
   } else if (communities[i] == "Global") {
     match_detection <- c("Community")
-    match_occupancy <- c("Community", "Rainfall", "percentNatural", "DistToWater", "Temperature")
+    match_occupancy <- c("Community", "RainfallScaled", "percentNatural",
+                         "DistToWater", "TemperatureScaled", "DistToComm")
   }
   
   
@@ -386,6 +387,29 @@ for (i in 1:length(communities)) {
   
 }
 
+# added 10/08/24 because Community isn't in best models, so can't look per community
+# calculate the global model for each species (minus distToWater since that wasn't in any best model)
+globalModels <- list()
+for (j in 1:length(speciesNames)){ # for each species
+      test <- occu(~Community ~RainfallScaled + percentNatural + DistToComm + TemperatureScaled + Community, 
+                    ufoMasterList[[1]][[j]]) # i = 1 when all communities are together
+      
+      globalModels[[j]] <- occu(~Community ~RainfallScaled + percentNatural + DistToComm +
+                    TemperatureScaled + Community, 
+                    ufoMasterList[[1]][[j]], 
+                                   control = 10000, 
+                                   starts = c(rep(0, length(test@opt$par)))) 
+      #globalModelsFitList[[j]] <- fitList(global = globalModels[[j]])
+}
+names(globalModels) <- speciesNames
+globalModelsNested <- list(Global = globalModels) # need to nest so it matches the dimensions of masterBestModsFitLists moving forwards
+
+# to proceed using the global models rather than the best models, uncomment the following
+#masterBestModsFitLists <- list()
+#masterBestModsFitLists <- globalModelsNested
+#names(masterBestModsFitLists) <- communities
+
+
 
   
 ################################################################################
@@ -487,16 +511,18 @@ for (i in 1:length(communities)) {
     
     
   } else if (communities[i] == "Global"){
-    covariates <- c("Community", "Rainfall", "percentNatural", "DistToWater", "Temperature")
+    covariates <- c("Community", "RainfallScaled", "percentNatural", "DistToWater", "TemperatureScaled", "DistToComm")
     siteCovariate <- read.csv("Global/Data/AllCommunityCovariates.csv")
     siteCovariate$Rainfall <- siteCovariate$Rainfall * 1000
     allCommunities <- unique(siteCovariate$Community)
+    N <- 50
     dfTemplate <- data.frame(
-      Community = rep("Sinangoe", 40), # picked because it's kind of a middle community
-      Rainfall = mean(siteCovariate$Rainfall),
+      Community = rep("Sinangoe", N), # picked because it's kind of a middle community
+      RainfallScaled = mean(siteCovariate$RainfallScaled),
       percentNatural = mean(siteCovariate$percentNatural),
       DistToWater = mean(siteCovariate$DistToWater),
-      Temperature = mean(siteCovariate$Temperature)
+      TemperatureScaled = mean(siteCovariate$TemperatureScaled),
+      DistToComm = mean(siteCovariate$DistToComm)
     ) 
     
     for (j in 1:length(speciesNames)) { # for each species
@@ -528,12 +554,13 @@ for (i in 1:length(communities)) {
           
           # prediction DF
           if (covariateInQuestion == "Community"){
-            dfEdited[,covariateInQuestion] <- rep(unique(siteCovariate$Community), each = 40/4)
+            dfEdited[,covariateInQuestion] <- rep(unique(siteCovariate$Community), 
+                                                  each = N/length(unique(siteCovariate$Community)))
           } else {
             dfEdited[,"Community"] <- allCommunities[m]
             dfEdited[,covariateInQuestion] <- seq(min(siteCovariate[,covariateInQuestion]), 
                                                   max(siteCovariate[,covariateInQuestion]), 
-                                                  length.out = 40)
+                                                  length.out = N)
           }
           
           # state = occupancy
@@ -607,7 +634,7 @@ estimates <- data.frame(Community = rep(communitiesAccent, each = length(species
                         avgDetectionSD = NA)
 for (i in 1:length(communitiesAccent)) {
   for (j in 1:length(speciesNames)){
-    row <- estimates$Community == communitiesAccent[i] & estimates$Species == speciesNames[j]
+    row <- which((estimates$Community == communitiesAccent[i]) & (estimates$Species == speciesNames[j]))
     estimates[row, "avgOccupancy"] <- masterEstimatedParameters[[i]][[j]]$avgOccupancy[1]
     estimates[row, "avgOccupancySE"] <- masterEstimatedParameters[[i]][[j]]$avgOccupancySE[1]
     #estimates[row, "avgOccupancySEManual"] <- sd(masterUnmarkedPredOcc[[i]][[j]]$Predicted)/sqrt(nrow(masterUnmarkedPredOcc[[i]][[j]]))
@@ -680,7 +707,7 @@ plot +
   add_phylopic(trumpPic, alpha = 0.2, x = 4.0, y = 0.19, ysize = 0.45)
 
 # save it
-ggsave(filename = "Global/GlobalOccupancyEstimates.png", width = 8, height = 4)
+ggsave(filename = "Global/Figures/GlobalOccupancyEstimates.png", width = 8, height = 4)
 
 
 
@@ -688,7 +715,7 @@ ggsave(filename = "Global/GlobalOccupancyEstimates.png", width = 8, height = 4)
 require(ggpubr)
 # GOAL:
 # - one plot for each covariate with four panels (one for each species) with prediction lines for each community
-covariatesMinusCommunity <- c("Rainfall", "percentNatural", "DistToWater", "Temperature")
+covariatesMinusCommunity <- c("RainfallScaled", "percentNatural", "DistToWater", "TemperatureScaled", "DistToComm")
 
 # making the data frame to plot from
 plottingDF <- as.data.frame(do.call(rbind, do.call(rbind, do.call(rbind, masterGlobalOccupancyEstimates))))
@@ -696,8 +723,14 @@ plottingDF <- plottingDF[plottingDF$PredictedCovariate != "Community",]
 plottingDF$Community <- gsub("Zabalo", "Zábalo", x = plottingDF$Community)
 
 # order the communities by percent of natural cover
-plottingDF <- plottingDF %>% dplyr::filter(Community %in% c("Zábalo", "Siekopai", "Sinangoe", "Siona"))
-plottingDF$Community <- factor(plottingDF$Community, levels=c("Zábalo", "Siekopai", "Sinangoe", "Siona"))
+orderedCommunities <- c(siteCovariate %>% 
+                        group_by(Community) %>% 
+                        summarize(perc = mean(percentNatural)) %>% 
+                        arrange(desc(perc)) %>% 
+                        select(Community))$Community
+orderedCommunities <- gsub("Zabalo", "Zábalo", x = orderedCommunities)
+plottingDF <- plottingDF %>% dplyr::filter(Community %in% orderedCommunities)
+plottingDF$Community <- factor(plottingDF$Community, levels=orderedCommunities)
 
 # add species common names
 crossList <- data.frame(commonNames = commonNames,
@@ -705,21 +738,23 @@ crossList <- data.frame(commonNames = commonNames,
 plottingDF <- merge(plottingDF, crossList, by = "Species")
 
 # make labels per covariate
-colors <- c("Zábalo" = "darkgreen", "Siekopai" = "forestgreen", 
-            "Sinangoe" = "yellowgreen", "Siona" = "goldenrod")
+colors <- c("Zábalo" = "darkgreen", "Remolino" = "forestgreen", 
+            "Sinangoe" = "yellowgreen", "San Pablo" = "gold1", "Siona" = "darkgoldenrod3")
 covPlots <- list()
 allCovPlots <- list()
 for (i in 1:length(covariatesMinusCommunity)){
   
   # x axis labels for each covariate
-  if (covariatesMinusCommunity[i] == "Rainfall") {
+  if (covariatesMinusCommunity[i] == "RainfallScaled") {
     xlabel <- expression(paste0("Rainfall (kg*", m^{-2}, "*", s^{-1}, ", scaled)"))
-  } else if (covariatesMinusCommunity[i] == "Temperature"){
-    xlabel <- "Temperature (°C)"
+  } else if (covariatesMinusCommunity[i] == "TemperatureScaled"){
+    xlabel <- "Temperature (°C, scaled)"
   } else if (covariatesMinusCommunity[i] == "DistToWater") {
     xlabel <- "Distance to water source (m)"
   } else if (covariatesMinusCommunity[i] == "percentNatural"){
     xlabel <- "Percent natural area within 25 km"
+  } else if (covariatesMinusCommunity[i] == "DistToComm") {
+    xlabel <- "Distance to a community (km)"
   }
   
   for (j in 1:length(speciesNames)) {
@@ -874,7 +909,7 @@ ggarrange(plotlist = covPlots, ncol = 2, nrow = 2, common.legend = TRUE)
 
 ######## manually making and saving prediction plots # this is how I did it for CLAG
 # covariate wanted
-cov <- "DistToWater" # percentNatural, Rainfall, Temperature, DistToWater
+cov <- "DistToComm" # percentNatural, RainfallScaled, TemperatureScaled, DistToWater, DistToComm
 
 # subset
 df <- plottingDF[plottingDF$PredictedCovariate == cov,]
@@ -886,9 +921,9 @@ ggplot(df, aes(x = covariateInQuestion,
   geom_ribbon(aes(ymin = Predicted - SE, ymax = Predicted + SE, fill = Community), 
               alpha = 0.2, color = NA) +
   geom_line(aes(x = covariateInQuestion, y = Predicted)) +
-  ylab(expression(paste("Occupancy probability estimate (", psi, ")"))) +
+  ylab(expression(paste("Occupancy probability estimate (", psi, "  )"))) +
   facet_wrap(~commonNames, nrow = 2, ncol = 2) +
-  xlab("Distance to water (m)") +
+  xlab("Distance to a community (km)") +
   coord_cartesian(ylim = c(0,1), 
                   xlim = c(min(covariateInQuestion),
                            max(covariateInQuestion))) +
@@ -898,14 +933,15 @@ ggplot(df, aes(x = covariateInQuestion,
 #theme(plot.title = element_text(hjust = 0.5))
 
 # save it
-ggsave(filename = "Global/Figures/distToWater.png", width = 8, height = 4)
+ggsave(filename = "Global/Figures/temp1.png", width = 8, height = 4)
 
 
 # xlab:
-# rainfall: expression(paste("Rainfall (g*", m^{-2}, s^{-1}, ")"))
-# percentNatural: Percent natural area within 25 km 
-# Temperature: Temperature (°C)
+# rainfall: expression(paste("Rainfall (g*", m^{-2}, s^{-1}, ", scaled)"))
+# percentNatural: Percent natural area within 25 km
+# Temperature: Temperature (°C, scaled)
 # DistToWater: Distance to water (m)
+# DistToComm: Distance to a community (km)
 
 
 # plot stations on a map
@@ -913,6 +949,7 @@ library(sf)
 library(spData)
 require(ggmagnify)
 require(terra)
+require(mapdata)
 
 # load data
 data("world")
@@ -923,11 +960,19 @@ stations <- stations %>%
 stations$CommunityName <- gsub("Zabalo", "Zábalo", x = stations$CommunityName)
 
 # order the communities by percent of natural cover
-stations <- stations %>% dplyr::filter(CommunityName %in% c("Zábalo", "Siekopai", "Sinangoe", "Siona"))
-stations$Community <- factor(stations$CommunityName, levels=c("Zábalo", "Siekopai", "Sinangoe", "Siona"))
+stations <- stations %>% dplyr::filter(CommunityName %in% orderedCommunities)
+stations$Community <- factor(stations$CommunityName, levels=orderedCommunities)
 stations$CommunityName <- NULL
 
 # only highlight Ecuador
+SA <- c("ecuador", "bolivia", "brazil", "chile", "colombia", "argentina", "guyana", "paraguay", "peru", "suriname", "uruguay", "venezuela")
+mapColors <- rep("white", length(SA))
+mapColors[2] <- "lightyellow"
+mappy <- map("worldHires", SA)
+
+
+require(spData)
+
 worldEdited <- world
 worldEdited$Ecu <- ifelse(worldEdited$name_long == "Ecuador", "A", "B")
 
@@ -940,7 +985,7 @@ ecuadorMap <- worldEdited %>%
   #scale_fill_manual(values = c("lightyellow", "white")) +
   scale_fill_manual(name = "Community",
                     values = c(colors, "A" = "lightyellow", "B" = "white"), 
-                    breaks = c("Zábalo", "Siekopai", "Sinangoe", "Siona")) +
+                    breaks = c("Zábalo", "Remolino", "Sinangoe", "San Pablo", "Siona")) +
   coord_sf(default_crs = sf::st_crs(4326), xlim = c(-150, -37)) + 
   #guides(fill = "none") +
   theme_classic() +
@@ -960,6 +1005,7 @@ e["ymax"] <- e["ymax"] + 0.5
 # plot map inlay
 together <- ecuadorMap + geom_magnify(from = e, 
                           to = c(xmin = -150, xmax = -85, ymin = -45, ymax = 3))
+together
 ggsave(plot = together, filename = "Global/Figures/mapInlayWithSites.png", width = 7, height = 5)
 
 
@@ -971,8 +1017,8 @@ natStats <- siteCovariate %>%
 natStats$Community <- gsub("Zabalo", "Zábalo", x = natStats$Community)
 
 # order the communities by percent of natural cover
-natStats <- natStats %>% dplyr::filter(Community %in% c("Zábalo", "Siekopai", "Sinangoe", "Siona"))
-natStats$Community <- factor(natStats$Community, levels=c("Zábalo", "Siekopai", "Sinangoe", "Siona"))
+natStats <- natStats %>% dplyr::filter(Community %in% orderedCommunities)
+natStats$Community <- factor(natStats$Community, levels=orderedCommunities)
 
 # plot it
 ggplot(natStats, aes(x = Community, y = avgNat, fill = Community)) +
@@ -1021,3 +1067,55 @@ kbl(together,
 
 
 
+# trial mapping
+# Load necessary libraries
+library(ggplot2)
+library(dplyr)
+library(maps)
+library(mapdata)
+
+# Load map data
+south_america_map <- map_data("world", region = SA)
+
+# Create a data frame with GPS coordinates of random points in Ecuador
+stations <- data.frame(
+  Community = c("Zábalo", "Remolino", "Sinangoe", "San Pablo", "Siona"),
+  gps_x = c(-78.5, -78.2, -79.0, -77.5, -78.0),
+  gps_y = c(-1.5, -1.0, -2.0, -3.0, -1.8)
+)
+
+# Create a map with Ecuador highlighted
+worldEdited <- south_america_map
+worldEdited$Ecu <- ifelse(worldEdited$region == "Ecuador", "A", "B")
+
+# Create the main map
+ecuadorMap <- ggplot() +
+  geom_polygon(data = worldEdited, aes(x = long, y = lat, group = group, fill = Ecu)) +
+  geom_point(data = stations, aes(x = gps_x, y = gps_y, fill = Community), pch = 21, size = 4) +
+  scale_fill_manual(name = "Community",
+                    values = c("A" = "lightyellow", "B" = "white"), 
+                    labels = c("Ecuador", "Other Countries")) +
+  coord_fixed(1.3) +
+  theme_minimal() +
+  theme(axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        text = element_text(family = "Times", colour = "black"),
+        axis.text = element_text(colour = "black"))
+
+# Set bounding box for magnification
+coords <- as.matrix(stations[, c("gps_x", "gps_y")])
+e <- as.vector(ext(coords))
+e["xmin"] <- e["xmin"] - 0.1
+e["ymin"] <- e["ymin"] - 0.5
+e["xmax"] <- e["xmax"] + 0.1
+e["ymax"] <- e["ymax"] + 0.5
+
+# Add a rectangle for zoomed-in area
+together <- ecuadorMap + 
+  geom_rect(aes(xmin = e["xmin"], xmax = e["xmax"], ymin = e["ymin"], ymax = e["ymax"]), 
+            fill = NA, color = "black", linetype = "dashed") +
+  annotate("text", x = mean(c(e["xmin"], e["xmax"])), y = mean(c(e["ymin"], e["ymax"])), 
+           label = "Zoomed In", size = 5)
+
+# Display the combined plot
+print(together)
