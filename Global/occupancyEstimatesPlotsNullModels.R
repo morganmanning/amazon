@@ -24,11 +24,11 @@ communitiesAbrv <- c("SGE", "SNA", "SPA", "REM", "ZAB")
   # Siona = SNA
   # Siekopai = SKP
   # Zabalo = ZAB
-speciesNames <- c("Dicotyles tajacu", "Mazama americana", "Cuniculus paca", "Psophia crepitans")
+speciesNames <- c("Pecari tajacu", "Mazama americana", "Cuniculus paca", "Psophia crepitans")
 commonNames <- c("Collared peccary", "Red brocket", "Lowland paca", "Grey-winged trumpeter") # listTitles
   # paca = Cuniculus paca
   # brocket = Mazama americana
-  # collared peccary = Dicotyles tajacu 
+  # collared peccary = Pecari tajacu 
   # trumpeter = Psophia crepitans
   # brown four-eyed possum = Metachirus nudicaudatus (#1 species in SGE)
   # black agouti = Dasyprocta fuliginosa (#2 species in SGE)
@@ -452,7 +452,7 @@ for (i in 1:length(communitiesAccent)) {
 
 ########## MANUALLY MAKE X-AXIS LABELS FOR EACH SPECIES: ENSURE IN CORRECT ORDER 
 # work around to make x-axis labels with italics and divided into two lines
-peccary <- ~ atop(paste("Collared peccary"), paste("(", italic("Dicotyles tajacu"), ")"))
+peccary <- ~ atop(paste("Collared peccary"), paste("(", italic("Pecari tajacu"), ")"))
 brocket <- ~ atop(paste("Red brocket"), paste("(", italic("Mazama americana"), ")"))
 paca <- ~ atop(paste("Lowland paca"), paste("(", italic("Cuniculus paca"), ")"))
 trumpeter <- ~ atop(paste("Grey-winged trumpeter"), paste("(", italic("Psophia crepitans"), ")"))

@@ -444,23 +444,27 @@ table(Data$CommunityName)
 noUnknownsSGE <- Data[(Data$Species != "N/D N/D" & Data$CommunityName == "Sinangoe"),]
 noUnknownsZAB <- Data[(Data$Species != "NAN NAN" & Data$Species != "NA NA" & Data$CommunityName == "Zabalo"),]
 noUnknownsSNA <- Data[(Data$Species != "N/D N/D" & Data$CommunityName == "Siona"),]
-noUnknownsSKP <- Data[(Data$Species != "N/D N/D" & Data$CommunityName == "Siekopai"),]
+noUnknownsSPA <- Data[(Data$Species != "N/D N/D" & Data$CommunityName == "San Pablo"),]
+noUnknownsREM <- Data[(Data$Species != "N/D N/D" & Data$CommunityName == "Remolino"),]
+
 
 cameraInfo <- Data %>% 
   filter(Species != "N/D N/D" & Species != "NAN NAN" & Species != "NA NA") %>%
   group_by(CommunityName) %>%
   mutate(StartDate = min(DateTimeOriginal),
          EndDate = max(as.Date(DateTimeOriginal)),
-            Year = year(DateTimeOriginal)) %>%
+         Year = year(DateTimeOriginal)) %>%
   summarise(OperatingDays = round(as.numeric(max(DateTimeOriginal)-
-                                               min(DateTimeOriginal)), 3),
+                                               min(DateTimeOriginal))),
             StartDate = min(DateTimeOriginal),
             EndDate = max(DateTimeOriginal),
-            numberOfStations = length(unique(Station)),
-            numberOfCamerasPerStation = round(length(unique(CameraName))/length(unique(Station)))) 
+            numberOfStations = length(unique(Station))) 
+            # numberOfCamerasPerStation = round(length(unique(CameraName))/length(unique(Station)))
 cameraInfo$StartDate <- format(cameraInfo$StartDate, "%Y-%m-%d")
 cameraInfo$EndDate <- format(cameraInfo$EndDate, "%Y-%m-%d")
-cameraInfo <- arrange(cameraInfo, desc(PercentNaturalArea))
+# put cameraInfo so that it is in the following order, Zabalo, Remolino, Sinangoe, San Pablo, then Siona
+cameraInfo <- cameraInfo[c(5,1,3,2,4),] # order by natural area
+cameraInfo$CommunityName <- gsub(cameraInfo$CommunityName, pattern = "Zabalo", replacement = "Zábalo")
 
 # per station
   # Sinangoe
@@ -590,8 +594,7 @@ kbl(communityDiversity, col.names = c("Community", "Percent Natural Area",
 head(cameraInfo)
 kbl(cameraInfo, col.names = c("Community", "Number of Sampling Days", 
                               "Sampling Start Date", "Sampling End Date",
-                              "Number of Sites",
-                              "Number of Cameras per Site")) %>%
+                              "Number of Sites")) %>%
   kable_classic(full_width = T, html_font = "TimesNewRoman") %>%
   save_kable(file = "../Figures/siteInfo.png",
              zoom = 1.5)

@@ -933,7 +933,7 @@ ggplot(df, aes(x = covariateInQuestion,
 #theme(plot.title = element_text(hjust = 0.5))
 
 # save it
-ggsave(filename = "Global/Figures/temp1.png", width = 8, height = 4)
+ggsave(filename = "Global/Figures/distToComm.png", width = 8, height = 4)
 
 
 # xlab:
@@ -968,17 +968,17 @@ stations$CommunityName <- NULL
 SA <- c("ecuador", "bolivia", "brazil", "chile", "colombia", "argentina", "guyana", "paraguay", "peru", "suriname", "uruguay", "venezuela")
 mapColors <- rep("white", length(SA))
 mapColors[2] <- "lightyellow"
-mappy <- map("worldHires", SA)
+mappy <- maps::map("worldHires", SA, fill = )
+mappy_sf <- st_as_sf(mappy, crs = st_crs(worldEdited), fill = FALSE)
+mappy_sf$Ecu <- ifelse(mappy_sf$ID == "Ecuador", "A", "B")
 
-
-require(spData)
 
 worldEdited <- world
 worldEdited$Ecu <- ifelse(worldEdited$name_long == "Ecuador", "A", "B")
 
 # make plot
 ecuadorMap <- worldEdited %>%
-  filter(continent == "South America") %>%
+  dplyr::filter(continent == "South America") %>%
   ggplot() +
   geom_sf(aes(fill=Ecu)) +
   geom_point(data = stations, aes(gps_x, gps_y, fill = Community), pch = 21) +
@@ -986,6 +986,24 @@ ecuadorMap <- worldEdited %>%
   scale_fill_manual(name = "Community",
                     values = c(colors, "A" = "lightyellow", "B" = "white"), 
                     breaks = c("Zábalo", "Remolino", "Sinangoe", "San Pablo", "Siona")) +
+  coord_sf(default_crs = sf::st_crs(4326), xlim = c(-150, -37)) + 
+  #guides(fill = "none") +
+  theme_classic() +
+  theme(axis.title.x=element_blank(),
+        axis.title.y=element_blank(),
+        text = element_text(family = "Times", colour = "black"),
+        axis.text = element_text(colour = "black"))
+
+# make plot
+ecuadorMap <- mappy_sf %>%
+  ggplot() +
+  geom_sf(aes(fill=Ecu), lwd = 0.5) +
+  geom_point(data = stations, aes(gps_x, gps_y, fill = Community), pch = 21) +
+  #scale_fill_manual(values = c("lightyellow", "white")) +
+  scale_fill_manual(name = "Community",
+                    values = c(colors, "A" = "lightyellow", "B" = "white"), 
+                    breaks = c("Zábalo", "Remolino", "Sinangoe", "San Pablo", "Siona"),
+                    guide = guide_legend(override.aes = list(shape = 21, size = 6.5, fill = colors) )) +
   coord_sf(default_crs = sf::st_crs(4326), xlim = c(-150, -37)) + 
   #guides(fill = "none") +
   theme_classic() +

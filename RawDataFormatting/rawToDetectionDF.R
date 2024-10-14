@@ -24,8 +24,11 @@ require(lubridate)
 # Siona = SNA
 # Siekopai = SKP
 # Zabalo = ZAB
-community <- "Zabalo"
-communityAbrv <- "ZAB"
+# Remolino = REM
+# San Pablo = SPA
+rm(list = ls())
+community <- "Remolino"
+communityAbrv <- "REM"
 Data <- read.csv(paste0(community, "/Data/", communityAbrv, "IndependentRecordsFormatted.csv")) # just independent records
 Traps <- read.csv(paste0(community, "/Data/", communityAbrv, "StationsFormatted.csv")) 
 Data$DateTimeOriginal <- parse_date_time(Data$DateTimeOriginal, c("%Y-%m-%d", "%Y-%m-%d %H:%M:%S"))

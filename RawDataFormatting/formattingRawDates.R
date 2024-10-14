@@ -160,3 +160,37 @@ write.csv(allCommunityRecords, "../Global/Data/AllIndependentRecordsFormatted.cs
 write.csv(allCommunityStations, "../Global/Data/AllStationsFormatted.csv")
 
 
+###### Subset San Pablo and Remolino to have independent detection histories
+# load in the community data
+allCommunityRecords <- read.csv("../Global/Data/AllIndependentRecordsFormatted.csv")
+allCommunityRecords$X <- NULL
+allCommunityStations <- read.csv("../Global/Data/AllStationsFormatted.csv")
+allCommunityStations$X <- NULL
+allCommunityStations$Obs <- NULL
+
+# subset
+SPArecords <- allCommunityRecords[allCommunityRecords$CommunityName == "San Pablo",]
+REMrecords <- allCommunityRecords[allCommunityRecords$CommunityName == "Remolino",]
+SPAstations <- allCommunityStations[allCommunityStations$CommunityName == "San Pablo",]
+REMstations <- allCommunityStations[allCommunityStations$CommunityName == "Remolino",]
+
+# remove unnecessary rows (blank columns affection creation of cameraOperation())
+REMstations$Problem2_from <- NULL
+REMstations$Problem2_to <- NULL
+REMstations$Problem3_from <- NULL
+REMstations$Problem3_to <- NULL
+SPAstations$Problem2_from <- NULL
+SPAstations$Problem2_to <- NULL
+SPAstations$Problem3_from <- NULL
+SPAstations$Problem3_to <- NULL
+
+# save it
+write.csv(SPArecords, "../San Pablo/Data/SPAIndependentRecordsFormatted.csv")
+write.csv(SPAstations, "../San Pablo/Data/SPAStationsFormatted.csv")
+
+write.csv(REMrecords, "../Remolino/Data/REMIndependentRecordsFormatted.csv")
+write.csv(REMstations, "../Remolino/Data/REMStationsFormatted.csv")
+
+
+
+
