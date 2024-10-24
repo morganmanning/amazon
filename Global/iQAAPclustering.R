@@ -595,9 +595,9 @@ head(cameraInfo)
 kbl(cameraInfo, col.names = c("Community", "Number of Sampling Days", 
                               "Sampling Start Date", "Sampling End Date",
                               "Number of Sites")) %>%
-  kable_classic(full_width = T, html_font = "TimesNewRoman") %>%
+  kable_classic(full_width = FALSE, html_font = "TimesNewRoman") %>%
   save_kable(file = "../Figures/siteInfo.png",
-             zoom = 1.5)
+             zoom = 10)
 kbl(cameraInfo, col.names = c("Community", "Number of Sampling Days", 
                                       "Sampling Start Date", "Sampling End Date",
                                       "Number of Sites",

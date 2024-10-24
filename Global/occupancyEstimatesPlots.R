@@ -2,12 +2,9 @@
 ################################################################################
 ############# OCCUPANCY ESTIMATES ACROSS COMMUNITIES AND SPECIES ###############
 ################################################################################
-
 # mission: plot estimates for each species in each community
-# requirements: Siona and Siekopai have no covariates at this point
 
 setwd("~/Documents/amazon")
-
 
 # load packages
 require(unmarked)
@@ -16,15 +13,19 @@ require(ggplot2)
 require(reshape2)
 require(rphylopic)
 require(ggpubr)
+require(sf)
+require(spData)
+require(ggmagnify)
+require(terra)
+require(mapdata)
+require(kableExtra)
+require(knitr)
+require(lubridate)
+require(tictoc)
 
+tic() # time it
 
 # input
-#communities <- c("Sinangoe", "Siona", "Siekopai", "Zabalo")
-#communitiesAbrv <- c("SGE", "SNA", "SKP", "ZAB")
-  # Sinangoe = SGE
-  # Siona = SNA
-  # Siekopai = SKP
-  # Zabalo = ZAB
 communities <- "Global"
 communitiesAbrv <- "All"
 speciesNames <- c("Pecari tajacu", "Mazama americana", "Cuniculus paca", "Psophia crepitans")
@@ -226,6 +227,8 @@ names(unclumpedUFOMasterList) <- communities
   # Average monthly rainfall from July-November (kg/m^2/s)
   # Temperature (C)
   # Distance to a water source (m)
+  # Distance to the community (m)
+  # Distance to a community (km)
 
 # output lists:
 masterBestofTheBest <- list() # occu output for the best model for each species
@@ -511,7 +514,8 @@ for (i in 1:length(communities)) {
     
     
   } else if (communities[i] == "Global"){
-    covariates <- c("Community", "RainfallScaled", "percentNatural", "DistToWater", "TemperatureScaled", "DistToComm")
+    covariates <- c("Community", "RainfallScaled", "percentNatural", 
+                    "DistToWater", "TemperatureScaled", "DistToComm")
     siteCovariate <- read.csv("Global/Data/AllCommunityCovariates.csv")
     siteCovariate$Rainfall <- siteCovariate$Rainfall * 1000
     allCommunities <- unique(siteCovariate$Community)
@@ -616,6 +620,7 @@ names(masterUnmarkedPredDet) <- communities
 ################################################################################
 ############################## PLOT ESTIMATES ##################################
 ################################################################################
+
 communitiesAccent <- gsub(pattern = "Zabalo", replacement = "Zábalo", communities)
 speciesNames
 #masterEstimatedParameters[[1]]
@@ -649,73 +654,39 @@ for (i in 1:length(communitiesAccent)) {
 
 
 
-
-
-
 ################################################################################
 ################################################################################
-################## THINGS ARE NOT AUTOMATED FROM HERE!!! #######################
 ######################## REQUIRES MANUAL INPUT!!! ##############################
 ################################################################################
 ################################################################################
 
-########## MANUALLY MAKE X-AXIS LABELS FOR EACH SPECIES: ENSURE IN CORRECT ORDER 
-# work around to make x-axis labels with italics and divided into two lines
-speciesNames
-peccary <- ~ atop(paste("Collared peccary"), paste("(", italic("Pecari tajacu"), ")"))
-brocket <- ~ atop(paste("Red brocket"), paste("(", italic("Mazama americana"), ")"))
-paca <- ~ atop(paste("Lowland paca"), paste("(", italic("Cuniculus paca"), ")"))
-trumpeter <- ~ atop(paste("Grey-winged trumpeter"), paste("(", italic("Psophia crepitans"), ")"))
 
-#### in the correct order???
-speciesNames
+# DO YOU WANT TO SAVE PLOTS WHEN RUNNING?????? THIS WILL OVERWRITE OLD PLOTS!!!!
+savePlots <- "YES" # "YES" or "NO"
 
-########## MANUALLY INPUT X-AXIS LABELS IN THE CORRECT ORDER
-# plot it
-dodge <- position_dodge(width = 0.3)
-plot <- ggplot(estimates, aes(x = Species,
-                           y = avgOccupancy,
-                           color = Community)) +
-  geom_point(aes(color = Community), position = dodge, size = 2.5) +
-  geom_errorbar(aes(ymin = avgOccupancy - avgOccupancySE, 
-                    ymax = avgOccupancy + avgOccupancySE, 
-                    color = Community), 
-                position = dodge, width = 0.2, linewidth = 1) +
-  scale_color_manual(values = c("darkorange", "royalblue", "green3", "yellow3")) +
-  scale_x_discrete(labels = c(peccary, brocket, paca, trumpeter)) +
-  labs(x = "Species", y = "Probability of Occupancy") +
-  ylim(c(0,1)) +
-  theme_classic() +
-  theme(text = element_text(family = "Times", colour = "black"),
-        axis.text = element_text(colour = "black"),
-        legend.title = element_blank(),
-        axis.title.x = element_blank(), 
-        legend.position="top")
-#plot
 
-# add animal silhouettes 
-peccPic <- get_phylopic(uuid = get_uuid(name = "Dicotyles tajacu", n = 1))
-brockPic <- get_phylopic(uuid = get_uuid(name = "Mazama americana", n = 1))
-pacaPic <- get_phylopic(uuid = get_uuid(name = "Cuniculus paca", n = 1))
-trumpPic <- get_phylopic(uuid = get_uuid(name = "Psophia crepitans", n = 1))
-
-# plot the animal silhouettes
-plot + 
-  add_phylopic(peccPic, alpha = 0.2, x = 1.0, y = 0.10, ysize = 0.25) +
-  add_phylopic(brockPic, alpha = 0.2, x = 2.0, y = 0.19, ysize = 0.45) +
-  add_phylopic(pacaPic, alpha = 0.2, x = 3.0, y = 0.10, ysize = 0.25) +
-  add_phylopic(trumpPic, alpha = 0.2, x = 4.0, y = 0.19, ysize = 0.45)
-
-# save it
-ggsave(filename = "Global/Figures/GlobalOccupancyEstimates.png", width = 8, height = 4)
+################################################################################
+################################################################################
+################################################################################
+################################################################################
 
 
 
-######################### GLOBAL 
-require(ggpubr)
-# GOAL:
-# - one plot for each covariate with four panels (one for each species) with prediction lines for each community
-covariatesMinusCommunity <- c("RainfallScaled", "percentNatural", "DistToWater", "TemperatureScaled", "DistToComm")
+
+# FROM HERE: PLOTS WILL ONLY WORK IF SPECIES == PECCARY, BROCKET, PACA, TRUMPETER
+commonNames
+
+
+
+
+
+################################################################################
+############################## PLOT ESTIMATES ##################################
+################################################################################
+
+
+# make a dataframe that has predictions across each covariate to facilitate plotting
+covariatesMinusCommunity <- covariates[covariates != "Community"] # everything but community
 
 # making the data frame to plot from
 plottingDF <- as.data.frame(do.call(rbind, do.call(rbind, do.call(rbind, masterGlobalOccupancyEstimates))))
@@ -724,10 +695,10 @@ plottingDF$Community <- gsub("Zabalo", "Zábalo", x = plottingDF$Community)
 
 # order the communities by percent of natural cover
 orderedCommunities <- c(siteCovariate %>% 
-                        group_by(Community) %>% 
-                        summarize(perc = mean(percentNatural)) %>% 
-                        arrange(desc(perc)) %>% 
-                        select(Community))$Community
+                          group_by(Community) %>% 
+                          summarize(perc = mean(percentNatural)) %>% 
+                          arrange(desc(perc)) %>% 
+                          select(Community))$Community
 orderedCommunities <- gsub("Zabalo", "Zábalo", x = orderedCommunities)
 plottingDF <- plottingDF %>% dplyr::filter(Community %in% orderedCommunities)
 plottingDF$Community <- factor(plottingDF$Community, levels=orderedCommunities)
@@ -740,13 +711,97 @@ plottingDF <- merge(plottingDF, crossList, by = "Species")
 # make labels per covariate
 colors <- c("Zábalo" = "darkgreen", "Remolino" = "forestgreen", 
             "Sinangoe" = "yellowgreen", "San Pablo" = "gold1", "Siona" = "darkgoldenrod3")
-covPlots <- list()
-allCovPlots <- list()
+
+# make axis titles per species
+peccary <- ~ atop(paste("Collared peccary"), paste("(", italic("Pecari tajacu"), ")"))
+brocket <- ~ atop(paste("Red brocket"), paste("(", italic("Mazama americana"), ")"))
+paca <- ~ atop(paste("Lowland paca"), paste("(", italic("Cuniculus paca"), ")"))
+trumpeter <- ~ atop(paste("Grey-winged trumpeter"), paste("(", italic("Psophia crepitans"), ")"))
+
+# rphylopic per species
+peccPic <- get_phylopic(uuid = get_uuid(name = "Pecari tajacu", n = 1))
+brockPic <- get_phylopic(uuid = get_uuid(name = "Mazama americana", n = 1))
+pacaPic <- get_phylopic(uuid = get_uuid(name = "Cuniculus paca", n = 1))
+trumpPic <- get_phylopic(uuid = get_uuid(name = "Psophia crepitans", n = 1))
+
+# plot it
+dodge <- position_dodge(width = 0.3)
+plot <- ggplot(estimates, aes(x = Species,
+                              y = avgOccupancy,
+                              color = Community)) +
+  geom_point(aes(color = Community), position = dodge, size = 2.5) +
+  geom_errorbar(aes(ymin = avgOccupancy - avgOccupancySE, 
+                    ymax = avgOccupancy + avgOccupancySE, 
+                    color = Community), 
+                position = dodge, width = 0.2, linewidth = 1) +
+  scale_color_manual(values = c("darkorange", "royalblue", "green3", "yellow3")) +
+  scale_x_discrete(labels = c(peccary, brocket, paca, trumpeter)) +
+  labs(x = "Species", y = "Naive occupancy probability estimate") +
+  ylim(c(0,1)) +
+  theme_classic() +
+  theme(text = element_text(family = "Times", colour = "black"),
+        axis.text = element_text(colour = "black"),
+        legend.title = element_blank(),
+        axis.title.x = element_blank(), 
+        legend.position="top") + 
+  add_phylopic(peccPic, alpha = 0.2, x = 1.0, y = 0.10, ysize = 0.25) +
+  add_phylopic(brockPic, alpha = 0.2, x = 2.0, y = 0.19, ysize = 0.45) +
+  add_phylopic(pacaPic, alpha = 0.2, x = 3.0, y = 0.10, ysize = 0.25) +
+  add_phylopic(trumpPic, alpha = 0.2, x = 4.0, y = 0.19, ysize = 0.45)
+
+# plot with the animal silhouettes
+plot 
+
+# save it
+if (savePlots == "YES") {
+  ggsave(filename = paste0(communities, "/Figures/", 
+                           communitiesAbrv, "OccupancyEstimates.png"), 
+         width = 8, height = 4)
+  }
+
+
+
+
+
+################################################################################
+################################################################################
+######################## REQUIRES MANUAL INPUT!!! ##############################
+################################################################################
+################################################################################
+
+
+# DO YOU WANT TO SAVE PLOTS WHEN RUNNING?????? THIS WILL OVERWRITE OLD PLOTS!!!!
+savePlots <- "YES" # "YES" or "NO"
+
+
+################################################################################
+################################################################################
+################################################################################
+################################################################################
+
+
+
+
+
+
+
+
+
+################################################################################
+############################# PLOT PREDICTIONS #################################
+################################################################################
+
+# make a plot faceted by species for each covariate
+# with prediction lines divided by Community if it was a covariate in the model
 for (i in 1:length(covariatesMinusCommunity)){
+  # covariate in question
+  cov <- covariatesMinusCommunity[i]
+  df <- plottingDF[plottingDF$PredictedCovariate == cov,]
+  covariateInQuestion <- df[,cov]
   
   # x axis labels for each covariate
   if (covariatesMinusCommunity[i] == "RainfallScaled") {
-    xlabel <- expression(paste0("Rainfall (kg*", m^{-2}, "*", s^{-1}, ", scaled)"))
+    xlabel <- expression(paste("Rainfall (g*", m^{-2}, s^{-1}, ", scaled)"))
   } else if (covariatesMinusCommunity[i] == "TemperatureScaled"){
     xlabel <- "Temperature (°C, scaled)"
   } else if (covariatesMinusCommunity[i] == "DistToWater") {
@@ -757,199 +812,53 @@ for (i in 1:length(covariatesMinusCommunity)){
     xlabel <- "Distance to a community (km)"
   }
   
-  for (j in 1:length(speciesNames)) {
-    # subset it to just the species j
-    perCovSpp <- plottingDF[plottingDF$Species == speciesNames[j] & 
-                              plottingDF$PredictedCovariate == covariatesMinusCommunity[i],]
-    
-    # get phylopic and look at just the covariate in question
-    animalPic <- get_phylopic(uuid = get_uuid(name = speciesNames[j], n = 1))
-    covariateInQuestion <- perCovSpp[,covariatesMinusCommunity[i]]
-    bottomRightX <- max(covariateInQuestion)-(0.02 * max(covariateInQuestion))
-    bottomY <- 0.15
-    
-    # actually plot it
-    plotty <- ggplot(perCovSpp, aes(x = covariateInQuestion, 
-                          y = Predicted, color = Community)) +
-      geom_ribbon(aes(ymin = Predicted - SE, ymax = Predicted + SE, fill = Community), 
-                  alpha = 0.2, color = NA) +
-      geom_line(aes(x = covariateInQuestion, y = Predicted)) +
-      add_phylopic(animalPic, alpha = 0.2, x = bottomRightX, y = bottomY, ysize = 0.3) +
-      ylab(expression(paste("Occupancy probability estimate (", psi, ")"))) +
-      xlab(xlabel) +
-      ggtitle(commonNames[j]) +
-      coord_cartesian(ylim = c(0,1), 
-                      xlim = c(min(covariateInQuestion)-(0.001 * min(covariateInQuestion)),
-                               max(covariateInQuestion)+(0.005 * max(covariateInQuestion)))) +
-      scale_color_manual(values = colors) +
-      scale_fill_manual(values = colors) +
-      theme_bw() +
-      theme(plot.title = element_text(hjust = 0.5))
-    
-    covPlots[[j]] <- plotty
-    
-  }
-  
-  names(covPlots) <- commonNames
-  
-  allCovPlots[[i]] <- covPlots
-  
-}
-names(allCovPlots) <- covariatesMinusCommunity
-    
-    
-    
-ggarrange(plotlist = allCovPlots[["Rainfall"]], ncol = 2, nrow = 2, common.legend = TRUE)
-    
-
-animalPic <- get_phylopic(uuid = get_uuid(name = speciesNames[j], n = 1))
-perCovSpp <- plottingDF[plottingDF$Species == speciesNames[j] & 
-                          plottingDF$PredictedCovariate == covariatesMinusCommunity[i],]
-covariateInQuestion <- perCovSpp[,covariatesMinusCommunity[i]]
-ggplot(perCovSpp, aes(x = covariateInQuestion, 
-                   y = Predicted, color = Community)) +
-  geom_ribbon(aes(ymin = Predicted - SE, ymax = Predicted + SE, fill = Community), 
-              alpha = 0.2, color = NA) +
-  geom_line(aes(x = covariateInQuestion, y = Predicted)) +
-  add_phylopic(animalPic, alpha = 0.2, x = 0.98, y = 0.15, ysize = 0.3) +
-  ylab(expression(paste("Occupancy probability estimate (", psi, ")"))) +
-  xlab(xlabel) +
-  coord_cartesian(ylim = c(0,1), 
-                  xlim = c(min(covariateInQuestion)-(0.001 * min(covariateInQuestion)),
-                                               max(covariateInQuestion)+(0.005 * max(covariateInQuestion)))) +
-  scale_color_manual(values = colors) +
-  scale_fill_manual(values = colors) +
-  theme_bw()
-
-
-
-######## MANUALLY
-# animal silhouettes 
-peccPic <- get_phylopic(uuid = get_uuid(name = "Dicotyles tajacu", n = 1))
-brockPic <- get_phylopic(uuid = get_uuid(name = "Mazama americana", n = 1))
-pacaPic <- get_phylopic(uuid = get_uuid(name = "Cuniculus paca", n = 1))
-trumpPic <- get_phylopic(uuid = get_uuid(name = "Psophia crepitans", n = 1))
-
-
-
-#### RAINFALL 
-# just the covariate
-df <- plottingDF[plottingDF$PredictedCovariate == "percentNatural",]
-
-covPlots <- list()
-for (j in 1:length(speciesNames)) {
-  # subset it to just the species j
-  perCovSpp <- df[df$Species == speciesNames[j],]
-  
-  # get phylopic and look at just the covariate in question
-  animalPic <- get_phylopic(uuid = get_uuid(name = speciesNames[j], n = 1))
-  covariateInQuestion <- perCovSpp[,"percentNatural"]
-  bottomRightX <- max(covariateInQuestion)-(0.02 * max(covariateInQuestion))
-  bottomY <- 0.15
+  # xlab:
+  # rainfall: expression(paste("Rainfall (g*", m^{-2}, s^{-1}, ", scaled)"))
+  # percentNatural: Percent natural area within 25 km
+  # Temperature: Temperature (°C, scaled)
+  # DistToWater: Distance to water (m)
+  # DistToComm: Distance to a community (km)
   
   # actually plot it
-  plotty <- ggplot(df, aes(x = percentNatural, 
-                                  y = Predicted, color = Community)) +
-    geom_ribbon(aes(ymin = Predicted - SE, ymax = Predicted + SE, fill = Community), alpha = 0.2, color = NA) +
-    geom_line(aes(x = percentNatural, y = Predicted)) +
-    add_phylopic(animalPic, alpha = 0.2, x = bottomRightX, y = bottomY, ysize = 0.3) +
-    ylab(expression(paste("Occupancy probability estimate (", psi, ")"))) +
-    #facet_grid(~Species) +
-    xlab("Covariate") +
-    ggtitle(commonNames[j]) +
-    coord_cartesian(ylim = c(0,1), 
-                    xlim = c(min(covariateInQuestion),
-                             max(covariateInQuestion))) +
-    scale_color_manual(values = colors) +
-    scale_fill_manual(values = colors) +
-    theme_bw() +
-    theme(plot.title = element_text(hjust = 0.5))
-  
-  covPlots[[j]] <- plotty
-  
-}
-
-
-ggarrange(plotlist = covPlots, ncol = 2, nrow = 2, common.legend = TRUE)
-
-
-
-##### faceted way
-covPlots <- list()
-for (i in 1:length(covariatesMinusCommunity)) {
-  # subset it to just the species j
-  df <- plottingDF[plottingDF$PredictedCovariate == covariatesMinusCommunity[i],]
-  covariateInQuestion <- df[,covariatesMinusCommunity[i]]
- 
-  # actually plot it
-  plotty <- ggplot(df, aes(x = covariateInQuestion, 
-                           y = Predicted, color = Community)) +
+  ggplot(df, aes(x = covariateInQuestion, 
+                 y = Predicted, color = Community)) +
     geom_ribbon(aes(ymin = Predicted - SE, ymax = Predicted + SE, fill = Community), 
                 alpha = 0.2, color = NA) +
     geom_line(aes(x = covariateInQuestion, y = Predicted)) +
     ylab(expression(paste("Occupancy probability estimate (", psi, ")"))) +
     facet_wrap(~commonNames, nrow = 2, ncol = 2) +
-    xlab("Covariate") +
-    #ggtitle(covariatesMinusCommunity[i]) +
+    xlab(xlabel) +
     coord_cartesian(ylim = c(0,1), 
                     xlim = c(min(covariateInQuestion),
                              max(covariateInQuestion))) +
     scale_color_manual(values = colors) +
     scale_fill_manual(values = colors) +
-    theme_bw() 
-    #theme(plot.title = element_text(hjust = 0.5))
-  covPlots[[i]] <- plotty
+    theme_classic() +
+    theme(text = element_text(family = "Times", colour = "black"),
+          axis.text = element_text(colour = "black"),
+          legend.title = element_blank(),
+          #axis.title.x = element_blank(), 
+          #legend.position="top"
+    )
+  #theme(plot.title = element_text(hjust = 0.5))
+  
+  # save it
+  if (savePlots == "YES") {
+    ggsave(filename = paste0(communities, "/Figures/", 
+                             cov, "Prediction.png"), 
+           width = 8, height = 4)
+  }
   
 }
 
 
-ggarrange(plotlist = covPlots, ncol = 2, nrow = 2, common.legend = TRUE)
 
 
 
-######## manually making and saving prediction plots # this is how I did it for CLAG
-# covariate wanted
-cov <- "DistToComm" # percentNatural, RainfallScaled, TemperatureScaled, DistToWater, DistToComm
 
-# subset
-df <- plottingDF[plottingDF$PredictedCovariate == cov,]
-covariateInQuestion <- df[,cov]
-
-# actually plot it
-ggplot(df, aes(x = covariateInQuestion, 
-               y = Predicted, color = Community)) +
-  geom_ribbon(aes(ymin = Predicted - SE, ymax = Predicted + SE, fill = Community), 
-              alpha = 0.2, color = NA) +
-  geom_line(aes(x = covariateInQuestion, y = Predicted)) +
-  ylab(expression(paste("Occupancy probability estimate (", psi, "  )"))) +
-  facet_wrap(~commonNames, nrow = 2, ncol = 2) +
-  xlab("Distance to a community (km)") +
-  coord_cartesian(ylim = c(0,1), 
-                  xlim = c(min(covariateInQuestion),
-                           max(covariateInQuestion))) +
-  scale_color_manual(values = colors) +
-  scale_fill_manual(values = colors) +
-  theme_bw() 
-#theme(plot.title = element_text(hjust = 0.5))
-
-# save it
-ggsave(filename = "Global/Figures/distToComm.png", width = 8, height = 4)
-
-
-# xlab:
-# rainfall: expression(paste("Rainfall (g*", m^{-2}, s^{-1}, ", scaled)"))
-# percentNatural: Percent natural area within 25 km
-# Temperature: Temperature (°C, scaled)
-# DistToWater: Distance to water (m)
-# DistToComm: Distance to a community (km)
-
-
-# plot stations on a map
-library(sf)
-library(spData)
-require(ggmagnify)
-require(terra)
-require(mapdata)
+################################################################################
+########################### PLOT MAP OF STATIONS ###############################
+################################################################################
 
 # load data
 data("world")
@@ -968,15 +877,17 @@ stations$CommunityName <- NULL
 SA <- c("ecuador", "bolivia", "brazil", "chile", "colombia", "argentina", "guyana", "paraguay", "peru", "suriname", "uruguay", "venezuela")
 mapColors <- rep("white", length(SA))
 mapColors[2] <- "lightyellow"
-mappy <- maps::map("worldHires", SA, fill = )
-mappy_sf <- st_as_sf(mappy, crs = st_crs(worldEdited), fill = FALSE)
-mappy_sf$Ecu <- ifelse(mappy_sf$ID == "Ecuador", "A", "B")
 
-
+# option A with data("world")
 worldEdited <- world
 worldEdited$Ecu <- ifelse(worldEdited$name_long == "Ecuador", "A", "B")
 
-# make plot
+# option B with 'maps' package
+mappy <- maps::map("worldHires", SA)
+mappy_sf <- st_as_sf(mappy, crs = st_crs(worldEdited), fill = FALSE)
+mappy_sf$Ecu <- ifelse(mappy_sf$ID == "Ecuador", "A", "B")
+
+# option A: less detail in Ecuador border
 ecuadorMap <- worldEdited %>%
   dplyr::filter(continent == "South America") %>%
   ggplot() +
@@ -994,7 +905,7 @@ ecuadorMap <- worldEdited %>%
         text = element_text(family = "Times", colour = "black"),
         axis.text = element_text(colour = "black"))
 
-# make plot
+# option B: more detail in Ecuador border but can't get Ecuador to highlight yellow?
 ecuadorMap <- mappy_sf %>%
   ggplot() +
   geom_sf(aes(fill=Ecu), lwd = 0.5) +
@@ -1024,8 +935,18 @@ e["ymax"] <- e["ymax"] + 0.5
 together <- ecuadorMap + geom_magnify(from = e, 
                           to = c(xmin = -150, xmax = -85, ymin = -45, ymax = 3))
 together
-ggsave(plot = together, filename = "Global/Figures/mapInlayWithSites.png", width = 7, height = 5)
 
+if (savePlots == "YES") {
+  ggsave(filename = paste0(communities, "/Figures/mapInlayWithSites.png"), 
+         width = 7, height = 5)
+}
+
+
+
+
+################################################################################
+######################### PLOT PERCENT NATURAL AREA ############################
+################################################################################
 
 # plot percent natural area within 25 km with SD
 siteCovariate <- read.csv("Global/Data/AllCommunityCovariates.csv")
@@ -1048,7 +969,11 @@ ggplot(natStats, aes(x = Community, y = avgNat, fill = Community)) +
   theme_bw()+
   theme(text = element_text(family = "Times", colour = "black"),
         axis.text = element_text(colour = "black"))
-ggsave("Global/Figures/percentNatArea25km.png", width = 7, height = 5)
+# save it
+if (savePlots == "YES") {
+  ggsave(filename = paste0(communities, "/Figures/percentNatArea25km.png"), 
+         width = 7, height = 5)
+}
 
 # zoomed
 ggplot(natStats, aes(x = Community, y = avgNat, fill = Community)) +
@@ -1060,80 +985,239 @@ ggplot(natStats, aes(x = Community, y = avgNat, fill = Community)) +
   theme_bw() +
   theme(text = element_text(family = "Times", colour = "black"),
         axis.text = element_text(colour = "black"))
-ggsave("Global/Figures/percentNatArea25kmZoomed.png", width = 7, height = 5)
+# save it
+if (savePlots == "YES") {
+  ggsave(filename = paste0(communities, "/Figures/percentNatArea25kmZoomed.png"), 
+         width = 7, height = 5)
+}
 
 
 
-### hunted species in Zabalo
-require(kableExtra)
-ZABhunting <- read.csv("../../Zabalo/Data/HuntingData2018.csv")
 
-ZABhuntingSum <- ZABhunting %>%
+
+
+################################################################################
+####################### SITE ABUNDANCE AND DIVERSITY ###########################
+########################### AND CAMERA TRAP INFO ###############################
+################################################################################
+
+# load data
+Data <- read.csv("Global/Data/AllIndependentRecordsFormatted.csv") 
+Traps <- read.csv("Global/Data/AllStationsFormatted.csv")
+Data$DateTimeOriginal <- parse_date_time(Data$DateTimeOriginal, c("%Y-%m-%d", "%Y-%m-%d %H:%M:%S"))
+
+# remove all unknown species
+noUnknownsSGE <- Data[(Data$Species != "N/D N/D" & Data$CommunityName == "Sinangoe"),]
+noUnknownsZAB <- Data[(Data$Species != "NAN NAN" & Data$Species != "NA NA" & Data$CommunityName == "Zabalo"),]
+noUnknownsSNA <- Data[(Data$Species != "N/D N/D" & Data$CommunityName == "Siona"),]
+noUnknownsSPA <- Data[(Data$Species != "N/D N/D" & Data$CommunityName == "San Pablo"),]
+noUnknownsREM <- Data[(Data$Species != "N/D N/D" & Data$CommunityName == "Remolino"),]
+
+# camera trap info
+cameraInfo <- Data %>% 
+  filter(Species != "N/D N/D" & Species != "NAN NAN" & Species != "NA NA") %>%
+  group_by(CommunityName) %>%
+  mutate(StartDate = min(DateTimeOriginal),
+         EndDate = max(as.Date(DateTimeOriginal)),
+         Year = year(DateTimeOriginal)) %>%
+  summarise(OperatingDays = round(as.numeric(max(DateTimeOriginal)-
+                                               min(DateTimeOriginal))),
+            StartDate = min(DateTimeOriginal),
+            EndDate = max(DateTimeOriginal),
+            numberOfStations = length(unique(Station))) 
+# numberOfCamerasPerStation = round(length(unique(CameraName))/length(unique(Station)))
+
+# format the dates into a legible format
+cameraInfo$StartDate <- format(cameraInfo$StartDate, "%Y-%m-%d")
+cameraInfo$EndDate <- format(cameraInfo$EndDate, "%Y-%m-%d")
+
+# put cameraInfo so that it is in the following order, Zabalo, Remolino, Sinangoe, San Pablo, then Siona
+cameraInfo <- cameraInfo[c(5,1,3,2,4),] # order by natural area
+cameraInfo$CommunityName <- gsub(cameraInfo$CommunityName, pattern = "Zabalo", replacement = "Zábalo")
+
+# per station
+# Sinangoe
+siteDiversitySGE <- noUnknownsSGE %>%
+  group_by(Station, Species) %>%
+  summarise(abundance = n()) 
+
+siteDiversitySGE <- siteDiversitySGE %>%
+  group_by(Station) %>%
+  summarise(N=sum(abundance),
+            shannonDiversity = -sum((abundance/sum(abundance))*log(abundance/sum(abundance))),
+            simpsonDiversity = 1-sum((abundance/sum(abundance))^2))
+
+# Zábalo
+siteDiversityZAB <- noUnknownsZAB %>%
+  group_by(Station, Species) %>%
+  summarise(abundance = n()) 
+
+siteDiversityZAB <- siteDiversityZAB %>%
+  group_by(Station) %>%
+  summarise(N=sum(abundance),
+            shannonDiversity = -sum((abundance/sum(abundance))*log(abundance/sum(abundance))),
+            simpsonDiversity = 1-sum((abundance/sum(abundance))^2))
+
+# Siona
+siteDiversitySNA <- noUnknownsSNA %>%
+  group_by(Station, Species) %>%
+  summarise(abundance = n()) 
+
+siteDiversitySNA <- siteDiversitySNA %>%
+  group_by(Station) %>%
+  summarise(N=sum(abundance),
+            shannonDiversity = -sum((abundance/sum(abundance))*log(abundance/sum(abundance))),
+            simpsonDiversity = 1-sum((abundance/sum(abundance))^2))
+
+# San Pablo
+siteDiversitySPA <- noUnknownsSPA %>%
+  group_by(Station, Species) %>%
+  summarise(abundance = n()) 
+
+siteDiversitySPA <- siteDiversitySPA %>%
+  group_by(Station) %>%
+  summarise(N=sum(abundance),
+            shannonDiversity = -sum((abundance/sum(abundance))*log(abundance/sum(abundance))),
+            simpsonDiversity = 1-sum((abundance/sum(abundance))^2))
+
+# Remolino
+siteDiversityREM <- noUnknownsREM %>%
+  group_by(Station, Species) %>%
+  summarise(abundance = n()) 
+
+siteDiversityREM <- siteDiversityREM %>%
+  group_by(Station) %>%
+  summarise(N=sum(abundance),
+            shannonDiversity = -sum((abundance/sum(abundance))*log(abundance/sum(abundance))),
+            simpsonDiversity = 1-sum((abundance/sum(abundance))^2))
+
+# per community
+wholeDiversitySGE <- noUnknownsSGE %>%
   group_by(Species) %>%
-  summarize(count = sum(Count))
+  summarise(abundance = n()) %>%
+  mutate(Community = "Sinangoe", 
+         PercentNaturalArea = mean(siteCovariate$percentNatural[siteCovariate$Community == "Sinangoe"]),
+         OperatingDays = round(as.numeric(max(noUnknownsSGE$DateTimeOriginal)-
+                                            min(noUnknownsSGE$DateTimeOriginal))))
+wholeDiversityZAB <- noUnknownsZAB %>%
+  group_by(Species) %>%
+  summarise(abundance = n()) %>%
+  mutate(Community = "Zábalo", 
+         PercentNaturalArea = round(mean(siteCovariate$percentNatural[siteCovariate$Community == "Zabalo"]), 3), 
+         OperatingDays = round(as.numeric(max(noUnknownsZAB$DateTimeOriginal)-
+                                            min(noUnknownsZAB$DateTimeOriginal))))
+wholeDiversitySNA <- noUnknownsSNA %>%
+  group_by(Species) %>%
+  summarise(abundance = n()) %>%
+  mutate(Community = "Siona", 
+         PercentNaturalArea = round(mean(siteCovariate$percentNatural[siteCovariate$Community == "Siona"]), 3),  
+         OperatingDays = round(as.numeric(max(noUnknownsSNA$DateTimeOriginal)-
+                                            min(noUnknownsSNA$DateTimeOriginal))))
+wholeDiversitySPA <- noUnknownsSPA %>%
+  group_by(Species) %>%
+  summarise(abundance = n()) %>%
+  mutate(Community = "San Pablo", 
+         PercentNaturalArea = round(mean(siteCovariate$percentNatural[siteCovariate$Community == "San Pablo"]), 3),  
+         OperatingDays = round(as.numeric(max(noUnknownsSPA$DateTimeOriginal)-
+                                            min(noUnknownsSPA$DateTimeOriginal))))
 
-together <- data.frame(Species = c("Peccaries", "Paca", "Trumpeter", "Brockets"),
-                       NumberHunted = c(sum(ZABhuntingSum$count[ZABhuntingSum$Species == "White-lipped Peccary" | ZABhuntingSum$Species == "Collared Peccary"]),
-                                        sum(ZABhuntingSum$count[ZABhuntingSum$Species == "Lowland Paca"]),
-                                        sum(ZABhuntingSum$count[ZABhuntingSum$Species == "Grey-winged Trumpeter"]),
-                                        sum(ZABhuntingSum$count[ZABhuntingSum$Species == "Red Brocket Deer" | ZABhuntingSum$Species == "Grey Brocket Deer"])))
+wholeDiversityREM <- noUnknownsREM %>%
+  group_by(Species) %>%
+  summarise(abundance = n()) %>%
+  mutate(Community = "Remolino", 
+         PercentNaturalArea = round(mean(siteCovariate$percentNatural[siteCovariate$Community == "Remolino"]), 3),  
+         OperatingDays = round(as.numeric(max(noUnknownsREM$DateTimeOriginal)-
+                                            min(noUnknownsREM$DateTimeOriginal))))
 
-kbl(together, 
-    col.names = c("Species", "Number Hunted")) %>%
-  kable_classic(font_size = 22, html_font = "TimesNewRoman") %>%
-  save_kable(file = "../Figures/ZabaloHuntedSpecies.png", zoom = 2)
+# abundance and diversity for all communities
+communityAbundance <- rbind(wholeDiversityZAB, wholeDiversitySPA, wholeDiversityREM, 
+                            wholeDiversitySGE, wholeDiversitySNA)
+
+communityDiversity <- communityAbundance %>%
+  group_by(Community, PercentNaturalArea) %>%
+  summarise(nIndiv=sum(abundance),
+            nSpecies = length(unique(Species)),
+            OperatingDays = mean(OperatingDays),
+            shannonIndex = round(-sum((abundance/sum(abundance))*log(abundance/sum(abundance))), 3),
+            simpsonIndex = round(1-sum((abundance/sum(abundance))^2), 3)) 
+communityDiversity$PercentNaturalArea <- round(communityDiversity$PercentNaturalArea, 3)
+communityDiversity <- arrange(communityDiversity, desc(PercentNaturalArea))
+communityDiversity$Community <- factor(communityDiversity$Community, 
+                                       levels = communityDiversity$Community)
+communityDiversity
 
 
 
-# trial mapping
-# Load necessary libraries
-library(ggplot2)
-library(dplyr)
-library(maps)
-library(mapdata)
 
-# Load map data
-south_america_map <- map_data("world", region = SA)
+################################################################################
+################################################################################
+######################## REQUIRES MANUAL INPUT!!! ##############################
+################################################################################
+################################################################################
 
-# Create a data frame with GPS coordinates of random points in Ecuador
-stations <- data.frame(
-  Community = c("Zábalo", "Remolino", "Sinangoe", "San Pablo", "Siona"),
-  gps_x = c(-78.5, -78.2, -79.0, -77.5, -78.0),
-  gps_y = c(-1.5, -1.0, -2.0, -3.0, -1.8)
-)
 
-# Create a map with Ecuador highlighted
-worldEdited <- south_america_map
-worldEdited$Ecu <- ifelse(worldEdited$region == "Ecuador", "A", "B")
+# DO YOU WANT TO SAVE PLOTS WHEN RUNNING?????? THIS WILL OVERWRITE OLD PLOTS!!!!
+savePlots <- "YES" # "YES" or "NO"
 
-# Create the main map
-ecuadorMap <- ggplot() +
-  geom_polygon(data = worldEdited, aes(x = long, y = lat, group = group, fill = Ecu)) +
-  geom_point(data = stations, aes(x = gps_x, y = gps_y, fill = Community), pch = 21, size = 4) +
-  scale_fill_manual(name = "Community",
-                    values = c("A" = "lightyellow", "B" = "white"), 
-                    labels = c("Ecuador", "Other Countries")) +
-  coord_fixed(1.3) +
-  theme_minimal() +
-  theme(axis.title.x = element_blank(),
-        axis.title.y = element_blank(),
-        text = element_text(family = "Times", colour = "black"),
-        axis.text = element_text(colour = "black"))
 
-# Set bounding box for magnification
-coords <- as.matrix(stations[, c("gps_x", "gps_y")])
-e <- as.vector(ext(coords))
-e["xmin"] <- e["xmin"] - 0.1
-e["ymin"] <- e["ymin"] - 0.5
-e["xmax"] <- e["xmax"] + 0.1
-e["ymax"] <- e["ymax"] + 0.5
+################################################################################
+################################################################################
+################################################################################
+################################################################################
 
-# Add a rectangle for zoomed-in area
-together <- ecuadorMap + 
-  geom_rect(aes(xmin = e["xmin"], xmax = e["xmax"], ymin = e["ymin"], ymax = e["ymax"]), 
-            fill = NA, color = "black", linetype = "dashed") +
-  annotate("text", x = mean(c(e["xmin"], e["xmax"])), y = mean(c(e["ymin"], e["ymax"])), 
-           label = "Zoomed In", size = 5)
 
-# Display the combined plot
-print(together)
+
+
+
+
+
+
+################################################################################
+################################ MAKE TABLES ###################################
+################################################################################
+
+# peek
+head(communityDiversity)
+head(cameraInfo)
+
+# save it
+if (savePlots == "YES") {
+  # table with diversity and abundance information
+  kbl(communityDiversity, col.names = c("Community", "Proportion of Natural Area", 
+                                        "Number of Detections", "Number of Species",
+                                        "Number of Sampling Days",
+                                        "Shannon Diversity Index", "Simpson Diversity Index")) %>%
+    kable_classic(full_width = T, html_font = "TimesNewRoman") %>%
+    save_kable(file = "Global/Figures/communityDiversityAbundance.png", zoom = 1.5)
+  
+  # table with just diversity information
+  kbl(communityDiversity[,c("Community", "PercentNaturalArea", "OperatingDays", 
+                            "shannonIndex", "simpsonIndex")], 
+      col.names = c("Community", "Proportion of Natural Area", "Number of Sampling Days", 
+                    "Shannon Diversity Index", "Simpson Diversity Index")) %>%
+    kable_classic(font_size = 22, html_font = "TimesNewRoman") %>%
+    save_kable(file = "Global/Figures/communityDiversitySummary.png", zoom = 2)
+  
+  # table with camera trap information
+  kbl(cameraInfo, col.names = c("Community", "Number of Sampling Days", 
+                                "Sampling Start Date", "Sampling End Date",
+                                "Number of Sites")) %>%
+    kable_classic(full_width = FALSE, html_font = "TimesNewRoman") %>%
+    save_kable(file = "Global/Figures/siteInfo.png",
+               zoom = 10)
+
+}
+
+
+
+
+# TIME!
+toc() # typically takes 210 seconds (3.5 minutes)
+
+
+
+
+
+
+
+

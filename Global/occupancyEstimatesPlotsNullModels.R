@@ -477,7 +477,7 @@ plot <- ggplot(estimates, aes(x = Species,
                 position = dodge, width = 0.2, linewidth = 1) +
   scale_color_manual(values = colors) +
   scale_x_discrete(labels = c(peccary, brocket, paca, trumpeter)) +
-  labs(x = "Species", y = "Probability of Occupancy") +
+  labs(x = "Species", y = "Naive occupancy probability") +
   ylim(c(0,1)) +
   theme_classic() +
   theme(text = element_text(family = "Times", colour = "black"),
