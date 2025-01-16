@@ -43,6 +43,8 @@ ________________________________________________________________________________
 - Meet with August to strategize 
 - Am I SURE that I can't get permission to collect data from private groups?
 - Find most popular PUBLIC forums for animal trade. (e.g. Reddit for most reputable places to buy monkeys, etc.)
+- get together collation of potential (accessible right now) data sources
+- e-mail Jen Miller about potential sources
 
 ________________________________________________________________________________
 ## 2024-03-28
