@@ -81,6 +81,9 @@ for (i in 1:length(communities)) {
         } else if (communities[i] == "Global") {
          siteCovariate <- read.csv("Global/Data/AllCommunityCovariates.csv")
          siteCovariate$Rainfall <- siteCovariate$Rainfall*1000 # convert to grams/m^2/s
+         siteCovariate$Community <- factor(siteCovariate$Community, 
+                                            levels = c("Zabalo", "Remolino", "Sinangoe", "San Pablo", "Siona"))
+         
         } else {
           siteCovariate <- NULL # no covariates for remaining communities 
         }
@@ -295,7 +298,6 @@ for (i in 1:length(communities)) {
     # output is dataframe for community i with the best detection formulas for each species
       
   }
-  
   
   
   ############# BEST OCCUPANCY MODEL PER SPECIES USING THE BEST DETECTION MODEL
