@@ -746,10 +746,10 @@ plot <- ggplot(estimates, aes(x = Species,
         legend.title = element_blank(),
         axis.title.x = element_blank(), 
         legend.position="top") + 
-  add_phylopic(peccPic, alpha = 0.2, x = 1.0, y = 0.10, ysize = 0.25) +
-  add_phylopic(brockPic, alpha = 0.2, x = 2.0, y = 0.19, ysize = 0.45) +
-  add_phylopic(pacaPic, alpha = 0.2, x = 3.0, y = 0.10, ysize = 0.25) +
-  add_phylopic(trumpPic, alpha = 0.2, x = 4.0, y = 0.19, ysize = 0.45)
+  add_phylopic(peccPic, alpha = 0.2, x = 1.0, y = 0.10, height = 0.25) +
+  add_phylopic(brockPic, alpha = 0.2, x = 2.0, y = 0.19, height = 0.45) +
+  add_phylopic(pacaPic, alpha = 0.2, x = 3.0, y = 0.10, height = 0.25) +
+  add_phylopic(trumpPic, alpha = 0.2, x = 4.0, y = 0.19, height = 0.45)
 
 # plot with the animal silhouettes
 plot 
