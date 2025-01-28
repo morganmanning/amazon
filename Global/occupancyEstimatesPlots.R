@@ -267,12 +267,12 @@ for (i in 1:length(communities)) {
   combos <- unlist(combos, recursive=FALSE)
   
   # all combinations of variables into formulas
-  forms <- sapply(combos, function(x) paste("~ ", paste(x, collapse="+"), sep = ""))
-  detectionFormulas <- as.vector(c(forms, "~ 1"))
+  forms <- sapply(combos, function(x) paste("~", paste(x, collapse="+"), sep = ""))
+  detectionFormulas <- as.vector(c(forms, "~1"))
   
   # get the best detection formula and stick with that for the occupancy formulas
   tempDF <- data.frame(detection = detectionFormulas,
-                       occupancy = "~ 1")
+                       occupancy = "~1")
   allDetectionFormulas <- paste(tempDF$detection, tempDF$occupancy, sep = " ")
   bestDetectionModels <- data.frame(species = commonNames,
                                     bestDetectionModel = NA)
@@ -308,9 +308,9 @@ for (i in 1:length(communities)) {
   combos <- unlist(combos, recursive=FALSE)
   
   # all combinations of variables into formulas
-  forms <- sapply(combos, function(x) paste("~ ", paste(x, collapse="+"), sep = ""))
+  forms <- sapply(combos, function(x) paste("~", paste(x, collapse="+"), sep = ""))
   
-  forms <- as.vector(c(forms, "~ 1")) # add the null model
+  forms <- as.vector(c(forms, "~1")) # add the null model
   
   occupancyFormulas <- forms
   
@@ -1190,7 +1190,7 @@ if (savePlots == "YES") {
                                         "Number of Sampling Days",
                                         "Shannon Diversity Index", "Simpson Diversity Index")) %>%
     kable_classic(full_width = T, html_font = "TimesNewRoman") %>%
-    save_kable(file = "Global/Figures/communityDiversityAbundance.png", zoom = 1.5)
+    kableExtra::save_kable(file = "Global/Figures/communityDiversityAbundance.png", zoom = 1.5)
   
   # table with just diversity information
   kbl(communityDiversity[,c("Community", "PercentNaturalArea", "OperatingDays", 
@@ -1210,16 +1210,69 @@ if (savePlots == "YES") {
 
 }
 
+# Make a table with average occupancy and detection estimates from above
+if (communities == "Global" & savePlots == "YES"){
+    # table with occupancy and detection estimates
+    estimatesCut <- estimates |> 
+      dplyr::select(CommonNames, avgOccupancy, avgOccupancySE, avgDetection, avgDetectionSE) |>
+      arrange(desc(avgOccupancy))
+    kbl(estimatesCut, col.names = c("Species",
+                                 "Average Occupancy Estimate", "Occupancy SE", 
+                                 "Average Detection Estimate", "Detection SE")) %>%
+      kable_classic(full_width = TRUE, html_font = "TimesNewRoman") %>%
+      kableExtra::save_kable(file = "Global/Figures/occupancyDetectionEstimates.png", zoom = 1.5)
+
+}
+
+
+# Make a table with the covariates included in the top models for each species
+if (communities == "Global" & savePlots == "YES" & all(speciesNames == names(masterTopModels[[1]])) & length(speciesNames) == 4){
+    
+    for (i in 1:length(speciesNames)){
+        # make a column with the species and how many best models
+        masterTopModels[[1]][[i]]$Species <- names(masterTopModels[[1]])[i]
+        masterTopModels[[1]][[i]]$nModels <- nrow(masterTopModels[[1]][[i]])
+    }
+
+    # combine all the species into one dataframe
+    bestModelsDF <- do.call(rbind.data.frame, masterTopModels[[1]])
+    rownames(bestModelsDF) <- NULL
+
+    # format said dataframe
+    bestModelsDF$AIC <- round(bestModelsDF$AIC, 3)
+    bestModelsDF$diffFromBest <- round(bestModelsDF$diffFromBest, 3)
+
+    # https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html#Group_rows_via_labeling
+    nModelsPerSpecies <- unique(bestModelsDF$nModels)
+    kbl(bestModelsDF[, c("ModelName", "AIC", "diffFromBest")],
+        col.names = c("Model", "AIC", "Delta AIC"),
+        # caption = names(masterTopModels[[1]])[i],
+    ) %>% # AIC weight?
+        kable_classic(full_width = TRUE, html_font = "TimesNewRoman") %>%
+        pack_rows(speciesNames[1],
+            start_row = 1,
+            end_row = nModelsPerSpecies[1]
+        ) %>%
+        pack_rows(speciesNames[2],
+            start_row = nModelsPerSpecies[1] + 1,
+            end_row = nModelsPerSpecies[1] + nModelsPerSpecies[2]
+        ) %>%
+        pack_rows(speciesNames[3],
+            start_row = nModelsPerSpecies[1] + nModelsPerSpecies[2] + 1,
+            end_row = nModelsPerSpecies[1] + nModelsPerSpecies[2] + nModelsPerSpecies[3]
+        ) %>%
+        pack_rows(speciesNames[4],
+            start_row = nrow(bestModelsDF) - nModelsPerSpecies[4] + 1,
+            end_row = nrow(bestModelsDF)
+        ) %>%
+        kableExtra::save_kable(file = "Global/Figures/AllSpeciesBestModelsTable.png", zoom = 1.5)
+
+
+}
 
 
 
 # TIME!
 toc() # typically takes 210 seconds (3.5 minutes)
-
-
-
-
-
-
 
 
