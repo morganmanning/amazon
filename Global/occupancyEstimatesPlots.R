@@ -267,12 +267,12 @@ for (i in 1:length(communities)) {
   combos <- unlist(combos, recursive=FALSE)
   
   # all combinations of variables into formulas
-  forms <- sapply(combos, function(x) paste("~", paste(x, collapse="+"), sep = ""))
-  detectionFormulas <- as.vector(c(forms, "~1"))
+  forms <- sapply(combos, function(x) paste("~ ", paste(x, collapse="+"), sep = ""))
+  detectionFormulas <- as.vector(c(forms, "~ 1"))
   
   # get the best detection formula and stick with that for the occupancy formulas
   tempDF <- data.frame(detection = detectionFormulas,
-                       occupancy = "~1")
+                       occupancy = "~ 1")
   allDetectionFormulas <- paste(tempDF$detection, tempDF$occupancy, sep = " ")
   bestDetectionModels <- data.frame(species = commonNames,
                                     bestDetectionModel = NA)
@@ -308,9 +308,9 @@ for (i in 1:length(communities)) {
   combos <- unlist(combos, recursive=FALSE)
   
   # all combinations of variables into formulas
-  forms <- sapply(combos, function(x) paste("~", paste(x, collapse="+"), sep = ""))
+  forms <- sapply(combos, function(x) paste("~ ", paste(x, collapse="+"), sep = ""))
   
-  forms <- as.vector(c(forms, "~1")) # add the null model
+  forms <- as.vector(c(forms, "~ 1")) # add the null model
   
   occupancyFormulas <- forms
   
@@ -745,11 +745,11 @@ plot <- ggplot(estimates, aes(x = Species,
         axis.text = element_text(colour = "black"),
         legend.title = element_blank(),
         axis.title.x = element_blank(), 
-        legend.position="top") + 
-  add_phylopic(peccPic, alpha = 0.2, x = 1.0, y = 0.10, height = 0.25) +
-  add_phylopic(brockPic, alpha = 0.2, x = 2.0, y = 0.19, height = 0.45) +
-  add_phylopic(pacaPic, alpha = 0.2, x = 3.0, y = 0.10, height = 0.25) +
-  add_phylopic(trumpPic, alpha = 0.2, x = 4.0, y = 0.19, height = 0.45)
+        legend.position="none") + 
+  add_phylopic(peccPic, alpha = 0.2, x = 1.0, y = 0.10, ysize = 0.25) +
+  add_phylopic(brockPic, alpha = 0.2, x = 2.0, y = 0.19, ysize = 0.45) +
+  add_phylopic(pacaPic, alpha = 0.2, x = 3.0, y = 0.10, ysize = 0.25) +
+  add_phylopic(trumpPic, alpha = 0.2, x = 4.0, y = 0.19, ysize = 0.45)
 
 # plot with the animal silhouettes
 plot 
@@ -1215,12 +1215,13 @@ if (communities == "Global" & savePlots == "YES"){
     # table with occupancy and detection estimates
     estimatesCut <- estimates |> 
       dplyr::select(CommonNames, avgOccupancy, avgOccupancySE, avgDetection, avgDetectionSE) |>
-      arrange(desc(avgOccupancy))
+      arrange(desc(avgOccupancy)) |>
+      mutate(across(where(is.numeric), round, 3))
     kbl(estimatesCut, col.names = c("Species",
                                  "Average Occupancy Estimate", "Occupancy SE", 
                                  "Average Detection Estimate", "Detection SE")) %>%
-      kable_classic(full_width = TRUE, html_font = "TimesNewRoman") %>%
-      kableExtra::save_kable(file = "Global/Figures/occupancyDetectionEstimates.png", zoom = 1.5)
+      kable_classic(full_width = FALSE, html_font = "TimesNewRoman") %>%
+      kableExtra::save_kable(file = "Global/Figures/occupancyDetectionEstimates.png", zoom = 10)
 
 }
 
@@ -1265,7 +1266,7 @@ if (communities == "Global" & savePlots == "YES" & all(speciesNames == names(mas
             start_row = nrow(bestModelsDF) - nModelsPerSpecies[4] + 1,
             end_row = nrow(bestModelsDF)
         ) %>%
-        kableExtra::save_kable(file = "Global/Figures/AllSpeciesBestModelsTable.png", zoom = 1.5)
+        kableExtra::save_kable(file = "Global/Figures/AllSpeciesBestModelsTable.png", zoom = 10)
 
 
 }
