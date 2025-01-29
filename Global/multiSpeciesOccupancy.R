@@ -91,10 +91,8 @@ interactionsOfInterest <- c("[ocelot]",
                             "[ocelot:opossum]",
                             "[agouti:acouchi]",
                             "[peccary:paca]",
-                            "[paca:agouti]")
-
-# set up blank lists
-detection <- list()
+                            "[paca:agouti]",
+                            "[ocelot:jaguar]")
 
 # camera operability matrix
 Operation <- cameraOperation(CTtable = Traps,
@@ -114,6 +112,8 @@ Operation <- cameraOperation(CTtable = Traps,
 ################################################################################
 ############################ DETECTION MATRICES ################################
 ################################################################################
+# set up blank lists
+detection <- list()
 
 # detection matrices
 for (i in 1:length(species)) {
@@ -160,12 +160,12 @@ all(covariates$Station == rownames(detection[[1]]))) { # if every species has th
 str(detectionWithoutBlanks)
 nrow(covariatesWithoutBlanks)
 
-
-
-# should i do time step consolidation here?
-
 # make the unmarked frame
-umf <- unmarkedFrameOccuMulti(y = detectionWithoutBlanks, siteCovs = covariatesWithoutBlanks, maxOrder = 2)
+umf <- unmarkedFrameOccuMulti(
+    y = detectionWithoutBlanks,
+    siteCovs = covariatesWithoutBlanks, 
+    maxOrder = 2 # max number of species interactions
+)
 summary(umf)
 str(umf)
 
@@ -206,73 +206,81 @@ forms <- as.vector(c(forms, "~ 1")) # add the null model
 occupancyFormulas <- forms
   
 ############### COMBINE DETECTION WITH ALL POSSIBLE OCCUPANCY PREDICTORS AND MODEL
-  occupancyModelsList <- list()
-  for (j in 1:length(species)) {
-    df <- data.frame(detection = '~ Community',
-                     occupancy = occupancyFormulas)
-    occupancyModelsList[[j]] <- c(paste(df$detection, df$occupancy, sep = " "))
-  }
-  
-  # run occupancy unmarked model for all models
-  allModels <- list()
-  for (j in 1:length(species)) { # for all the species
+occupancyModelsList <- list()
+for (j in 1:length(species)) {
+df <- data.frame(detection = '~ Community',
+                occupancy = occupancyFormulas)
+occupancyModelsList[[j]] <- c(paste(df$detection, df$occupancy, sep = " "))
+}
+
+# run occupancy unmarked model for all models
+allModels <- list()
+for (j in 1:length(species)) { # for all the species
     occupancyMods <- list()
-    ufo <- unmarkedFrameOccu(detectionWithoutBlanks[[j]], 
-                             siteCovs = covariatesWithoutBlanks,
-                             obsCovs = NULL)
-    for(m in 1:length(occupancyModelsList[[j]])) {
-      test <- occu(formula(occupancyModelsList[[j]][m]), ufo)
-      occupancyMods[[m]] <- occu(formula(occupancyModelsList[[j]][m]), ufo, 
-                                 control = 10000, 
-                                 starts = c(rep(0, length(test@opt$par)))) 
+    ufo <- unmarkedFrameOccu(detectionWithoutBlanks[[j]],
+        siteCovs = covariatesWithoutBlanks,
+        obsCovs = NULL
+    )
+    for (m in 1:length(occupancyModelsList[[j]])) {
+        test <- occu(formula(occupancyModelsList[[j]][m]), ufo)
+        occupancyMods[[m]] <- occu(formula(occupancyModelsList[[j]][m]), ufo,
+            control = 10000,
+            starts = c(rep(0, length(test@opt$par)))
+        )
     }
     names(occupancyMods) <- 1:length(occupancyMods)
     allModels[[j]] <- occupancyMods
     print(paste0("Finishing species ", j, " out of ", length(species)))
-  }
-  
-  # Make a data frame to show the model names and their AICs
-  modelAICs <- list() # all models and their AICs
-  topModels <- list() # only models within 2 AIC of lowest AIC
-  for(j in 1:length(allModels)) { # for each species
-    df <- data.frame(ModelName = NA,
-                     AIC = NA,
-                     diffFromBest = NA)
-    for(m in 1:length(allModels[[j]])){
-      df[m,1]<- as.character(c(allModels[[j]][[m]]@formula))
-      df[m,2]<- allModels[[j]][[m]]@AIC
+}
+
+# Make a data frame to show the model names and their AICs
+modelAICs <- list() # all models and their AICs
+topModels <- list() # only models within 2 AIC of lowest AIC
+for (j in 1:length(allModels)) { # for each species
+    df <- data.frame(
+        ModelName = NA,
+        AIC = NA,
+        diffFromBest = NA
+    )
+    for (m in 1:length(allModels[[j]])) {
+        df[m, 1] <- as.character(c(allModels[[j]][[m]]@formula))
+        df[m, 2] <- allModels[[j]][[m]]@AIC
     }
-    df <- df[order(df$AIC),]
+    df <- df[order(df$AIC), ]
     df$diffFromBest <- df$AIC - min(df$AIC)
     modelAICs[[j]] <- df
-    
+
     # only the best
     ANTM <- subset(df, diffFromBest <= 2)
     topModels[[j]] <- ANTM
-  }
-  names(topModels) <- casualNames
-  
-  # create a new dataframe with list titles as a new column
-  topModels_df <- data.frame(Species = character(),
-                 ModelName = character(),
-                 AIC = numeric(),
-                 diffFromBest = numeric(),
-                 stringsAsFactors = FALSE)
+}
+names(topModels) <- casualNames
 
-  for (j in 1:length(topModels)) {
+# create a new dataframe with list titles as a new column
+topModels_df <- data.frame(
+    Species = character(),
+    ModelName = character(),
+    AIC = numeric(),
+    diffFromBest = numeric(),
+    stringsAsFactors = FALSE
+)
+
+for (j in 1:length(topModels)) {
     speciesX <- casualNames[j]
     models <- topModels[[j]]
     n <- nrow(models)
-    
+
     # create a temporary dataframe for each species
-    temp_df <- data.frame(Species = rep(speciesX, n),
-              ModelName = models$ModelName,
-              AIC = models$AIC,
-              diffFromBest = models$diffFromBest)
-    
+    temp_df <- data.frame(
+        Species = rep(speciesX, n),
+        ModelName = models$ModelName,
+        AIC = models$AIC,
+        diffFromBest = models$diffFromBest
+    )
+
     # append the temporary dataframe to the main dataframe
     topModels_df <- rbind(topModels_df, temp_df)
-  }
+}
 
 # save the table
 kbl(topModels_df) %>%
@@ -312,15 +320,107 @@ bestCovariates
 
 # verify that the species are in identical orders
 if (all(bestCovariates$Species == names(detectionWithoutBlanks))) {
-  # use the formulas to run occuMulti (with ~Community as the detection formula)
-  multispecies_model <- occuMulti(detformulas = rep("~ Community", length(species)),
-                                  stateformulas = c(bestCovariates$BestCovariates, 
-                                                    rep("~ 1", ((length(species)^2 + length(species))/2) - length(species))),
-                                                    # (n^2+n)/2 is the addition version of a factorial
-                                                    # use null for all animal interactions
-                                  data = umf,
-                                  maxOrder = 2)
+    # use the formulas to run occuMulti (with ~Community as the detection formula)
+    best_multispecies_model <- occuMulti(
+        detformulas = rep("~ Community", length(species)),
+        stateformulas = c(
+            bestCovariates$BestCovariates,
+            rep("~ 1", ((length(species)^2 + length(species)) / 2) - length(species))
+        ),
+        # (n^2+n)/2 is the addition version of a factorial
+        # use null for all animal interactions
+        data = umf,
+        maxOrder = 2
+    )
+    multispecies_model <- occuMulti(
+        detformulas = rep("~ Community", length(species)),
+        stateformulas = c(
+            bestCovariates$BestCovariates,
+            rep("~ 1", ((length(species)^2 + length(species)) / 2) - length(species))
+        ),
+        # (n^2+n)/2 is the addition version of a factorial
+        # use null for all animal interactions
+        data = umf,
+        maxOrder = 2
+    )
 
-  
+    # the null model
+    null_multispecies_model <- occuMulti(
+        detformulas = rep("~ 1", length(species)),
+        stateformulas = c(
+            rep("~1", (length(bestCovariates$BestCovariates))),
+            rep("~ 1", ((length(species)^2 + length(species)) / 2) - length(species))
+        ),
+        # (n^2+n)/2 is the addition version of a factorial
+        # use null for all animal interactions
+        data = umf,
+        maxOrder = 2
+    )
+
+    # just percent natural as a covariate since it was in all the best models
+    natural_multispecies_model <- occuMulti(
+        detformulas = rep("~ Community", length(species)),
+        stateformulas = c(
+            rep("~ percentNatural", length(bestCovariates$BestCovariates)),
+            rep("~ 1", ((length(species)^2 + length(species)) / 2) - length(species))
+        ),
+        # (n^2+n)/2 is the addition version of a factorial
+        # use null for all animal interactions
+        data = umf,
+        maxOrder = 2
+    )
+
+    # global model
+    global_multispecies_model <- occuMulti(
+        detformulas = rep("~ Community", length(species)),
+        stateformulas = c(
+            rep("~ Rainfall + percentNatural + DistToWater + Temperature", length(bestCovariates$BestCovariates)),
+            rep("~ 1", ((length(species)^2 + length(species)) / 2) - length(species))
+        ),
+        # (n^2+n)/2 is the addition version of a factorial
+        # use null for all animal interactions
+        data = umf,
+        maxOrder = 2
+    )
 }
+# at this point, the best covariates were used for each species' occupancy with "Community" as the detection covariate 
+# and no covariates for interactions
 
+summary(null_multispecies_model)
+# it's not looking good, girl...
+
+
+
+
+
+
+
+################################################################################
+########################## OCCUPANCY PREDICTIONS ###############################
+################################################################################
+# make a dataframe with predictions for all species
+all_predictions <- data.frame()
+
+for (i in 1:length(casualNames)){
+    # get predictions for each species
+    preds <- predict(null_multispecies_model, type = "state", species = "paca")
+    all_predictions <- rbind(predictions, preds[1,])
+}
+all_predictions$Species <- casualNames
+
+# plot null model predictions for occupancy
+plot(1:length(species), all_predictions$Predicted,
+    #ylim = c(0.1, 0.4),
+    #xlim = c(0.5, 3.5), 
+    pch = 19, cex = 1.5, xaxt = "n",
+    xlab = "", ylab = "Marginal occupancy and 95% CI"
+)
+axis(1, at = 1:length(species), labels = all_predictions$Species)
+
+# CIs
+top <- 0.1
+for (i in 1:length(species)) {
+    segments(i, all_predictions$lower[i], i, all_predictions$upper[i])
+    segments(i - top, all_predictions$lower[i], i + top)
+    segments(i - top, all_predictions$upper[i], i + top)
+}
