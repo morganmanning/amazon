@@ -139,6 +139,52 @@ for (i in 1:length(species)) {
   names(detection)[i] <- casualNames[i]
 }
 
+
+# clump the detection matrices
+clumpedDetections <- list()
+for (j in 1:length(detection)) { # for each species
+    y <- detection[[j]] # detection history for each species
+    clumpEvery <- 2
+    nClumpedColumns <- ncol(y) / clumpEvery
+    clumpedMatrix <- matrix(0, ncol = nClumpedColumns, nrow = nrow(y))
+
+    clumpStart <- seq(1, ncol(y), by = clumpEvery) # the first column in the clump
+    clumpEnd <- seq(clumpEvery, ncol(y), by = clumpEvery) # the last column in the clump
+
+    ### make the clumped matrix
+    for (k in 1:nrow(y)) { # for every camera trap station
+        for (m in 1:ncol(clumpedMatrix)) {
+            if (all(is.na(y[k, clumpStart[m]:clumpEnd[m]])) == TRUE) {
+                clumpedMatrix[k, m] <- NA
+            } else if (sum(y[k, clumpStart[m]:clumpEnd[m]], na.rm = TRUE) >= 1) {
+                clumpedMatrix[k, m] <- 1
+            } else {
+                clumpedMatrix[k, m] <- 0
+            }
+        }
+    } # the clumped matrix is made
+    clumpedDetections[[j]] <- clumpedMatrix
+    names(clumpedDetections)[j] <- casualNames[j]
+}
+
+
+
+################################################################################
+########################## MANUAL INPUT REQUIRED ###############################
+################################################################################
+
+# DO YOU WANT TO PROCEED WITH THE CLUMPED DETECTION MATRICES?
+clumped <- "YES" # "YES" or "NO"
+if (clumped == "YES") {
+    detection <- clumpedDetections
+}
+
+################################################################################
+################################################################################
+################################################################################
+
+
+
 # identify empty rows (i.e. stations with no detections)
 empty_rows <- vector()
 for (i in 1:length(detection)){
@@ -320,6 +366,7 @@ bestCovariates
 
 # verify that the species are in identical orders
 if (all(bestCovariates$Species == names(detectionWithoutBlanks))) {
+    
     # use the formulas to run occuMulti (with ~Community as the detection formula)
     best_multispecies_model <- occuMulti(
         detformulas = rep("~ Community", length(species)),
@@ -332,12 +379,16 @@ if (all(bestCovariates$Species == names(detectionWithoutBlanks))) {
         data = umf,
         maxOrder = 2
     )
-    multispecies_model <- occuMulti(
+    # following recommendations of https://groups.google.com/g/unmarked/c/0gSJXk_Ew94/m/Xto_7YnTBAAJ
+    best_multispecies_model <- occuMulti(
         detformulas = rep("~ Community", length(species)),
         stateformulas = c(
             bestCovariates$BestCovariates,
             rep("~ 1", ((length(species)^2 + length(species)) / 2) - length(species))
         ),
+        control = list(maxit = 20000),
+        #method = "Nelder-Mead",
+        starts = rep(0, length(best_multispecies_model@opt$par)),
         # (n^2+n)/2 is the addition version of a factorial
         # use null for all animal interactions
         data = umf,
@@ -356,6 +407,20 @@ if (all(bestCovariates$Species == names(detectionWithoutBlanks))) {
         data = umf,
         maxOrder = 2
     )
+    null_multispecies_model <- occuMulti(
+        detformulas = rep("~ 1", length(species)),
+        stateformulas = c(
+            rep("~1", (length(bestCovariates$BestCovariates))),
+            rep("~ 1", ((length(species)^2 + length(species)) / 2) - length(species))
+        ),
+        # (n^2+n)/2 is the addition version of a factorial
+        # use null for all animal interactions
+        data = umf,
+        maxOrder = 2,
+        control = list(maxit = 20000),
+        #method = "Nelder-Mead",
+        starts = rep(0, length(null_multispecies_model@opt$par))
+    )
 
     # just percent natural as a covariate since it was in all the best models
     natural_multispecies_model <- occuMulti(
@@ -369,6 +434,20 @@ if (all(bestCovariates$Species == names(detectionWithoutBlanks))) {
         data = umf,
         maxOrder = 2
     )
+    natural_multispecies_model <- occuMulti(
+        detformulas = rep("~ Community", length(species)),
+        stateformulas = c(
+            rep("~ percentNatural", length(bestCovariates$BestCovariates)),
+            rep("~ 1", ((length(species)^2 + length(species)) / 2) - length(species))
+        ),
+        # (n^2+n)/2 is the addition version of a factorial
+        # use null for all animal interactions
+        data = umf,
+        maxOrder = 2,
+        control = list(maxit = 20000),
+        #method = "Nelder-Mead",
+        starts = rep(0, length(natural_multispecies_model@opt$par))
+    )
 
     # global model
     global_multispecies_model <- occuMulti(
@@ -381,6 +460,20 @@ if (all(bestCovariates$Species == names(detectionWithoutBlanks))) {
         # use null for all animal interactions
         data = umf,
         maxOrder = 2
+    )
+    global_multispecies_model <- occuMulti(
+        detformulas = rep("~ Community", length(species)),
+        stateformulas = c(
+            rep("~ Rainfall + percentNatural + DistToWater + Temperature", length(bestCovariates$BestCovariates)),
+            rep("~ 1", ((length(species)^2 + length(species)) / 2) - length(species))
+        ),
+        # (n^2+n)/2 is the addition version of a factorial
+        # use null for all animal interactions
+        data = umf,
+        maxOrder = 2,
+        control = list(maxit = 20000),
+        #method = "Nelder-Mead",
+        starts = rep(0, length(global_multispecies_model@opt$par))
     )
 }
 # at this point, the best covariates were used for each species' occupancy with "Community" as the detection covariate 
