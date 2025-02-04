@@ -15,6 +15,9 @@ require(ggplot2)
 require(rphylopic)
 require(knitr)
 require(kableExtra)
+require(stringr)
+require(gridExtra)
+require(ggpubr)
 
 # load in the necessary data
 Data <- read.csv("AllIndependentRecordsFormatted.csv") 
@@ -29,8 +32,9 @@ speciesTally <- Data |>
   summarize(nDetections = n()) |>
   #filter(nDetections > 10) |>
   group_by(Species) |>
-  mutate(nCommunities = n()) # |>
-  # filter(nCommunities == 4) # only pull species that were detected in all four communities
+  mutate(nCommunities = n()) |>
+  arrange(desc(nDetections), desc(nCommunities)) |>
+  filter(nCommunities == 5) # only pull species that were detected in all four communities
 
 huntingTally <- ZABhunting |> 
   group_by(Species) |>
@@ -62,23 +66,26 @@ species <- c("Leopardus pardalis",
              "Didelphis marsupialis", 
              "Pecari tajacu", 
              "Cuniculus paca", 
-             "Dasyprocta fuliginosa", # by FAR the most detected species, but not hunted in ZAB much
-             "Myoprocta pratti", 
-             "Panthera onca") # for funsies!
+             "Dasyprocta fuliginosa" # by FAR the most detected species, but not hunted in ZAB much
+             #"Myoprocta pratti", 
+             # "Panthera onca" # for funsies!
+             ) 
 commonNames <- c("Ocelot", 
                  "Common opossum", 
                  "Collared peccary", 
                  "Lowland paca", 
-                 "Black agouti",
-                 "Green acouchi",
-                 "Jaguar") # listTitles
+                 "Black agouti"
+                 #"Green acouchi",
+                 #"Jaguar"
+                 ) # listTitles
 casualNames <- c("ocelot",
                  "opossum",
                  "peccary",
                  "paca",
-                 "agouti",
-                 "acouchi",
-                 "jaguar")
+                 "agouti"
+                 #"acouchi",
+                 #"jaguar"
+                 )
 
 # only the interactions we're interested in
 interactionsOfInterest <- c("[ocelot]",
@@ -86,13 +93,14 @@ interactionsOfInterest <- c("[ocelot]",
                             "[peccary]",
                             "[paca]",
                             "[agouti]",
-                            "[acouchi]",
-                            "[jaguar]",
+                            #"[acouchi]",
+                            #"[jaguar]",
                             "[ocelot:opossum]",
-                            "[agouti:acouchi]",
+                            #"[agouti:acouchi]",
                             "[peccary:paca]",
-                            "[paca:agouti]",
-                            "[ocelot:jaguar]")
+                            "[paca:agouti]"
+                            #"[ocelot:jaguar]"
+                            )
 
 # camera operability matrix
 Operation <- cameraOperation(CTtable = Traps,
@@ -144,7 +152,7 @@ for (i in 1:length(species)) {
 clumpedDetections <- list()
 for (j in 1:length(detection)) { # for each species
     y <- detection[[j]] # detection history for each species
-    clumpEvery <- 2
+    clumpEvery <- 3
     nClumpedColumns <- ncol(y) / clumpEvery
     clumpedMatrix <- matrix(0, ncol = nClumpedColumns, nrow = nrow(y))
 
@@ -331,7 +339,7 @@ for (j in 1:length(topModels)) {
 # save the table
 kbl(topModels_df) %>%
   kable_classic(font_size = 22, html_font = "TimesNewRoman") %>%
-  save_kable(file = "../Figures/MultispeciesModeling/7speciesBestModels.png", zoom = 2)
+  save_kable(file = "../Figures/MultispeciesModeling/speciesBestModels.png", zoom = 2)
 
 # look at occupancy covariates
 topModels_df$OccupancyFormula <- gsub("~Community", "", topModels_df$ModelName)
@@ -480,6 +488,9 @@ if (all(bestCovariates$Species == names(detectionWithoutBlanks))) {
 # and no covariates for interactions
 
 summary(null_multispecies_model)
+summary(best_multispecies_model)
+summary(global_multispecies_model)
+summary(natural_multispecies_model)
 # it's not looking good, girl...
 
 
@@ -489,15 +500,15 @@ summary(null_multispecies_model)
 
 
 ################################################################################
-########################## OCCUPANCY PREDICTIONS ###############################
+###################### MARGINAL OCCUPANCY PREDICTIONS ##########################
 ################################################################################
 # make a dataframe with predictions for all species
 all_predictions <- data.frame()
 
 for (i in 1:length(casualNames)){
     # get predictions for each species
-    preds <- predict(null_multispecies_model, type = "state", species = "paca")
-    all_predictions <- rbind(predictions, preds[1,])
+    preds <- predict(null_multispecies_model, type = "state", species = casualNames[i])
+    all_predictions <- rbind(all_predictions, preds[1,])
 }
 all_predictions$Species <- casualNames
 
@@ -506,7 +517,9 @@ plot(1:length(species), all_predictions$Predicted,
     #ylim = c(0.1, 0.4),
     #xlim = c(0.5, 3.5), 
     pch = 19, cex = 1.5, xaxt = "n",
-    xlab = "", ylab = "Marginal occupancy and 95% CI"
+    xlab = "", ylab = "Marginal occupancy and 95% CI",
+    main = "Null model predictions for occupancy",
+    ylim = c(0, 1)
 )
 axis(1, at = 1:length(species), labels = all_predictions$Species)
 
@@ -517,3 +530,92 @@ for (i in 1:length(species)) {
     segments(i - top, all_predictions$lower[i], i + top)
     segments(i - top, all_predictions$upper[i], i + top)
 }
+
+
+################################################################################
+#################### CONDITIONAL OCCUPANCY PREDICTIONS #########################
+################################################################################
+
+# make a dataframe with column of species 1 and column of species 2 with all combinations of species
+# conditional_occupancy <- data.frame(
+#     Species1 = combn(casualNames, 2)[1,],
+#     Species2 = combn(casualNames, 2)[2, ],
+#     Present1_Present2 = NA,
+#     Present1_Absent2 = NA
+# )
+
+conditional_occupancy <- data.frame(Species1 = expand.grid(casualNames, casualNames)$Var2,
+                                    Species2 = expand.grid(casualNames, casualNames)$Var1,
+                                    Present1_Present2 = NA,
+                                    PresentSE = NA,
+                                    PresentLower = NA,
+                                    PresentUpper = NA,
+                                    Present1_Absent2 = NA,
+                                    AbsentSE = NA,
+                                    AbsentLower = NA,
+                                    AbsentUpper = NA)
+conditional_occupancy <- conditional_occupancy[conditional_occupancy$Species1 != conditional_occupancy$Species2, ]
+
+
+for (i in 1:nrow(conditional_occupancy)){
+    # get predictions for each row
+    Species1 <- conditional_occupancy$Species1[i]
+    Species2 <- conditional_occupancy$Species2[i]
+
+    # with both species present
+    conditional_occupancy[i, c(3:6)] <- predict(null_multispecies_model,
+        type = "state", 
+        species = Species1,
+        cond = Species2
+    )[1,] # pull just the first row since rows are duplicates
+
+    # with species 2 absent
+    conditional_occupancy[i, c(7:10)] <- predict(null_multispecies_model,
+        type = "state", 
+        species = Species1,
+        cond = paste0("-", Species2)
+    )[1,]
+
+}
+
+# make a ggplot panel figure for each species with the conditional occupancy with each other species
+for (i in 1:length(casualNames)){
+    # get the species
+    speciesInQuestion <- casualNames[i]
+
+    # get the conditional occupancy for that species
+    species_conditional_occupancy <- conditional_occupancy[conditional_occupancy$Species1 == speciesInQuestion, ]
+    
+    # plot each interaction
+    species_plot_list <- list()
+    for (j in 1:nrow(species_conditional_occupancy)){
+        plot_df <- data.frame(
+            Status = c("Present", "Absent"),
+            Predicted = c(species_conditional_occupancy$Present1_Present2[j], species_conditional_occupancy$Present1_Absent2[j]),
+            SE = c(species_conditional_occupancy$PresentSE[j], species_conditional_occupancy$AbsentSE[j]),
+            lower = c(species_conditional_occupancy$PresentLower[j], species_conditional_occupancy$AbsentLower[j]),
+            upper = c(species_conditional_occupancy$PresentUpper[j], species_conditional_occupancy$AbsentUpper[j])
+        )
+        # plot plot_df
+        species_plot_list[[j]] <- ggplot(plot_df, aes(x = Status, y = Predicted)) +
+            geom_point() +
+            geom_errorbar(aes(ymin = lower, ymax = upper), width = 0.2) +
+            ylim(0,1) +
+            labs(x = paste0(str_to_title(species_conditional_occupancy$Species2[j]), " status"),
+                y = paste0(str_to_title(speciesInQuestion), " occupancy and 95% CI")) +
+            theme_bw() 
+    }
+    
+    # make the plot
+    n <- length(species_plot_list)
+    nCol <- floor(sqrt(n))
+    p <- do.call("grid.arrange", c(species_plot_list, ncol = nCol))
+    annotate_figure(p, top = text_grob(paste0(commonNames[i], " Interactions"),
+        face = "bold", size = 14
+    ))
+    ggsave(paste0("../Figures/MultispeciesModeling/", casualNames[i], "_Interactions.png"),
+        width = 5, height = 7
+    )
+}
+
+
