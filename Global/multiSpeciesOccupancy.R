@@ -62,24 +62,27 @@ huntingTally <- ZABhunting |>
 
 
 # species of interest                       ************* INPUT ***************
-species <- c("Leopardus pardalis",
-             "Didelphis marsupialis", 
+species <- c(
+            "Leopardus pardalis",
+             #"Didelphis marsupialis", 
              "Pecari tajacu", 
              "Cuniculus paca", 
              "Dasyprocta fuliginosa" # by FAR the most detected species, but not hunted in ZAB much
              #"Myoprocta pratti", 
              # "Panthera onca" # for funsies!
              ) 
-commonNames <- c("Ocelot", 
-                 "Common opossum", 
+commonNames <- c(
+                "Ocelot", 
+                 #"Common opossum", 
                  "Collared peccary", 
                  "Lowland paca", 
                  "Black agouti"
                  #"Green acouchi",
                  #"Jaguar"
-                 ) # listTitles
-casualNames <- c("ocelot",
-                 "opossum",
+                 ) 
+casualNames <- c(
+                "ocelot",
+                 #"opossum",
                  "peccary",
                  "paca",
                  "agouti"
@@ -88,18 +91,19 @@ casualNames <- c("ocelot",
                  )
 
 # only the interactions we're interested in
-interactionsOfInterest <- c("[ocelot]",
+interactionsOfInterest <- c(
+                            "[ocelot]",
                             "[opossum]",
                             "[peccary]",
                             "[paca]",
                             "[agouti]",
-                            #"[acouchi]",
-                            #"[jaguar]",
+                            "[acouchi]",
+                            "[jaguar]",
                             "[ocelot:opossum]",
-                            #"[agouti:acouchi]",
+                            "[agouti:acouchi]",
                             "[peccary:paca]",
-                            "[paca:agouti]"
-                            #"[ocelot:jaguar]"
+                            "[paca:agouti]",
+                            "[ocelot:jaguar]"
                             )
 
 # camera operability matrix
@@ -126,7 +130,7 @@ detection <- list()
 # detection matrices
 for (i in 1:length(species)) {
   # occasion length
-  occasion = 10 # picked arbitrarily
+  occasion = 2 # picked arbitrarily
   # species detection histories for occupancy analyses
   DetHis = detectionHistory(recordTable = Data,
                             camOp = Operation,
@@ -152,7 +156,7 @@ for (i in 1:length(species)) {
 clumpedDetections <- list()
 for (j in 1:length(detection)) { # for each species
     y <- detection[[j]] # detection history for each species
-    clumpEvery <- 3
+    clumpEvery <- 2
     nClumpedColumns <- ncol(y) / clumpEvery
     clumpedMatrix <- matrix(0, ncol = nClumpedColumns, nrow = nrow(y))
 
@@ -243,7 +247,7 @@ str(umf)
 # Distance to a water source (m)
 
 match_detection <- c("Community")
-match_occupancy <- c("Rainfall", "percentNatural", "DistToWater", "Temperature")
+match_occupancy <- c("RainfallScaled", "percentNatural", "DistToWater", "TemperatureScaled")
 # excluded "Community" from occupancy covariates bc it correlated with percentNatural (per chisq.test())
 
 
@@ -269,12 +273,14 @@ occupancyModelsList[[j]] <- c(paste(df$detection, df$occupancy, sep = " "))
 
 # run occupancy unmarked model for all models
 allModels <- list()
+ufoList <- list()
 for (j in 1:length(species)) { # for all the species
     occupancyMods <- list()
     ufo <- unmarkedFrameOccu(detectionWithoutBlanks[[j]],
         siteCovs = covariatesWithoutBlanks,
         obsCovs = NULL
     )
+    ufoList[[j]] <- ufo # store all the unmarked frames
     for (m in 1:length(occupancyModelsList[[j]])) {
         test <- occu(formula(occupancyModelsList[[j]][m]), ufo)
         occupancyMods[[m]] <- occu(formula(occupancyModelsList[[j]][m]), ufo,
@@ -461,7 +467,7 @@ if (all(bestCovariates$Species == names(detectionWithoutBlanks))) {
     global_multispecies_model <- occuMulti(
         detformulas = rep("~ Community", length(species)),
         stateformulas = c(
-            rep("~ Rainfall + percentNatural + DistToWater + Temperature", length(bestCovariates$BestCovariates)),
+            rep("~ RainfallScaled + percentNatural + DistToWater + TemperatureScaled", length(bestCovariates$BestCovariates)),
             rep("~ 1", ((length(species)^2 + length(species)) / 2) - length(species))
         ),
         # (n^2+n)/2 is the addition version of a factorial
@@ -472,7 +478,7 @@ if (all(bestCovariates$Species == names(detectionWithoutBlanks))) {
     global_multispecies_model <- occuMulti(
         detformulas = rep("~ Community", length(species)),
         stateformulas = c(
-            rep("~ Rainfall + percentNatural + DistToWater + Temperature", length(bestCovariates$BestCovariates)),
+            rep("~ RainfallScaled + percentNatural + DistToWater + TemperatureScaled", length(bestCovariates$BestCovariates)),
             rep("~ 1", ((length(species)^2 + length(species)) / 2) - length(species))
         ),
         # (n^2+n)/2 is the addition version of a factorial
@@ -494,10 +500,12 @@ summary(natural_multispecies_model)
 # it's not looking good, girl...
 
 
-
-
-
-
+# add penalty to model: Penalized likelihood estimation
+set.seed(123)
+best_mod_penalty <- optimizePenalty(best_multispecies_model, penalties = c(0.5, 1))
+summary(best_mod_penalty)
+natural_mod_penalty <- optimizePenalty(natural_multispecies_model, penalties = c(0.5, 1))
+summary(natural_mod_penalty)
 
 ################################################################################
 ###################### MARGINAL OCCUPANCY PREDICTIONS ##########################
@@ -531,6 +539,24 @@ for (i in 1:length(species)) {
     segments(i - top, all_predictions$upper[i], i + top)
 }
 
+# ggplot version
+ggplot(all_predictions, aes(x = Species, y = Predicted)) +
+    geom_point() +
+    geom_errorbar(aes(ymin = lower, ymax = upper), width = 0.2) +
+    ylim(0,1) +
+    labs(x = "Species",
+        y = "Marginal occupancy and 95% CI") +
+    theme_bw()
+ggsave("../Figures/MultispeciesModeling/NullModelPredictions.png",
+    width = 5, height = 5
+)
+
+
+
+
+
+
+
 
 ################################################################################
 #################### CONDITIONAL OCCUPANCY PREDICTIONS #########################
@@ -556,6 +582,32 @@ conditional_occupancy <- data.frame(Species1 = expand.grid(casualNames, casualNa
                                     AbsentUpper = NA)
 conditional_occupancy <- conditional_occupancy[conditional_occupancy$Species1 != conditional_occupancy$Species2, ]
 
+natural_conditional_occupancy <- data.frame(
+    Species1 = expand.grid(casualNames, casualNames)$Var2,
+    Species2 = expand.grid(casualNames, casualNames)$Var1,
+    Present1_Present2 = NA,
+    PresentSE = NA,
+    PresentLower = NA,
+    PresentUpper = NA,
+    Present1_Absent2 = NA,
+    AbsentSE = NA,
+    AbsentLower = NA,
+    AbsentUpper = NA
+)
+natural_conditional_occupancy <- natural_conditional_occupancy[natural_conditional_occupancy$Species1 != natural_conditional_occupancy$Species2, ]
+
+best_conditional_occupancy <- data.frame(Species1 = expand.grid(casualNames, casualNames)$Var2,
+                                    Species2 = expand.grid(casualNames, casualNames)$Var1,
+                                    Present1_Present2 = NA,
+                                    PresentSE = NA,
+                                    PresentLower = NA,
+                                    PresentUpper = NA,
+                                    Present1_Absent2 = NA,
+                                    AbsentSE = NA,
+                                    AbsentLower = NA,
+                                    AbsentUpper = NA)
+best_conditional_occupancy <- best_conditional_occupancy[best_conditional_occupancy$Species1 != best_conditional_occupancy$Species2, ]
+
 
 for (i in 1:nrow(conditional_occupancy)){
     # get predictions for each row
@@ -568,6 +620,16 @@ for (i in 1:nrow(conditional_occupancy)){
         species = Species1,
         cond = Species2
     )[1,] # pull just the first row since rows are duplicates
+    natural_conditional_occupancy[i, c(3:6)] <- colMeans(predict(natural_mod_penalty,
+        type = "state",
+        species = Species1,
+        cond = Species2
+    ))
+    best_conditional_occupancy[i, c(3:6)] <- colMeans(predict(best_mod_penalty,
+        type = "state",
+        species = Species1,
+        cond = Species2
+    ))
 
     # with species 2 absent
     conditional_occupancy[i, c(7:10)] <- predict(null_multispecies_model,
@@ -575,9 +637,19 @@ for (i in 1:nrow(conditional_occupancy)){
         species = Species1,
         cond = paste0("-", Species2)
     )[1,]
+    natural_conditional_occupancy[i, c(7:10)] <- colMeans(predict(natural_mod_penalty,
+        type = "state",
+        species = Species1,
+        cond = paste0("-", Species2)
+    ))
+    best_conditional_occupancy[i, c(7:10)] <- colMeans(predict(best_mod_penalty,
+        type = "state",
+        species = Species1,
+        cond = paste0("-", Species2)
+    ))
 
 }
-
+### NULL MODEL
 # make a ggplot panel figure for each species with the conditional occupancy with each other species
 for (i in 1:length(casualNames)){
     # get the species
@@ -610,12 +682,244 @@ for (i in 1:length(casualNames)){
     n <- length(species_plot_list)
     nCol <- floor(sqrt(n))
     p <- do.call("grid.arrange", c(species_plot_list, ncol = nCol))
-    annotate_figure(p, top = text_grob(paste0(commonNames[i], " Interactions"),
+    annotate_figure(p, top = text_grob(paste0(commonNames[i], " Interactions (Null model)"),
         face = "bold", size = 14
     ))
-    ggsave(paste0("../Figures/MultispeciesModeling/", casualNames[i], "_Interactions.png"),
-        width = 5, height = 7
+    ggsave(paste0("../Figures/MultispeciesModeling/", casualNames[i], "_NullInteractions.png"),
+        width = 10, height = 8
     )
 }
 
+
+#### NATURAL PENALIZED MODEL
+# make a ggplot panel figure for each species with the conditional occupancy with each other species
+for (i in 1:length(casualNames)) {
+    # get the species
+    speciesInQuestion <- casualNames[i]
+
+    # get the conditional occupancy for that species
+    species_conditional_occupancy <- natural_conditional_occupancy[natural_conditional_occupancy$Species1 == speciesInQuestion, ]
+
+    # plot each interaction
+    species_plot_list <- list()
+    for (j in 1:nrow(species_conditional_occupancy)) {
+        plot_df <- data.frame(
+            Status = c("Present", "Absent"),
+            Predicted = c(species_conditional_occupancy$Present1_Present2[j], species_conditional_occupancy$Present1_Absent2[j]),
+            SE = c(species_conditional_occupancy$PresentSE[j], species_conditional_occupancy$AbsentSE[j]),
+            lower = c(species_conditional_occupancy$PresentLower[j], species_conditional_occupancy$AbsentLower[j]),
+            upper = c(species_conditional_occupancy$PresentUpper[j], species_conditional_occupancy$AbsentUpper[j])
+        )
+        # plot plot_df
+        species_plot_list[[j]] <- ggplot(plot_df, aes(x = Status, y = Predicted)) +
+            geom_point() +
+            geom_errorbar(aes(ymin = lower, ymax = upper), width = 0.2) +
+            ylim(0, 1) +
+            labs(
+                x = paste0(str_to_title(species_conditional_occupancy$Species2[j]), " status"),
+                y = paste0(str_to_title(speciesInQuestion), " occupancy and 95% CI")
+            ) +
+            theme_bw()
+    }
+
+    # make the plot
+    n <- length(species_plot_list)
+    nCol <- floor(sqrt(n))
+    p <- do.call("grid.arrange", c(species_plot_list, ncol = nCol))
+    annotate_figure(p, top = text_grob(paste0(commonNames[i], " Interactions (Penalized natural area model)"),
+        face = "bold", size = 14
+    ))
+    ggsave(paste0("../Figures/MultispeciesModeling/", casualNames[i], "_PenalizedNaturalInteractions.png"),
+        width = 10, height = 8
+    )
+}
+
+
+#### PENALIZED BEST MODEL
+# make a ggplot panel figure for each species with the conditional occupancy with each other species
+for (i in 1:length(casualNames)) {
+    # get the species
+    speciesInQuestion <- casualNames[i]
+
+    # get the conditional occupancy for that species
+    species_conditional_occupancy <- best_conditional_occupancy[best_conditional_occupancy$Species1 == speciesInQuestion, ]
+
+    # plot each interaction
+    species_plot_list <- list()
+    for (j in 1:nrow(species_conditional_occupancy)) {
+        plot_df <- data.frame(
+            Status = c("Present", "Absent"),
+            Predicted = c(species_conditional_occupancy$Present1_Present2[j], species_conditional_occupancy$Present1_Absent2[j]),
+            SE = c(species_conditional_occupancy$PresentSE[j], species_conditional_occupancy$AbsentSE[j]),
+            lower = c(species_conditional_occupancy$PresentLower[j], species_conditional_occupancy$AbsentLower[j]),
+            upper = c(species_conditional_occupancy$PresentUpper[j], species_conditional_occupancy$AbsentUpper[j])
+        )
+        # plot plot_df
+        species_plot_list[[j]] <- ggplot(plot_df, aes(x = Status, y = Predicted)) +
+            geom_point() +
+            geom_errorbar(aes(ymin = lower, ymax = upper), width = 0.2) +
+            ylim(0, 1) +
+            labs(
+                x = paste0(str_to_title(species_conditional_occupancy$Species2[j]), " status"),
+                y = paste0(str_to_title(speciesInQuestion), " occupancy and 95% CI")
+            ) +
+            theme_bw()
+    }
+
+    # make the plot
+    n <- length(species_plot_list)
+    nCol <- floor(sqrt(n))
+    p <- do.call("grid.arrange", c(species_plot_list, ncol = nCol))
+    annotate_figure(p, top = text_grob(paste0(commonNames[i], " Interactions (Penalized best model)"),
+        face = "bold", size = 14
+    ))
+    ggsave(paste0("../Figures/MultispeciesModeling/", casualNames[i], "_PenalizedBestInteractions.png"),
+        width = 10, height = 8
+    )
+}
+
+
+
+
+
+
+################################################################################
+########################### COVARIATE PREDICTIONS ##############################
+################################################################################
+
+covariates <- names(siteCovs(umf))
+allCommunities <- unique(siteCovs(umf)$Community)
+N <- 100
+dfTemplate <- data.frame(
+    X = rep(1, N),
+    Station = rep("SGE1", N), # picked because it's kind of a middle community
+    Community = rep("Sinangoe", N), # picked because it's kind of a middle community
+    Rainfall = mean(siteCovs(umf)$Rainfall),
+    RainfallScaled = mean(siteCovs(umf)$RainfallScaled),
+    percentNatural = mean(siteCovs(umf)$percentNatural),
+    DistToWater = mean(siteCovs(umf)$DistToWater),
+    Temperature = mean(siteCovs(umf)$Temperature),
+    TemperatureScaled = mean(siteCovs(umf)$TemperatureScaled),
+    DistToComm = mean(siteCovs(umf)$DistToComm),
+    NearestCommunity = rep("Sinangoe", N),
+    Year = rep(2022, N)
+)
+
+# extract the words from the best multispecies model state formulas 
+prediction_plots_list <- list() # plots per covariate included in the best models
+covs <- unique(unlist(strsplit(gsub("1", "", gsub("[ ~]", "", best_mod_penalty@stateformulas)), "[ +~]")))
+for (i in 1:length(covs)){
+    # make a prediction dataframe across the gradient of each covariate
+    dfEdited <- dfTemplate
+    covariateInQuestion <- covs[i]
+    dfEdited[, covariateInQuestion] <- seq(min(siteCovs(umf)[, covariateInQuestion]),
+        max(siteCovs(umf)[, covariateInQuestion]),
+        length.out = N
+    )
+    plotting_df <- data.frame(Species = rep(NA, times = N),
+        Covariate = NA,
+        Predicted = NA,
+        SE = NA,
+        Lower = NA,
+        Upper = NA
+    )
+    all_plotting_df <- list()
+    for (j in 1:length(commonNames)){
+        # get the species
+        speciesInQuestion <- casualNames[j]
+
+        # get the predictions for the covariate
+        preds <- predict(best_mod_penalty,
+            type = "state",
+            species = speciesInQuestion,
+            newdata = dfEdited
+        )
+        plotting_df$Gradient <- dfEdited[, covariateInQuestion]
+        plotting_df$Predicted <- preds$Predicted
+        plotting_df$SE <- preds$SE
+        plotting_df$Species <- speciesInQuestion
+        plotting_df$Covariate <- covariateInQuestion
+        plotting_df$Lower <- preds$lower
+        plotting_df$Upper <- preds$upper
+        all_plotting_df[[j]] <- plotting_df
+    }
+    big_plotting_df <- do.call("rbind", all_plotting_df)
+    
+    # plot predictions with ggplot with a line for each species
+    p <- ggplot(big_plotting_df, aes(x = Gradient, y = Predicted, color = Species)) +
+        ylim(0,1) +
+        geom_ribbon(aes(ymin = Lower, ymax = Upper, fill = Species), alpha = 0.2, color = NA) +
+        geom_line() +
+        labs(x = str_to_title(covariateInQuestion),
+            y = "Occupancy and 95% CI") +
+        theme_bw()
+    prediction_plots_list[[i]] <- p
+    ggsave(file = paste0("../Figures/MultispeciesModeling/", covs[i], "_BestPredictions.png"),
+        plot = p,
+        width = 7, height = 7
+    )
+
+}
+names(prediction_plots_list) <- covs
+
+
+# extract the words from the best multispecies model state formulas
+natural_prediction_plots_list <- list() # plots per covariate included in the best models
+covs <- unique(unlist(strsplit(gsub("1", "", gsub("[ ~]", "", natural_mod_penalty@stateformulas)), "[ +~]")))
+for (i in 1:length(covs)) {
+    # make a prediction dataframe across the gradient of each covariate
+    dfEdited <- dfTemplate
+    covariateInQuestion <- covs[i]
+    dfEdited[, covariateInQuestion] <- seq(min(siteCovs(umf)[, covariateInQuestion]),
+        max(siteCovs(umf)[, covariateInQuestion]),
+        length.out = N
+    )
+    plotting_df <- data.frame(
+        Species = rep(NA, times = N),
+        Covariate = NA,
+        Predicted = NA,
+        SE = NA,
+        Lower = NA,
+        Upper = NA
+    )
+    all_plotting_df <- list()
+    for (j in 1:length(commonNames)) {
+        # get the species
+        speciesInQuestion <- casualNames[j]
+
+        # get the predictions for the covariate
+        preds <- predict(natural_mod_penalty,
+            type = "state",
+            species = speciesInQuestion,
+            newdata = dfEdited
+        )
+        plotting_df$Gradient <- dfEdited[, covariateInQuestion]
+        plotting_df$Predicted <- preds$Predicted
+        plotting_df$SE <- preds$SE
+        plotting_df$Species <- speciesInQuestion
+        plotting_df$Covariate <- covariateInQuestion
+        plotting_df$Lower <- preds$lower
+        plotting_df$Upper <- preds$upper
+        all_plotting_df[[j]] <- plotting_df
+    }
+    big_plotting_df <- do.call("rbind", all_plotting_df)
+
+    # plot predictions with ggplot with a line for each species
+    p <- ggplot(big_plotting_df, aes(x = Gradient, y = Predicted, color = Species)) +
+        ylim(0, 1) +
+        geom_ribbon(aes(ymin = Lower, ymax = Upper, fill = Species), alpha = 0.2, color = NA) +
+        geom_line() +
+        labs(
+            x = str_to_title(covariateInQuestion),
+            y = "Occupancy and 95% CI"
+        ) +
+        theme_bw()
+    natural_prediction_plots_list[[i]] <- p
+    ggsave(
+        file = paste0("../Figures/MultispeciesModeling/", covs[i], "_NaturalPredictions.png"),
+        plot = p,
+        width = 7, height = 7
+    )
+}
+names(natural_prediction_plots_list) <- covs
 
