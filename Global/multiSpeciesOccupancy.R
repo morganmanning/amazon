@@ -39,7 +39,8 @@ speciesTally <- Data |>
 huntingTally <- ZABhunting |> 
   group_by(Species) |>
   summarize(nHunted = n()) |>
-  filter(nHunted > 10)
+  filter(nHunted > 10) |>
+  arrange(desc(nHunted))
 
 
 ################################################################################
@@ -150,6 +151,92 @@ for (i in 1:length(species)) {
   detection[[i]] <- DetHis[["detection_history"]]
   names(detection)[i] <- casualNames[i]
 }
+
+
+
+################################################################################
+########################## MANUAL INPUT REQUIRED ###############################
+################################################################################
+
+
+
+########################## ALTERNATIVE DIRECTION ###############################
+# group species based on heavily hunted vs not really hunted
+# this could potentially get at the issue with low detection/overlap
+
+# combine all brocket deer species
+# top desirable hunted species based on Zabalo data: peccary (group white-lipped and collared), paca, currasow/guan, agouti
+# grouping ideas: all brockets, all birds in family Cracidae (guan/currasow), peccaries, 
+
+
+wantToGroupSpecies <- "NO" #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+if (wantToGroupSpecies == "YES") {
+
+    species_groups <- list(
+    "Brockets" = c("Mazama americana", "Mazama nemorivaga", "Mazama gouazoubira", "Mazama sp."),
+    "Cracidae" = c("Mitu salvini", "Penelope jacquacu"),
+    "Peccaries" = c("Pecari tajacu", "Tayassu pecari"),
+    "Rodents" = c("Cuniculus paca", "Dasyprocta fuliginosa", "Myoprocta pratti"),
+    "Competitors" = c("Leopardus pardalis", "Panthera onca", "Puma concolor")
+)
+commonNames <- names(species_groups)
+casualNames <- names(species_groups)
+species <- names(species_groups)
+
+# detection matrices
+detection <- list()
+for (i in 1:length(commonNames)) {
+    group_detection <- list()
+
+    # get a detection matrix for each species within the group
+    for (j in 1:length(species_groups[[i]])) {
+        # occasion length
+        occasion = 2 # picked arbitrarily
+        # species detection histories for occupancy analyses
+        DetHis = detectionHistory(recordTable = Data,
+                                camOp = Operation,
+                                output = "binary", # binary or count
+                                stationCol = "Station",
+                                speciesCol = "Species",
+                                recordDateTimeCol = "DateTimeOriginal",
+                                recordDateTimeFormat = "%Y-%m-%d %H:%M:%S",
+                                day1 = "Station",
+                                occasionLength = occasion,
+                                datesAsOccasionNames = FALSE,
+                                timeZone = "America/Guayaquil",
+                                includeEffort = TRUE,
+                                scaleEffort = FALSE,
+                                #maxNumberDays = 90, #need to think about this
+                                species = species_groups[[i]][j]) #change species here
+        group_detection[[j]] <- DetHis[["detection_history"]]
+        names(group_detection)[j] <- species_groups[[i]][j]
+    }
+
+    # sum all the group matrices to get one per group with only 1s, 0s, and NAs
+    detection[[i]] <- Reduce("+", group_detection)
+    names(detection)[i] <- species_groups_names[i]
+    detection[[i]] <- ifelse(detection[[i]] > 0, 1, ifelse(detection[[i]] == 0, 0, NA))
+
+}
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 # clump the detection matrices
