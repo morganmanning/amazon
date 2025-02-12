@@ -679,7 +679,7 @@ for (i in 1:length(communitiesAccent)) {
 
 
 # DO YOU WANT TO SAVE PLOTS WHEN RUNNING?????? THIS WILL OVERWRITE OLD PLOTS!!!!
-savePlots <- "YES" # "YES" or "NO"
+savePlots <- "NO" # "YES" or "NO"
 
 
 ################################################################################
@@ -747,10 +747,10 @@ brockPic <- get_phylopic(uuid = get_uuid(name = "Mazama americana", n = 1))
 pacaPic <- get_phylopic(uuid = get_uuid(name = "Cuniculus paca", n = 1))
 trumpPic <- get_phylopic(uuid = get_uuid(name = "Psophia crepitans", n = 1))
 fourEyedPic <- get_phylopic(uuid = get_uuid(name = "Metachirus nudicaudatus", n = 1))
-agoutiPic <- get_phylopic(uuid = get_uuid(name = "Dasyprocta fuliginosa", n = 1))
+agoutiPic <- get_phylopic(uuid = get_uuid(name = "Dasyprocta", n = 1))
 armadilloPic <- get_phylopic(uuid = get_uuid(name = "Dasypus novemcinctus", n = 1))
 tinamouPic <- get_phylopic(uuid = get_uuid(name = "Tinamus major", n = 1))
-opossumPic <- get_phylopic(uuid = get_uuid(name = "Didelphis marsupialis", n = 1))
+opossumPic <- get_phylopic(uuid = get_uuid(name = "Didelphis", n = 1))
 ocelotPic <- get_phylopic(uuid = get_uuid(name = "Leopardus pardalis", n = 1))
 
 # plot it
@@ -763,23 +763,32 @@ plot <- ggplot(estimates, aes(x = Species,
                     ymax = avgOccupancy + avgOccupancySE, 
                     color = Community), 
                 position = dodge, width = 0.2, linewidth = 1) +
-  #scale_color_manual(values = c("darkorange", "royalblue", "green3", "yellow3")) +
+  scale_color_manual(values = c("darkorange", "royalblue", "green3", "yellow3")) +
   scale_x_discrete(labels = c(peccary, brocket, paca, trumpeter, fourEyed, agouti, armadillo, tinamou, opossum, ocelot)) +
   labs(x = "Species", y = "Naive occupancy probability estimate") +
   ylim(c(0,1)) +
   theme_classic() +
   theme(text = element_text(family = "Times", colour = "black"),
         axis.text = element_text(colour = "black"),
+        axis.text.x = element_text(angle = 45, hjust = 0)
         legend.title = element_blank(),
         axis.title.x = element_blank(), 
         legend.position="none") + 
-  add_phylopic(peccPic, alpha = 0.2, x = 1.0, y = 0.10, ysize = 0.25) +
-  add_phylopic(brockPic, alpha = 0.2, x = 2.0, y = 0.19, ysize = 0.45) +
-  add_phylopic(pacaPic, alpha = 0.2, x = 3.0, y = 0.10, ysize = 0.25) +
-  add_phylopic(trumpPic, alpha = 0.2, x = 4.0, y = 0.19, ysize = 0.45)
+  add_phylopic(peccPic, alpha = 0.2, x = 1.0, y = 0.05, ysize = 0.075) +
+  add_phylopic(brockPic, alpha = 0.2, x = 2.0, y = 0.05, ysize = 0.1) +
+  add_phylopic(pacaPic, alpha = 0.2, x = 3.0, y = 0.05, ysize = 0.075) +
+  add_phylopic(trumpPic, alpha = 0.2, x = 4.0, y = 0.05, ysize = 0.1) +
+  add_phylopic(fourEyedPic, alpha = 0.2, x = 5.0, y = 0.05, ysize = 0.075) +
+    add_phylopic(agoutiPic, alpha = 0.2, x = 6.0, y = 0.05, ysize = 0.075) +
+    add_phylopic(armadilloPic, alpha = 0.2, x = 7.0, y = 0.05, ysize = 0.075) +
+    add_phylopic(tinamouPic, alpha = 0.2, x = 8.0, y = 0.05, ysize = 0.1) +
+    add_phylopic(opossumPic, alpha = 0.2, x = 9.0, y = 0.05, ysize = 0.075) +
+    add_phylopic(ocelotPic, alpha = 0.2, x = 10.0, y = 0.05, ysize = 0.075)
 
 # plot with the animal silhouettes
 plot 
+############# STOPPED HERE
+theme(axis.text.x = element_text(angle = -90, hjust = 0, vjust = 0))
 
 # save it
 if (savePlots == "YES") {
