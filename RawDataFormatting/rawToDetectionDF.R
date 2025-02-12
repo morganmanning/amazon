@@ -34,7 +34,7 @@ Traps <- read.csv(paste0(community, "/Data/", communityAbrv, "StationsFormatted.
 Data$DateTimeOriginal <- parse_date_time(Data$DateTimeOriginal, c("%Y-%m-%d", "%Y-%m-%d %H:%M:%S"))
 
 ##### Pick species of interest
-species <- c("Pecari tajacu", "Mazama sp.", "Cuniculus paca", "Psophia crepitans", "Metachirus nudicaudatus", "Dasyprocta fuliginosa", "Dasypus novemcinctus", "Tinamus major", "Didelphis marsupialis")
+species <- c("Pecari tajacu", "Mazama sp.", "Cuniculus paca", "Psophia crepitans", "Metachirus nudicaudatus", "Dasyprocta fuliginosa", "Dasypus novemcinctus", "Tinamus major", "Didelphis marsupialis", "Leopardus pardalis")
 #species <- c("Cuniculus paca", "Mazama americana", "Pecari tajacu", "Psophia crepitans")
 # paca = Cuniculus paca
 # brocket = Mazama americana
@@ -129,7 +129,7 @@ Data$Species <- gsub("Mazama nemorivaga", "Mazama sp.", Data$Species)
 Data$Species <- gsub("Mazama gouazoubira", "Mazama sp.", Data$Species)
 
 ##### Pick species of interest
-species <- c("Pecari tajacu", "Mazama sp.", "Cuniculus paca", "Psophia crepitans", "Metachirus nudicaudatus", "Dasyprocta fuliginosa", "Dasypus novemcinctus", "Tinamus major", "Didelphis marsupialis")
+species <- c("Pecari tajacu", "Mazama sp.", "Cuniculus paca", "Psophia crepitans", "Metachirus nudicaudatus", "Dasyprocta fuliginosa", "Dasypus novemcinctus", "Tinamus major", "Didelphis marsupialis", "Leopardus pardalis")
 
 #species <- c("Cuniculus paca", "Mazama americana", "Pecari tajacu", "Psophia crepitans")
 # paca = Cuniculus paca
@@ -182,5 +182,7 @@ for (i in 1:length(species)) {
   write.csv(justDetHis, 
             paste0("Global/Data/All", gsub(" ", "", species[i]), ".csv"), 
             row.names=T)
+
+    print(paste0("Finished ", species[i], " of ", length(species), " :)"))
 }
 

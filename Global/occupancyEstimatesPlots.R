@@ -30,8 +30,8 @@ communities <- "Global"
 communitiesAbrv <- "All"
 #speciesNames <- c("Pecari tajacu", "Mazama americana", "Cuniculus paca", "Psophia crepitans")
 #commonNames <- c("Collared peccary", "Red brocket", "Lowland paca", "Grey-winged trumpeter") # listTitles
-speciesNames <- c("Pecari tajacu", "Mazama sp.", "Cuniculus paca", "Psophia crepitans", "Metachirus nudicaudatus", "Dasyprocta fuliginosa", "Dasypus novemcinctus", "Tinamus major", "Didelphis marsupialis")
-commonNames <- c("Collared peccary", "Brockets", "Lowland paca", "Grey-winged trumpeter", "Brown four-eyed opossum", "Black agouti", "Nine-banded armadillo", "Great tinamou", "Common opossum") 
+speciesNames <- c("Pecari tajacu", "Mazama sp.", "Cuniculus paca", "Psophia crepitans", "Metachirus nudicaudatus", "Dasyprocta fuliginosa", "Dasypus novemcinctus", "Tinamus major", "Didelphis marsupialis", "Leopardus pardalis")
+commonNames <- c("Collared peccary", "Brockets", "Lowland paca", "Grey-winged trumpeter", "Brown four-eyed opossum", "Black agouti", "Nine-banded armadillo", "Great tinamou", "Common opossum", "Ocelot") 
   # paca = Cuniculus paca
   # brocket = Mazama americana
   # collared peccary = Pecari tajacu 
@@ -343,6 +343,9 @@ for (i in 1:length(communities)) {
     }
     names(occupancyMods) <- 1:length(occupancyMods)
     allModels[[j]] <- occupancyMods
+
+    # print a message at the end of each species
+    print(paste("Done with", j, "out of", length(speciesNames), "species :)"))
   }
   
   # Make a data frame to show the model names and their AICs
@@ -392,6 +395,7 @@ for (i in 1:length(communities)) {
   bestOfTheBest <- list()
   for (j in 1:length(speciesNames)) {
     bestOfTheBest[[j]] <- occu(formula(topModels[[j]]$ModelName[1]), ufoMasterList[[i]][[j]])
+    
   }
   names(bestOfTheBest) <- speciesNames
   
@@ -727,15 +731,27 @@ colors <- c("Zábalo" = "darkgreen", "Remolino" = "forestgreen",
 
 # make axis titles per species
 peccary <- ~ atop(paste("Collared peccary"), paste("(", italic("Pecari tajacu"), ")"))
-brocket <- ~ atop(paste("Red brocket"), paste("(", italic("Mazama americana"), ")"))
+brocket <- ~ atop(paste("Brocket"), paste("(", italic("Mazama sp."), ")"))
 paca <- ~ atop(paste("Lowland paca"), paste("(", italic("Cuniculus paca"), ")"))
 trumpeter <- ~ atop(paste("Grey-winged trumpeter"), paste("(", italic("Psophia crepitans"), ")"))
+fourEyed <- ~ atop(paste("Brown four-eyed opossum"), paste("(", italic("Metachirus nudicaudatus"), ")"))
+agouti <- ~ atop(paste("Black agouti"), paste("(", italic("Dasyprocta fuliginosa"), ")"))
+armadillo <- ~ atop(paste("Nine-banded armadillo"), paste("(", italic("Dasypus novemcinctus"), ")"))
+tinamou <- ~ atop(paste("Great tinamou"), paste("(", italic("Tinamus major"), ")"))
+opossum <- ~ atop(paste("Common opossum"), paste("(", italic("Didelphis marsupialis"), ")"))
+ocelot <- ~ atop(paste("Ocelot"), paste("(", italic("Leopardus pardalis"), ")"))
 
 # rphylopic per species
 peccPic <- get_phylopic(uuid = get_uuid(name = "Pecari tajacu", n = 1))
 brockPic <- get_phylopic(uuid = get_uuid(name = "Mazama americana", n = 1))
 pacaPic <- get_phylopic(uuid = get_uuid(name = "Cuniculus paca", n = 1))
 trumpPic <- get_phylopic(uuid = get_uuid(name = "Psophia crepitans", n = 1))
+fourEyedPic <- get_phylopic(uuid = get_uuid(name = "Metachirus nudicaudatus", n = 1))
+agoutiPic <- get_phylopic(uuid = get_uuid(name = "Dasyprocta fuliginosa", n = 1))
+armadilloPic <- get_phylopic(uuid = get_uuid(name = "Dasypus novemcinctus", n = 1))
+tinamouPic <- get_phylopic(uuid = get_uuid(name = "Tinamus major", n = 1))
+opossumPic <- get_phylopic(uuid = get_uuid(name = "Didelphis marsupialis", n = 1))
+ocelotPic <- get_phylopic(uuid = get_uuid(name = "Leopardus pardalis", n = 1))
 
 # plot it
 dodge <- position_dodge(width = 0.3)
@@ -747,8 +763,8 @@ plot <- ggplot(estimates, aes(x = Species,
                     ymax = avgOccupancy + avgOccupancySE, 
                     color = Community), 
                 position = dodge, width = 0.2, linewidth = 1) +
-  scale_color_manual(values = c("darkorange", "royalblue", "green3", "yellow3")) +
-  scale_x_discrete(labels = c(peccary, brocket, paca, trumpeter)) +
+  #scale_color_manual(values = c("darkorange", "royalblue", "green3", "yellow3")) +
+  scale_x_discrete(labels = c(peccary, brocket, paca, trumpeter, fourEyed, agouti, armadillo, tinamou, opossum, ocelot)) +
   labs(x = "Species", y = "Naive occupancy probability estimate") +
   ylim(c(0,1)) +
   theme_classic() +
@@ -839,7 +855,7 @@ for (i in 1:length(covariatesMinusCommunity)){
                 alpha = 0.2, color = NA) +
     geom_line(aes(x = covariateInQuestion, y = Predicted)) +
     ylab(expression(paste("Occupancy probability estimate (", psi, ")"))) +
-    facet_wrap(~commonNames, nrow = 2, ncol = 2) +
+    facet_wrap(~commonNames, nrow = 3, ncol = 4) +
     xlab(xlabel) +
     coord_cartesian(ylim = c(0,1), 
                     xlim = c(min(covariateInQuestion),
