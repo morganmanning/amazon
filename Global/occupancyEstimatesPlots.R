@@ -28,8 +28,10 @@ tic() # time it
 # input
 communities <- "Global"
 communitiesAbrv <- "All"
-speciesNames <- c("Pecari tajacu", "Mazama americana", "Cuniculus paca", "Psophia crepitans")
-commonNames <- c("Collared peccary", "Red brocket", "Lowland paca", "Grey-winged trumpeter") # listTitles
+#speciesNames <- c("Pecari tajacu", "Mazama americana", "Cuniculus paca", "Psophia crepitans")
+#commonNames <- c("Collared peccary", "Red brocket", "Lowland paca", "Grey-winged trumpeter") # listTitles
+speciesNames <- c("Pecari tajacu", "Mazama sp.", "Cuniculus paca", "Psophia crepitans", "Metachirus nudicaudatus", "Dasyprocta fuliginosa", "Dasypus novemcinctus", "Tinamus major", "Didelphis marsupialis")
+commonNames <- c("Collared peccary", "Brockets", "Lowland paca", "Grey-winged trumpeter", "Brown four-eyed opossum", "Black agouti", "Nine-banded armadillo", "Great tinamou", "Common opossum") 
   # paca = Cuniculus paca
   # brocket = Mazama americana
   # collared peccary = Pecari tajacu 
@@ -72,6 +74,11 @@ for (i in 1:length(communities)) {
   # stations info
   stations <- read.csv(paste0(communities[i], "/Data/", communitiesAbrv[i], "StationsFormatted.csv"))
   cameraRecords <- read.csv(paste0(communities[i], "/Data/", communitiesAbrv[i], "IndependentRecordsFormatted.csv"))
+  # replace all Mazama species with Mazama sp.
+  cameraRecords$Species <- gsub("Mazama americana", "Mazama sp.", cameraRecords$Species)
+  cameraRecords$Species <- gsub("Mazama nemorivaga", "Mazama sp.", cameraRecords$Species)
+  cameraRecords$Species <- gsub("Mazama gouazoubira", "Mazama sp.", cameraRecords$Species) # replace all Mazama species with Mazama sp.
+
   
   # import site covariates for each community
   if (communities[i] == "Sinangoe"){
@@ -441,7 +448,11 @@ for (i in 1:length(communities)) {
   # stations info
   stations <- read.csv(paste0(communities[i], "/Data/", communitiesAbrv[i], "StationsFormatted.csv"))
   cameraRecords <- read.csv(paste0(communities[i], "/Data/", communitiesAbrv[i], "IndependentRecordsFormatted.csv"))
-  
+  # replace all Mazama species with Mazama sp.
+  cameraRecords$Species <- gsub("Mazama americana", "Mazama sp.", cameraRecords$Species)
+  cameraRecords$Species <- gsub("Mazama nemorivaga", "Mazama sp.", cameraRecords$Species)
+  cameraRecords$Species <- gsub("Mazama gouazoubira", "Mazama sp.", cameraRecords$Species) # replace all Mazama species with Mazama sp.
+
   # import site covariates for each community
   if (communities[i] == "Sinangoe"){
     siteCovariate <- data.frame(DistToComm = scale(stations$Community/1000)) # site covariates (scaled)
@@ -1007,6 +1018,11 @@ if (savePlots == "YES") {
 Data <- read.csv("Global/Data/AllIndependentRecordsFormatted.csv") 
 Traps <- read.csv("Global/Data/AllStationsFormatted.csv")
 Data$DateTimeOriginal <- parse_date_time(Data$DateTimeOriginal, c("%Y-%m-%d", "%Y-%m-%d %H:%M:%S"))
+# replace all Mazama species with Mazama sp.
+Data$Species <- gsub("Mazama americana", "Mazama sp.", Data$Species)
+Data$Species <- gsub("Mazama nemorivaga", "Mazama sp.", Data$Species)
+Data$Species <- gsub("Mazama gouazoubira", "Mazama sp.", Data$Species) # replace all Mazama species with Mazama sp.
+
 
 # remove all unknown species
 noUnknownsSGE <- Data[(Data$Species != "N/D N/D" & Data$CommunityName == "Sinangoe"),]

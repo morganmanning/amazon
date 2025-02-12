@@ -34,7 +34,8 @@ Traps <- read.csv(paste0(community, "/Data/", communityAbrv, "StationsFormatted.
 Data$DateTimeOriginal <- parse_date_time(Data$DateTimeOriginal, c("%Y-%m-%d", "%Y-%m-%d %H:%M:%S"))
 
 ##### Pick species of interest
-species <- c("Cuniculus paca", "Mazama americana", "Pecari tajacu", "Psophia crepitans")
+species <- c("Pecari tajacu", "Mazama sp.", "Cuniculus paca", "Psophia crepitans", "Metachirus nudicaudatus", "Dasyprocta fuliginosa", "Dasypus novemcinctus", "Tinamus major", "Didelphis marsupialis")
+#species <- c("Cuniculus paca", "Mazama americana", "Pecari tajacu", "Psophia crepitans")
 # paca = Cuniculus paca
 # brocket = Mazama americana
 # collared peccary = Dicotyles tajacu 
@@ -122,8 +123,15 @@ colnames(total) <- c("Species", "Total")
 total <- total[order(-total$Total),]
 head(total, 10)
 
+# replace all Mazama species with Mazama sp.
+Data$Species <- gsub("Mazama americana", "Mazama sp.", Data$Species)
+Data$Species <- gsub("Mazama nemorivaga", "Mazama sp.", Data$Species)
+Data$Species <- gsub("Mazama gouazoubira", "Mazama sp.", Data$Species)
+
 ##### Pick species of interest
-species <- c("Cuniculus paca", "Mazama americana", "Pecari tajacu", "Psophia crepitans")
+species <- c("Pecari tajacu", "Mazama sp.", "Cuniculus paca", "Psophia crepitans", "Metachirus nudicaudatus", "Dasyprocta fuliginosa", "Dasypus novemcinctus", "Tinamus major", "Didelphis marsupialis")
+
+#species <- c("Cuniculus paca", "Mazama americana", "Pecari tajacu", "Psophia crepitans")
 # paca = Cuniculus paca
 # brocket = Mazama americana
 # collared peccary = Dicotyles tajacu 
