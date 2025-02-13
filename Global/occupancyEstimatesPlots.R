@@ -356,10 +356,18 @@ for (i in 1:length(communities)) {
                      AIC = NA,
                      diffFromBest = NA)
     for(m in 1:length(allModels[[j]])){
-      df[m,1]<- as.character(c(allModels[[j]][[m]]@formula))
-      df[m,2]<- allModels[[j]][[m]]@AIC
+        # remove all models with NaN in standard error of model output
+        if (is.na(summary(allModels[[j]][[m]])$state$SE[1]) == TRUE) {
+            df[m, 1] <- NA
+            df[m, 2] <- NA
+            } else {
+                df[m, 1] <- as.character(c(allModels[[j]][[m]]@formula))
+                df[m, 2] <- allModels[[j]][[m]]@AIC
+            }
+      
     }
     df <- df[order(df$AIC),]
+    df <- df[!is.na(df$ModelName), ]
     df$diffFromBest <- df$AIC - min(df$AIC)
     modelAICs[[j]] <- df
     
@@ -416,6 +424,7 @@ for (j in 1:length(speciesNames)){ # for each species
                                    control = 10000, 
                                    starts = c(rep(0, length(test@opt$par)))) 
       #globalModelsFitList[[j]] <- fitList(global = globalModels[[j]])
+      print(paste("Done with", j, "out of", length(speciesNames), "species :)"))
 }
 names(globalModels) <- speciesNames
 globalModelsNested <- list(Global = globalModels) # need to nest so it matches the dimensions of masterBestModsFitLists moving forwards
@@ -667,7 +676,7 @@ for (i in 1:length(communitiesAccent)) {
     #estimates[row, "avgDetectionSD"] <- sd(masterUnmarkedPredDet[[i]][[j]]$Predicted)
   }
 }
-
+estimates$Species <- factor(estimates$Species, levels = speciesNames) # so plotting doesn't alphabetize species
 
 
 
@@ -679,7 +688,7 @@ for (i in 1:length(communitiesAccent)) {
 
 
 # DO YOU WANT TO SAVE PLOTS WHEN RUNNING?????? THIS WILL OVERWRITE OLD PLOTS!!!!
-savePlots <- "NO" # "YES" or "NO"
+savePlots <- "YES" # "YES" or "NO"
 
 
 ################################################################################
@@ -755,40 +764,42 @@ ocelotPic <- get_phylopic(uuid = get_uuid(name = "Leopardus pardalis", n = 1))
 
 # plot it
 dodge <- position_dodge(width = 0.3)
-plot <- ggplot(estimates, aes(x = Species,
+p <- ggplot(estimates, aes(x = Species,
                               y = avgOccupancy,
                               color = Community)) +
-  geom_point(aes(color = Community), position = dodge, size = 2.5) +
+  geom_point(aes(color = Community), position = dodge, size = 1.5) +
   geom_errorbar(aes(ymin = avgOccupancy - avgOccupancySE, 
                     ymax = avgOccupancy + avgOccupancySE, 
                     color = Community), 
-                position = dodge, width = 0.2, linewidth = 1) +
-  scale_color_manual(values = c("darkorange", "royalblue", "green3", "yellow3")) +
+                position = dodge, width = 0.15, linewidth = .5) +
+  #scale_color_manual(values = c("darkorange", "royalblue", "green3", "yellow3")) +
+  scale_color_manual(values = "black") +
+  scale_fill_manual(values = "black") +
   scale_x_discrete(labels = c(peccary, brocket, paca, trumpeter, fourEyed, agouti, armadillo, tinamou, opossum, ocelot)) +
   labs(x = "Species", y = "Naive occupancy probability estimate") +
   ylim(c(0,1)) +
   theme_classic() +
   theme(text = element_text(family = "Times", colour = "black"),
         axis.text = element_text(colour = "black"),
-        axis.text.x = element_text(angle = 45, hjust = 0)
+        axis.text.x = element_text(angle = 45, vjust = 0.60),
         legend.title = element_blank(),
         axis.title.x = element_blank(), 
-        legend.position="none") + 
-  add_phylopic(peccPic, alpha = 0.2, x = 1.0, y = 0.05, ysize = 0.075) +
-  add_phylopic(brockPic, alpha = 0.2, x = 2.0, y = 0.05, ysize = 0.1) +
-  add_phylopic(pacaPic, alpha = 0.2, x = 3.0, y = 0.05, ysize = 0.075) +
-  add_phylopic(trumpPic, alpha = 0.2, x = 4.0, y = 0.05, ysize = 0.1) +
-  add_phylopic(fourEyedPic, alpha = 0.2, x = 5.0, y = 0.05, ysize = 0.075) +
-    add_phylopic(agoutiPic, alpha = 0.2, x = 6.0, y = 0.05, ysize = 0.075) +
-    add_phylopic(armadilloPic, alpha = 0.2, x = 7.0, y = 0.05, ysize = 0.075) +
-    add_phylopic(tinamouPic, alpha = 0.2, x = 8.0, y = 0.05, ysize = 0.1) +
-    add_phylopic(opossumPic, alpha = 0.2, x = 9.0, y = 0.05, ysize = 0.075) +
-    add_phylopic(ocelotPic, alpha = 0.2, x = 10.0, y = 0.05, ysize = 0.075)
+        legend.position="none",
+        panel.grid.major.y = element_line(color = "#cecece", linewidth = 0.2)) + 
+  add_phylopic(peccPic, alpha = 0.2, x = 1.0, y = 0.05, ysize = 0.1) +
+  add_phylopic(brockPic, alpha = 0.2, x = 2.0, y = 0.05, ysize = 0.125) +
+  add_phylopic(pacaPic, alpha = 0.2, x = 3.0, y = 0.05, ysize = 0.1) +
+  add_phylopic(trumpPic, alpha = 0.2, x = 4.0, y = 0.05, ysize = 0.13) +
+  add_phylopic(fourEyedPic, alpha = 0.2, x = 5.0, y = 0.05, ysize = 0.1) +
+    add_phylopic(agoutiPic, alpha = 0.2, x = 6.0, y = 0.05, ysize = 0.1) +
+    add_phylopic(armadilloPic, alpha = 0.2, x = 7.0, y = 0.05, ysize = 0.1) +
+    add_phylopic(tinamouPic, alpha = 0.2, x = 8.0, y = 0.05, ysize = 0.125) +
+    add_phylopic(opossumPic, alpha = 0.2, x = 9.0, y = 0.05, ysize = 0.1) +
+    add_phylopic(ocelotPic, alpha = 0.2, x = 10.0, y = 0.05, ysize = 0.1)
 
 # plot with the animal silhouettes
-plot 
+p
 ############# STOPPED HERE
-theme(axis.text.x = element_text(angle = -90, hjust = 0, vjust = 0))
 
 # save it
 if (savePlots == "YES") {
@@ -1044,9 +1055,6 @@ Data <- read.csv("Global/Data/AllIndependentRecordsFormatted.csv")
 Traps <- read.csv("Global/Data/AllStationsFormatted.csv")
 Data$DateTimeOriginal <- parse_date_time(Data$DateTimeOriginal, c("%Y-%m-%d", "%Y-%m-%d %H:%M:%S"))
 # replace all Mazama species with Mazama sp.
-Data$Species <- gsub("Mazama americana", "Mazama sp.", Data$Species)
-Data$Species <- gsub("Mazama nemorivaga", "Mazama sp.", Data$Species)
-Data$Species <- gsub("Mazama gouazoubira", "Mazama sp.", Data$Species) # replace all Mazama species with Mazama sp.
 
 
 # remove all unknown species
