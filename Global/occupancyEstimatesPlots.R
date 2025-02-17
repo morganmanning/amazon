@@ -718,6 +718,7 @@ covariatesMinusCommunity <- covariates[covariates != "Community"] # everything b
 plottingDF <- as.data.frame(do.call(rbind, do.call(rbind, do.call(rbind, masterGlobalOccupancyEstimates))))
 plottingDF <- plottingDF[plottingDF$PredictedCovariate != "Community",]
 plottingDF$Community <- gsub("Zabalo", "Zábalo", x = plottingDF$Community)
+plottingDF$Species <- factor(plottingDF$Species, levels = speciesNames) # so plotting doesn't alphabetize species
 
 # order the communities by percent of natural cover
 orderedCommunities <- c(siteCovariate %>% 

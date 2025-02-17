@@ -18,6 +18,7 @@ require(kableExtra)
 require(stringr)
 require(gridExtra)
 require(ggpubr)
+require(reshape2)
 
 # load in the necessary data
 Data <- read.csv("AllIndependentRecordsFormatted.csv") 
@@ -25,6 +26,11 @@ Traps <- read.csv("AllStationsFormatted.csv")
 covariates <- read.csv("AllCommunityCovariates.csv")
 Data$DateTimeOriginal <- parse_date_time(Data$DateTimeOriginal, c("%Y-%m-%d", "%Y-%m-%d %H:%M:%S"))
 ZABhunting <- read.csv("../../Zabalo/Data/HuntingData2018.csv")
+
+# replace all Mazama species with Mazama sp.
+Data$Species <- gsub("Mazama americana", "Mazama sp.", Data$Species)
+Data$Species <- gsub("Mazama nemorivaga", "Mazama sp.", Data$Species)
+Data$Species <- gsub("Mazama gouazoubira", "Mazama sp.", Data$Species)
 
 # get tally of each species at each community
 speciesTally <- Data |> 
@@ -64,29 +70,35 @@ huntingTally <- ZABhunting |>
 
 # species of interest                       ************* INPUT ***************
 species <- c(
-            "Leopardus pardalis",
+            #"Leopardus pardalis",
              #"Didelphis marsupialis", 
-             "Pecari tajacu", 
+             #"Pecari tajacu", 
              "Cuniculus paca", 
              "Dasyprocta fuliginosa" # by FAR the most detected species, but not hunted in ZAB much
+             #"Psophia crepitans",
+             #"Mazama sp."
              #"Myoprocta pratti", 
              # "Panthera onca" # for funsies!
              ) 
 commonNames <- c(
-                "Ocelot", 
+                # "Ocelot", 
                  #"Common opossum", 
-                 "Collared peccary", 
+                 #"Collared peccary", 
                  "Lowland paca", 
                  "Black agouti"
+                 #"Grey-winged trumpeter",
+                 #"Brockets"
                  #"Green acouchi",
                  #"Jaguar"
                  ) 
 casualNames <- c(
-                "ocelot",
+                #"ocelot",
                  #"opossum",
-                 "peccary",
+                 #"peccary",
                  "paca",
                  "agouti"
+                 #"trumpeter",
+                 #"brockets"
                  #"acouchi",
                  #"jaguar"
                  )
@@ -273,7 +285,7 @@ for (j in 1:length(detection)) { # for each species
 ################################################################################
 
 # DO YOU WANT TO PROCEED WITH THE CLUMPED DETECTION MATRICES?
-clumped <- "YES" # "YES" or "NO"
+clumped <- "NO" # "YES" or "NO"
 if (clumped == "YES") {
     detection <- clumpedDetections
 }
@@ -302,8 +314,10 @@ all(covariates$Station == rownames(detection[[1]]))) { # if every species has th
   covariatesWithoutBlanks <- covariates[-rowsToCull,]
   names(detectionWithoutBlanks) <- names(detection)
 }
-str(detectionWithoutBlanks)
-nrow(covariatesWithoutBlanks)
+covariatesWithoutBlanks$Year <- as.factor(covariatesWithoutBlanks$Year)
+covariatesWithoutBlanks$Station <- as.factor(covariatesWithoutBlanks$Station)
+covariatesWithoutBlanks$Community <- as.factor(covariatesWithoutBlanks$Community)
+covariatesWithoutBlanks$NearestCommunity <- as.factor(covariatesWithoutBlanks$NearestCommunity)
 
 # make the unmarked frame
 umf <- unmarkedFrameOccuMulti(
@@ -334,7 +348,7 @@ str(umf)
 # Distance to a water source (m)
 
 match_detection <- c("Community")
-match_occupancy <- c("RainfallScaled", "percentNatural", "DistToWater", "TemperatureScaled")
+match_occupancy <- c("RainfallScaled", "percentNatural", "DistToWater", "TemperatureScaled", "Year")
 # excluded "Community" from occupancy covariates bc it correlated with percentNatural (per chisq.test())
 
 
@@ -434,6 +448,64 @@ kbl(topModels_df) %>%
   kable_classic(font_size = 22, html_font = "TimesNewRoman") %>%
   save_kable(file = "../Figures/MultispeciesModeling/speciesBestModels.png", zoom = 2)
 
+
+# plot raw detection
+for (j in 1:length(ufoList)) { # for every species
+    ufo <- ufoList[[j]]
+    colnames(ufo@y) <- 1:ncol(ufo@y)
+    meltedComb <- melt(ufo@y)
+    meltedComb$value <- as.factor(meltedComb$value)
+
+    # plot clumped
+    p <- ggplot(meltedComb, aes(Var2, Var1, fill = value)) +
+        geom_tile(colour = "gray50") +
+        scale_fill_manual(values = c("gray75", "red3"), na.value = "white", name = "") +
+        scale_x_continuous(breaks = seq(0, ncol(ufo@y), by = 2)) +
+        scale_alpha_identity(guide = "none") +
+        coord_equal(expand = 0) +
+        xlab("Time (1 unit = ~2 days)") +
+        ylab("Camera trap site") +
+        ggtitle(commonNames[j]) +
+        theme_bw() +
+        theme(plot.title = element_text(size = 25, hjust = 0.5))
+    ggsave(paste0("../Figures/MultispeciesModeling/", casualNames[j], "RawDetection.png"),
+        plot = p, width = 7, height = 8
+    )
+}
+
+# for running very simple model with just brockets and agouti
+if (length(species) == 2) {
+    # both species 
+    ufo1 <- ufoList[[1]]
+    ufo2 <- ufoList[[2]]
+
+    # add them together
+    combinedDetection <- ufo1@y + ufo2@y
+    colnames(combinedDetection) <- 1:ncol(combinedDetection)
+    meltedComb <- melt(combinedDetection)
+    meltedComb$value <- as.factor(meltedComb$value)
+
+    # plot clumped
+    p <- ggplot(meltedComb, aes(Var2, Var1, fill = value)) +
+        geom_tile(colour = "gray50") +
+        scale_fill_manual(values = c("gray75","#f77c7c", "red3"), na.value = "white", name = "") +
+        scale_x_continuous(breaks = seq(0, ncol(ufo2@y), by = 2)) +
+        scale_alpha_identity(guide = "none") +
+        coord_equal(expand = 0) +
+        xlab("Time (1 unit = ~2 days)") +
+        ylab("Camera trap site") +
+        ggtitle(paste0("Overlapping detection of ", casualNames[1], " and ", casualNames[2])) +
+        theme_bw() +
+        theme(plot.title = element_text(size = 25, hjust = 0.5))
+    ggsave(paste0("../Figures/MultispeciesModeling/", casualNames[1], casualNames[2], "OverlappingRawDetection.png"),
+        plot = p, width = 7, height = 8
+    )
+
+}
+
+################################################################################
+################################ MODELING ######################################
+################################################################################
 # look at occupancy covariates
 topModels_df$OccupancyFormula <- gsub("~Community", "", topModels_df$ModelName)
 topModels_df[c("Species", "OccupancyFormula")]
@@ -495,6 +567,7 @@ if (all(bestCovariates$Species == names(detectionWithoutBlanks))) {
         data = umf,
         maxOrder = 2
     )
+    print("Finished optimal model :)")
 
     # the null model
     null_multispecies_model <- occuMulti(
@@ -522,6 +595,7 @@ if (all(bestCovariates$Species == names(detectionWithoutBlanks))) {
         #method = "Nelder-Mead",
         starts = rep(0, length(null_multispecies_model@opt$par))
     )
+    print("Finished null model :)")
 
     # just percent natural as a covariate since it was in all the best models
     natural_multispecies_model <- occuMulti(
@@ -549,12 +623,42 @@ if (all(bestCovariates$Species == names(detectionWithoutBlanks))) {
         #method = "Nelder-Mead",
         starts = rep(0, length(natural_multispecies_model@opt$par))
     )
+    print("Finished percent natural area-only model :)")
+
+    # just percent natural as a covariate since it was in all the best models
+    community_multispecies_model <- occuMulti(
+        detformulas = rep("~ Community", length(species)),
+        stateformulas = c(
+            rep("~ Community", length(bestCovariates$BestCovariates)),
+            rep("~ 1", ((length(species)^2 + length(species)) / 2) - length(species))
+        ),
+        # (n^2+n)/2 is the addition version of a factorial
+        # use null for all animal interactions
+        data = umf,
+        maxOrder = 2
+    )
+    community_multispecies_model <- occuMulti(
+        detformulas = rep("~ Community", length(species)),
+        stateformulas = c(
+            rep("~ Community", length(bestCovariates$BestCovariates)),
+            rep("~ 1", ((length(species)^2 + length(species)) / 2) - length(species))
+        ),
+        # (n^2+n)/2 is the addition version of a factorial
+        # use null for all animal interactions
+        data = umf,
+        maxOrder = 2,
+        control = list(maxit = 20000),
+        # method = "Nelder-Mead",
+        starts = rep(0, length(community_multispecies_model@opt$par))
+    )
+    print("Finished community-only model :)")
+
 
     # global model
     global_multispecies_model <- occuMulti(
         detformulas = rep("~ Community", length(species)),
         stateformulas = c(
-            rep("~ RainfallScaled + percentNatural + DistToWater + TemperatureScaled", length(bestCovariates$BestCovariates)),
+            rep("~ RainfallScaled + percentNatural + DistToWater + TemperatureScaled + Year", length(bestCovariates$BestCovariates)),
             rep("~ 1", ((length(species)^2 + length(species)) / 2) - length(species))
         ),
         # (n^2+n)/2 is the addition version of a factorial
@@ -565,7 +669,7 @@ if (all(bestCovariates$Species == names(detectionWithoutBlanks))) {
     global_multispecies_model <- occuMulti(
         detformulas = rep("~ Community", length(species)),
         stateformulas = c(
-            rep("~ RainfallScaled + percentNatural + DistToWater + TemperatureScaled", length(bestCovariates$BestCovariates)),
+            rep("~ RainfallScaled + percentNatural + DistToWater + TemperatureScaled + Year", length(bestCovariates$BestCovariates)),
             rep("~ 1", ((length(species)^2 + length(species)) / 2) - length(species))
         ),
         # (n^2+n)/2 is the addition version of a factorial
@@ -576,6 +680,8 @@ if (all(bestCovariates$Species == names(detectionWithoutBlanks))) {
         #method = "Nelder-Mead",
         starts = rep(0, length(global_multispecies_model@opt$par))
     )
+    print("Finished global model :)")
+
 }
 # at this point, the best covariates were used for each species' occupancy with "Community" as the detection covariate 
 # and no covariates for interactions
@@ -584,6 +690,7 @@ summary(null_multispecies_model)
 summary(best_multispecies_model)
 summary(global_multispecies_model)
 summary(natural_multispecies_model)
+summary(community_multispecies_model)
 # it's not looking good, girl...
 
 
@@ -593,6 +700,10 @@ best_mod_penalty <- optimizePenalty(best_multispecies_model, penalties = c(0.5, 
 summary(best_mod_penalty)
 natural_mod_penalty <- optimizePenalty(natural_multispecies_model, penalties = c(0.5, 1))
 summary(natural_mod_penalty)
+community_mod_penalty <- optimizePenalty(community_multispecies_model, penalties = c(0.5, 1))
+summary(community_mod_penalty)
+
+
 
 ################################################################################
 ###################### MARGINAL OCCUPANCY PREDICTIONS ##########################
@@ -627,6 +738,7 @@ for (i in 1:length(species)) {
 }
 
 # ggplot version
+all_predictions$Species <- factor(all_predictions$Species, levels = casualNames) # so plotting doesn't alphabetize species
 ggplot(all_predictions, aes(x = Species, y = Predicted)) +
     geom_point() +
     geom_errorbar(aes(ymin = lower, ymax = upper), width = 0.2) +
@@ -889,12 +1001,13 @@ dfTemplate <- data.frame(
     TemperatureScaled = mean(siteCovs(umf)$TemperatureScaled),
     DistToComm = mean(siteCovs(umf)$DistToComm),
     NearestCommunity = rep("Sinangoe", N),
-    Year = rep(2022, N)
+    Year = as.factor(rep(2022, N))
 )
 
 # extract the words from the best multispecies model state formulas 
 prediction_plots_list <- list() # plots per covariate included in the best models
 covs <- unique(unlist(strsplit(gsub("1", "", gsub("[ ~]", "", best_mod_penalty@stateformulas)), "[ +~]")))
+covs <- covs[covs != "Year" & covs != "Community"]
 for (i in 1:length(covs)){
     # make a prediction dataframe across the gradient of each covariate
     dfEdited <- dfTemplate
@@ -933,6 +1046,7 @@ for (i in 1:length(covs)){
     big_plotting_df <- do.call("rbind", all_plotting_df)
     
     # plot predictions with ggplot with a line for each species
+    big_plotting_df$Species <- factor(big_plotting_df$Species, levels = casualNames) # so plotting doesn't alphabetize species
     p <- ggplot(big_plotting_df, aes(x = Gradient, y = Predicted, color = Species)) +
         ylim(0,1) +
         geom_ribbon(aes(ymin = Lower, ymax = Upper, fill = Species), alpha = 0.2, color = NA) +
@@ -953,6 +1067,7 @@ names(prediction_plots_list) <- covs
 # extract the words from the best multispecies model state formulas
 natural_prediction_plots_list <- list() # plots per covariate included in the best models
 covs <- unique(unlist(strsplit(gsub("1", "", gsub("[ ~]", "", natural_mod_penalty@stateformulas)), "[ +~]")))
+covs <- covs[covs != "Year" & covs != "Community"]
 for (i in 1:length(covs)) {
     # make a prediction dataframe across the gradient of each covariate
     dfEdited <- dfTemplate
@@ -992,6 +1107,7 @@ for (i in 1:length(covs)) {
     big_plotting_df <- do.call("rbind", all_plotting_df)
 
     # plot predictions with ggplot with a line for each species
+    big_plotting_df$Species <- factor(big_plotting_df$Species, levels = casualNames) # so plotting doesn't alphabetize species
     p <- ggplot(big_plotting_df, aes(x = Gradient, y = Predicted, color = Species)) +
         ylim(0, 1) +
         geom_ribbon(aes(ymin = Lower, ymax = Upper, fill = Species), alpha = 0.2, color = NA) +
@@ -1010,3 +1126,128 @@ for (i in 1:length(covs)) {
 }
 names(natural_prediction_plots_list) <- covs
 
+# extract the words from the best multispecies model state formulas
+community_prediction_plots_list <- list() # plots per covariate included in the best models
+covs <- unique(unlist(strsplit(gsub("1", "", gsub("[ ~]", "", community_mod_penalty@stateformulas)), "[ +~]")))
+for (i in 1:length(covs)) {
+    # make a prediction dataframe across the gradient of each covariate
+    dfEdited <- dfTemplate
+    covariateInQuestion <- covs[i]
+    orderedCommunities <- factor(unique(siteCovs(umf)[, covariateInQuestion]),
+        levels = c("Zabalo", "Remolino", "Sinangoe", "San Pablo", "Siona")
+    )
+    dfEdited[, covariateInQuestion] <- rep(orderedCommunities,
+        each = N / length(unique(orderedCommunities))
+    )
+
+    plotting_df <- data.frame(
+        Species = rep(NA, times = N),
+        Covariate = NA,
+        Predicted = NA,
+        SE = NA,
+        Lower = NA,
+        Upper = NA
+    )
+    all_plotting_df <- list()
+    for (j in 1:length(commonNames)) {
+        # get the species
+        speciesInQuestion <- casualNames[j]
+
+        # get the predictions for the covariate
+        preds <- predict(community_mod_penalty,
+            type = "state",
+            species = speciesInQuestion,
+            newdata = dfEdited
+        )
+        plotting_df$Gradient <- dfEdited[, covariateInQuestion]
+        plotting_df$Predicted <- preds$Predicted
+        plotting_df$SE <- preds$SE
+        plotting_df$Species <- speciesInQuestion
+        plotting_df$Covariate <- covariateInQuestion
+        plotting_df$Lower <- preds$lower
+        plotting_df$Upper <- preds$upper
+        all_plotting_df[[j]] <- plotting_df
+    }
+    big_plotting_df <- do.call("rbind", all_plotting_df)
+    big_plotting_df <- big_plotting_df[!duplicated(big_plotting_df), ]
+    big_plotting_df$Community <- gsub("Zabalo", "Zábalo", x = big_plotting_df$Gradient)
+    big_plotting_df$Community <- factor(big_plotting_df$Community,
+        levels = c("Zábalo", "Remolino", "Sinangoe", "San Pablo", "Siona")
+    )
+
+
+    # plot predictions with ggplot with a line for each species
+    # make labels per covariate
+    colors <- c(
+        "Zábalo" = "darkgreen", "Remolino" = "forestgreen",
+        "Sinangoe" = "yellowgreen", "San Pablo" = "gold1", "Siona" = "darkgoldenrod3"
+    )
+
+    # make axis titles per potential species
+    peccary <- ~ atop(paste("Collared peccary"), paste("(", italic("Pecari tajacu"), ")"))
+    brocket <- ~ atop(paste("Brocket"), paste("(", italic("Mazama sp."), ")"))
+    paca <- ~ atop(paste("Lowland paca"), paste("(", italic("Cuniculus paca"), ")"))
+    trumpeter <- ~ atop(paste("Grey-winged trumpeter"), paste("(", italic("Psophia crepitans"), ")"))
+    fourEyed <- ~ atop(paste("Brown four-eyed opossum"), paste("(", italic("Metachirus nudicaudatus"), ")"))
+    agouti <- ~ atop(paste("Black agouti"), paste("(", italic("Dasyprocta fuliginosa"), ")"))
+    armadillo <- ~ atop(paste("Nine-banded armadillo"), paste("(", italic("Dasypus novemcinctus"), ")"))
+    tinamou <- ~ atop(paste("Great tinamou"), paste("(", italic("Tinamus major"), ")"))
+    opossum <- ~ atop(paste("Common opossum"), paste("(", italic("Didelphis marsupialis"), ")"))
+    ocelot <- ~ atop(paste("Ocelot"), paste("(", italic("Leopardus pardalis"), ")"))
+
+    # rphylopic per species
+    peccPic <- get_phylopic(uuid = get_uuid(name = "Pecari tajacu", n = 1))
+    brockPic <- get_phylopic(uuid = get_uuid(name = "Mazama americana", n = 1))
+    pacaPic <- get_phylopic(uuid = get_uuid(name = "Cuniculus paca", n = 1))
+    trumpPic <- get_phylopic(uuid = get_uuid(name = "Psophia crepitans", n = 1))
+    fourEyedPic <- get_phylopic(uuid = get_uuid(name = "Metachirus nudicaudatus", n = 1))
+    agoutiPic <- get_phylopic(uuid = get_uuid(name = "Dasyprocta", n = 1))
+    armadilloPic <- get_phylopic(uuid = get_uuid(name = "Dasypus novemcinctus", n = 1))
+    tinamouPic <- get_phylopic(uuid = get_uuid(name = "Tinamus major", n = 1))
+    opossumPic <- get_phylopic(uuid = get_uuid(name = "Didelphis", n = 1))
+    ocelotPic <- get_phylopic(uuid = get_uuid(name = "Leopardus pardalis", n = 1))
+
+    # plot it
+    dodge <- position_dodge(width = 0.3)
+    big_plotting_df$Species <- factor(big_plotting_df$Species, levels = casualNames) # so plotting doesn't alphabetize species
+    p <- ggplot(big_plotting_df, aes(
+        x = Species,
+        y = Predicted,
+        color = Community
+    )) +
+        geom_point(aes(color = Community), position = dodge, size = 1.5) +
+        geom_errorbar(
+            aes(
+                ymin = Predicted - SE,
+                ymax = Predicted + SE,
+                color = Community
+            ),
+            position = dodge, width = 0.15, linewidth = .5
+        ) +
+        # scale_color_manual(values = c("darkorange", "royalblue", "green3", "yellow3")) +
+        scale_color_manual(values = colors) +
+        scale_fill_manual(values = colors) +
+        scale_x_discrete(labels = c(paca, agouti)) +
+        labs(x = "Species", y = "Occupancy probability estimate (and SE)") +
+        ylim(c(0, 1)) +
+        theme_classic() +
+        theme(
+            text = element_text(family = "Times", colour = "black"),
+            axis.text = element_text(colour = "black"),
+            axis.text.x = element_text(angle = 45, vjust = 0.60),
+            legend.title = element_blank(),
+            legend.position = "top",
+            axis.title.x = element_blank(),
+            panel.grid.major.y = element_line(color = "#cecece", linewidth = 0.2)
+        ) +
+        add_phylopic(pacaPic, alpha = 0.2, x = 1.0, y = 0.05, ysize = 0.1) +
+        add_phylopic(agoutiPic, alpha = 0.2, x = 2.0, y = 0.05, ysize = 0.1) 
+
+    ggsave(
+        filename = "../Figures/MultispeciesModeling/CommunityPredictions.png",
+        plot = p,
+        width = 8, height = 4
+    )
+
+}
+names(community_prediction_plots_list) <- covs
