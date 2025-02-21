@@ -1250,4 +1250,4 @@ for (i in 1:length(covs)) {
     )
 
 }
-names(community_prediction_plots_list) <- covs
+#names(community_prediction_plots_list) <- covs
