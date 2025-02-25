@@ -24,6 +24,9 @@ require(reshape2)
 Data <- read.csv("AllIndependentRecordsFormatted.csv") 
 Traps <- read.csv("AllStationsFormatted.csv")
 covariates <- read.csv("AllCommunityCovariates.csv")
+covariates$Community <- factor(covariates$Community,
+    levels = c("Zabalo", "Remolino", "Sinangoe", "San Pablo", "Siona")
+)
 Data$DateTimeOriginal <- parse_date_time(Data$DateTimeOriginal, c("%Y-%m-%d", "%Y-%m-%d %H:%M:%S"))
 ZABhunting <- read.csv("../../Zabalo/Data/HuntingData2018.csv")
 
@@ -602,7 +605,7 @@ if (all(bestCovariates$Species == names(detectionWithoutBlanks))) {
         detformulas = rep("~ Community", length(species)),
         stateformulas = c(
             rep("~ percentNatural", length(bestCovariates$BestCovariates)),
-            rep("~ 1", ((length(species)^2 + length(species)) / 2) - length(species))
+            rep("~ percentNatural", ((length(species)^2 + length(species)) / 2) - length(species))
         ),
         # (n^2+n)/2 is the addition version of a factorial
         # use null for all animal interactions
@@ -613,7 +616,7 @@ if (all(bestCovariates$Species == names(detectionWithoutBlanks))) {
         detformulas = rep("~ Community", length(species)),
         stateformulas = c(
             rep("~ percentNatural", length(bestCovariates$BestCovariates)),
-            rep("~ 1", ((length(species)^2 + length(species)) / 2) - length(species))
+            rep("~ percentNatural", ((length(species)^2 + length(species)) / 2) - length(species))
         ),
         # (n^2+n)/2 is the addition version of a factorial
         # use null for all animal interactions
@@ -625,12 +628,12 @@ if (all(bestCovariates$Species == names(detectionWithoutBlanks))) {
     )
     print("Finished percent natural area-only model :)")
 
-    # just percent natural as a covariate since it was in all the best models
+    # just community as a covariate since it was in all the best models
     community_multispecies_model <- occuMulti(
         detformulas = rep("~ Community", length(species)),
         stateformulas = c(
             rep("~ Community", length(bestCovariates$BestCovariates)),
-            rep("~ 1", ((length(species)^2 + length(species)) / 2) - length(species))
+            rep("~ Community", ((length(species)^2 + length(species)) / 2) - length(species))
         ),
         # (n^2+n)/2 is the addition version of a factorial
         # use null for all animal interactions
@@ -641,7 +644,7 @@ if (all(bestCovariates$Species == names(detectionWithoutBlanks))) {
         detformulas = rep("~ Community", length(species)),
         stateformulas = c(
             rep("~ Community", length(bestCovariates$BestCovariates)),
-            rep("~ 1", ((length(species)^2 + length(species)) / 2) - length(species))
+            rep("~ Community", ((length(species)^2 + length(species)) / 2) - length(species))
         ),
         # (n^2+n)/2 is the addition version of a factorial
         # use null for all animal interactions
