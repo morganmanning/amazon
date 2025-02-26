@@ -4,24 +4,6 @@
 # setwd("~/Documents/amazon/Data")
 require(unmarked)
 
-# # occupancy data
-# peccary = read.csv("CollaredPeccary.csv")
-# peccary = data.frame(peccary[,-1], row.names=peccary[,1]) #rownames = stations
-# 
-# deer = read.csv("Deer.csv")
-# deer = data.frame(deer[,-1], row.names=deer[,1]) #rownames = stations
-# 
-# paca = read.csv("Paca.csv")
-# paca = data.frame(paca[,-1], row.names=paca[,1]) #rownames = stations
-# 
-# # occupancy covariates
-# siteCovariate <- read.csv("siteCovs2018.csv")
-# 
-# # stations info
-# stations <- read.csv("Stations2018.csv")
-# 
-
-
 # function that takes the species occupancy data and tells you what the best clumping factor is
 best_clumping_factor <- function(occupancyData){
   
@@ -83,19 +65,4 @@ best_clumping_factor <- function(occupancyData){
   
   } # end of if/else
 }
-
-
-############################################################################
-########################### PICK A SPECIES #################################
-####################### & FORMAT FOR UNMARKED ##############################
-############################################################################
-
-# species <- paca # pick which species to proceed with
-# y <- as.matrix(species)
-# y <- (y[ order(as.numeric(row.names(y))), ]) #order matters
-# 
-# best_clumping_factor(y)
-# # peccary = 10
-# # brocket = 18
-# # paca = 1
 
