@@ -761,48 +761,6 @@ ggsave(paste0("../Figures/MultispeciesModeling/", casualNames[i], "_Interactions
 
 
 
-
-# plot it
-p <- ggplot(community_conditional_occupancy, aes(
-    x = Species1,
-    y = Present1_Present2,
-    color = Community
-)) +
-    geom_point(aes(color = Community), position = dodge, size = 1.5) +
-    geom_errorbar(
-        aes(
-            ymin = Predicted - SE,
-            ymax = Predicted + SE,
-            color = Community
-        ),
-        position = dodge, width = 0.15, linewidth = .5
-    ) +
-    # scale_color_manual(values = c("darkorange", "royalblue", "green3", "yellow3")) +
-    scale_color_manual(values = colors) +
-    scale_fill_manual(values = colors) +
-    scale_x_discrete(labels = c(paca, agouti)) +
-    labs(x = "Species", y = "Occupancy probability estimate (and SE)") +
-    ylim(c(0, 1)) +
-    theme_classic() +
-    theme(
-        text = element_text(family = "Times", colour = "black"),
-        axis.text = element_text(colour = "black"),
-        axis.text.x = element_text(angle = 45, vjust = 0.60),
-        legend.title = element_blank(),
-        legend.position = "top",
-        axis.title.x = element_blank(),
-        panel.grid.major.y = element_line(color = "#cecece", linewidth = 0.2)
-    ) +
-    add_phylopic(pacaPic, alpha = 0.2, x = 1.0, y = 0.05, ysize = 0.1) +
-    add_phylopic(agoutiPic, alpha = 0.2, x = 2.0, y = 0.05, ysize = 0.1)
-
-
-
-
-
-
-
-
 # TESTING
 # use the predict function without providing new data to predict by site, then extrapolate to by community
 test <- as.data.frame(predict(natural_mod_penalty,

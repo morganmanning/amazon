@@ -74,35 +74,35 @@ huntingTally <- ZABhunting |>
 # species of interest                       ************* INPUT ***************
 species <- c(
             #"Leopardus pardalis",
-             #"Didelphis marsupialis", 
+             #"Didelphis marsupialis"
              #"Pecari tajacu", 
-             "Cuniculus paca", 
-             "Dasyprocta fuliginosa" # by FAR the most detected species, but not hunted in ZAB much
+             #"Cuniculus paca"
+             "Dasyprocta fuliginosa", # by FAR the most detected species, but not hunted in ZAB much
              #"Psophia crepitans",
              #"Mazama sp."
-             #"Myoprocta pratti", 
+             "Myoprocta pratti" 
              # "Panthera onca" # for funsies!
              ) 
 commonNames <- c(
-                # "Ocelot", 
-                 #"Common opossum", 
+                #"Ocelot", 
+                 #"Common opossum"
                  #"Collared peccary", 
-                 "Lowland paca", 
-                 "Black agouti"
+                 #"Lowland paca"
+                 "Black agouti",
                  #"Grey-winged trumpeter",
                  #"Brockets"
-                 #"Green acouchi",
+                 "Green acouchi"
                  #"Jaguar"
                  ) 
 casualNames <- c(
                 #"ocelot",
-                 #"opossum",
+                 #"opossum"
                  #"peccary",
-                 "paca",
-                 "agouti"
+                 #"paca"
+                 "agouti",
                  #"trumpeter",
                  #"brockets"
-                 #"acouchi",
+                 "acouchi"
                  #"jaguar"
                  )
 
