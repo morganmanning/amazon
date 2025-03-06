@@ -67,7 +67,7 @@ ggplot(all_predictions, aes(x = Species, y = Predicted)) +
         y = "Marginal occupancy and 95% CI"
     ) +
     theme_bw()
-ggsave("../Figures/MultispeciesModeling/NullModelPredictions.png",
+ggsave(paste0("../Figures/MultispeciesModeling/", paste0(casualNames, collapse = ""), "NullModelPredictions.png"),
     width = 5, height = 5
 )
 
@@ -210,9 +210,13 @@ for (i in 1:length(casualNames)) {
     annotate_figure(p, top = text_grob(paste0(commonNames[i], " Interactions (Null model)"),
         face = "bold", size = 14
     ))
-    ggsave(paste0("../Figures/MultispeciesModeling/", casualNames[i], "_NullInteractions.png"),
-        width = 10, height = 8
-    )
+    otherSpecies <- casualNames[casualNames != casualNames[i]]
+    if (length(casualNames) == 2){
+        ggsave(paste0("../Figures/MultispeciesModeling/", casualNames[i], otherSpecies, "_NullInteractions.png"),
+            width = 10, height = 8
+        )
+    }
+    
 }
 
 
@@ -254,9 +258,13 @@ for (i in 1:length(casualNames)) {
     annotate_figure(p, top = text_grob(paste0(commonNames[i], " Interactions (Penalized natural area model)"),
         face = "bold", size = 14
     ))
-    ggsave(paste0("../Figures/MultispeciesModeling/", casualNames[i], "_PenalizedNaturalInteractions.png"),
-        width = 10, height = 8
-    )
+    otherSpecies <- casualNames[casualNames != casualNames[i]]
+    if (length(casualNames) == 2) {
+        ggsave(paste0("../Figures/MultispeciesModeling/", casualNames[i], otherSpecies, "_PenalizedNaturalInteractions.png"),
+            width = 10, height = 8
+        )
+    }
+    
 }
 
 
@@ -298,9 +306,13 @@ for (i in 1:length(casualNames)) {
     annotate_figure(p, top = text_grob(paste0(commonNames[i], " Interactions (Penalized best model)"),
         face = "bold", size = 14
     ))
-    ggsave(paste0("../Figures/MultispeciesModeling/", casualNames[i], "_PenalizedBestInteractions.png"),
-        width = 10, height = 8
-    )
+    otherSpecies <- casualNames[casualNames != casualNames[i]]
+    if (length(casualNames) == 2) {
+        ggsave(paste0("../Figures/MultispeciesModeling/", casualNames[i], otherSpecies, "_PenalizedBestInteractions.png"),
+            width = 10, height = 8
+        )
+    }
+    
 }
 
 
@@ -384,11 +396,15 @@ for (i in 1:length(covs)) {
         ) +
         theme_bw()
     prediction_plots_list[[i]] <- p
-    ggsave(
-        file = paste0("../Figures/MultispeciesModeling/", covs[i], "_BestPredictions.png"),
-        plot = p,
-        width = 7, height = 7
-    )
+    otherSpecies <- casualNames[casualNames != casualNames[i]]
+    if(length(casualNames) == 2){
+        ggsave(
+            file = paste0("../Figures/MultispeciesModeling/", paste0(casualNames, collapse = ""), covs[i], "_BestPredictions.png"),
+            plot = p,
+            width = 7, height = 7
+        )
+    }
+    
 }
 names(prediction_plots_list) <- covs
 
@@ -448,7 +464,7 @@ for (i in 1:length(covs)) {
         theme_bw()
     natural_prediction_plots_list[[i]] <- p
     ggsave(
-        file = paste0("../Figures/MultispeciesModeling/", covs[i], "_NaturalPredictions.png"),
+        file = paste0("../Figures/MultispeciesModeling/", paste0(casualNames, collapse = ""), covs[i], "_NaturalPredictions.png"),
         plot = p,
         width = 7, height = 7
     )
@@ -514,7 +530,7 @@ for (i in 1:length(covs)) {
 
     # make axis titles per potential species
     peccary <- ~ atop(paste("Collared peccary"), paste("(", italic("Pecari tajacu"), ")"))
-    brocket <- ~ atop(paste("Brocket"), paste("(", italic("Mazama sp."), ")"))
+    brockets <- ~ atop(paste("Brocket"), paste("(", italic("Mazama sp."), ")"))
     paca <- ~ atop(paste("Lowland paca"), paste("(", italic("Cuniculus paca"), ")"))
     trumpeter <- ~ atop(paste("Grey-winged trumpeter"), paste("(", italic("Psophia crepitans"), ")"))
     fourEyed <- ~ atop(paste("Brown four-eyed opossum"), paste("(", italic("Metachirus nudicaudatus"), ")"))
@@ -525,8 +541,8 @@ for (i in 1:length(covs)) {
     ocelot <- ~ atop(paste("Ocelot"), paste("(", italic("Leopardus pardalis"), ")"))
 
     # rphylopic per species
-    peccPic <- get_phylopic(uuid = get_uuid(name = "Pecari tajacu", n = 1))
-    brockPic <- get_phylopic(uuid = get_uuid(name = "Mazama americana", n = 1))
+    peccaryPic <- get_phylopic(uuid = get_uuid(name = "Pecari tajacu", n = 1))
+    brocketsPic <- get_phylopic(uuid = get_uuid(name = "Mazama americana", n = 1))
     pacaPic <- get_phylopic(uuid = get_uuid(name = "Cuniculus paca", n = 1))
     trumpPic <- get_phylopic(uuid = get_uuid(name = "Psophia crepitans", n = 1))
     fourEyedPic <- get_phylopic(uuid = get_uuid(name = "Metachirus nudicaudatus", n = 1))
@@ -547,8 +563,8 @@ for (i in 1:length(covs)) {
         geom_point(aes(color = Community), position = dodge, size = 1.5) +
         geom_errorbar(
             aes(
-                ymin = Predicted - SE,
-                ymax = Predicted + SE,
+                ymin = Lower,
+                ymax = Upper,
                 color = Community
             ),
             position = dodge, width = 0.15, linewidth = .5
@@ -556,8 +572,8 @@ for (i in 1:length(covs)) {
         # scale_color_manual(values = c("darkorange", "royalblue", "green3", "yellow3")) +
         scale_color_manual(values = colors) +
         scale_fill_manual(values = colors) +
-        scale_x_discrete(labels = c(paca, agouti)) +
-        labs(x = "Species", y = "Occupancy probability estimate (and SE)") +
+        scale_x_discrete(labels = c(get(casualNames[1]), get(casualNames[2]))) +
+        labs(x = "Species", y = "Occupancy probability estimate (and 95% CI)") +
         ylim(c(0, 1)) +
         theme_classic() +
         theme(
@@ -569,11 +585,11 @@ for (i in 1:length(covs)) {
             axis.title.x = element_blank(),
             panel.grid.major.y = element_line(color = "#cecece", linewidth = 0.2)
         ) +
-        add_phylopic(pacaPic, alpha = 0.2, x = 1.0, y = 0.05, ysize = 0.1) +
-        add_phylopic(agoutiPic, alpha = 0.2, x = 2.0, y = 0.05, ysize = 0.1)
+        add_phylopic(get(paste0(casualNames[1], "Pic")), alpha = 0.2, x = 1.0, y = 0.05, ysize = 0.1) +
+        add_phylopic(get(paste0(casualNames[2], "Pic")), alpha = 0.2, x = 2.0, y = 0.05, ysize = 0.1)
 
     ggsave(
-        filename = "../Figures/MultispeciesModeling/CommunityPredictions.png",
+        filename = paste0("../Figures/MultispeciesModeling/", paste0(casualNames, collapse = ""), "CommunityPredictions.png"),
         plot = p,
         width = 8, height = 4
     )
@@ -680,7 +696,7 @@ colors <- c(
 
 # make titles per potential species
 peccary <- ~ atop(paste("Collared peccary"), paste("(", italic("Pecari tajacu"), ")"))
-brocket <- ~ atop(paste("Brocket"), paste("(", italic("Mazama sp."), ")"))
+brockets <- ~ atop(paste("Brocket"), paste("(", italic("Mazama sp."), ")"))
 paca <- ~ atop(paste("Lowland paca"), paste("(", italic("Cuniculus paca"), ")"))
 trumpeter <- ~ atop(paste("Grey-winged trumpeter"), paste("(", italic("Psophia crepitans"), ")"))
 fourEyed <- ~ atop(paste("Brown four-eyed opossum"), paste("(", italic("Metachirus nudicaudatus"), ")"))
@@ -691,8 +707,8 @@ opossum <- ~ atop(paste("Common opossum"), paste("(", italic("Didelphis marsupia
 ocelot <- ~ atop(paste("Ocelot"), paste("(", italic("Leopardus pardalis"), ")"))
 
 # rphylopic per species
-peccPic <- get_phylopic(uuid = get_uuid(name = "Pecari tajacu", n = 1))
-brockPic <- get_phylopic(uuid = get_uuid(name = "Mazama americana", n = 1))
+peccaryPic <- get_phylopic(uuid = get_uuid(name = "Pecari tajacu", n = 1))
+brocketsPic <- get_phylopic(uuid = get_uuid(name = "Mazama americana", n = 1))
 pacaPic <- get_phylopic(uuid = get_uuid(name = "Cuniculus paca", n = 1))
 trumpPic <- get_phylopic(uuid = get_uuid(name = "Psophia crepitans", n = 1))
 fourEyedPic <- get_phylopic(uuid = get_uuid(name = "Metachirus nudicaudatus", n = 1))
@@ -749,10 +765,20 @@ p <- do.call("grid.arrange", c(interactionPlots, ncol = nCol))
 annotate_figure(p, top = text_grob(paste0(commonNames[i], " Interactions (Penalized community-only model)"),
     face = "bold", size = 14
 ))
-ggsave(paste0("../Figures/MultispeciesModeling/", casualNames[i], "_InteractionsByCommunity.png"),
-    width = 10, height = 8
-)
+if (length(casualNames) == 2) {
+    otherSpecies <- casualNames[casualNames != casualNames[i]]
+    ggsave(paste0("../Figures/MultispeciesModeling/", casualNames[i], "_", otherSpecies, "_InteractionsByCommunity.png"),
+        plot = p, width = 10, height = 8
+    )
 }
+
+}
+
+
+
+
+
+
 
 
 
