@@ -1197,7 +1197,7 @@ communityDiversity <- arrange(communityDiversity, desc(PercentNaturalArea))
 communityDiversity$Community <- factor(communityDiversity$Community, 
                                        levels = communityDiversity$Community)
 communityDiversity
-
+write.csv(communityDiversity, "Global/Data/CommunityDiversityAbundance.csv")
 
 
 
