@@ -1,0 +1,8 @@
+Name,descriptio,timestamp,begin,end,altitudeMo,tessellate,extrude,visibility,drawOrder,icon,Shape_Leng,Shape_Area,_mean,_stdev,fid,layer,path,Area,Covariate
+Remolino,,,,,,-1,0,-1,0,,86506.44994039999,213885930.52100002766,297.709900612534,0.0713802485641671,,,,,airTemp
+San Pablo North,,,,,,-1,0,-1,0,,16992.88177590000,12170035.95480000041,297.69232530371,0.0206034599417333,1,SecoyaNorth,/Users/michaelesbach/Desktop/Siona Secoya/SecoyaNorth.shp,0,airTemp
+San Pablo South,,,,,,-1,0,-1,0,,32695.37156550000,44323280.86599999666,297.695371919272,0.0226355929333208,2,SecoyaSouth,/Users/michaelesbach/Desktop/Siona Secoya/SecoyaSouth.shp,0,airTemp
+Sinangoe,,,,,,-1,0,-1,0,,91812.70783860001,308692186.31000000238,291.883029095606,2.49076302486338,1,,,,airTemp
+Siona North,,,,,,-1,0,-1,0,,43856.12958310000,68434483.91629999876,297.662914281664,0.110403000426677,1,Siona North,/Users/michaelesbach/Desktop/Siona Secoya/Siona North.shp,,airTemp
+Siona South,,,,,,-1,0,-1,0,,56202.86217170000,54111992.97269999981,297.576852973728,0.091183752024542,2,Siona South,/Users/michaelesbach/Desktop/Siona Secoya/Siona South.shp,,airTemp
+Zabalo,,,,,relativeToGround,-1,0,-1,0,,239275.22110200001,1384948356.30999994278,298.025253295898,0.0121307373046875,1,,,1374.03,airTemp

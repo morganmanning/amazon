@@ -1,0 +1,8 @@
+fid,Name,descriptio,timestamp,begin,end,altitudeMo,tessellate,extrude,visibility,drawOrder,icon,Shape_Leng,Shape_Area,_mean,_stdev,layer,path,Area,Covariate
+1,Remolino,,,,,,-1,0,-1,0,,86506.4499404,213885930.521,0.0160907652482989,7.28986240922959e-06,,,,humidity
+1,San Pablo North,,,,,,-1,0,-1,0,,16992.8817759,12170035.9548,0.0160880331408475,8.19487929067123e-06,SecoyaNorth,/Users/michaelesbach/Desktop/Siona Secoya/SecoyaNorth.shp,0,humidity
+2,San Pablo South,,,,,,-1,0,-1,0,,32695.3715655,44323280.866,0.0160892449104652,9.00314569910669e-06,SecoyaSouth,/Users/michaelesbach/Desktop/Siona Secoya/SecoyaSouth.shp,0,humidity
+1,Sinangoe,,,,,,-1,0,-1,0,,91812.7078386,308692186.31,0.0130294438311884,0.00104253750020024,,,,humidity
+1,Siona North,,,,,,-1,0,-1,0,,43856.1295831,68434483.9163,0.0160763334556305,4.42732998122228e-05,Siona North,/Users/michaelesbach/Desktop/Siona Secoya/Siona North.shp,,humidity
+2,Siona South,,,,,,-1,0,-1,0,,56202.8621717,54111992.9727,0.0160417923521889,3.6712391055166e-05,Siona South,/Users/michaelesbach/Desktop/Siona Secoya/Siona South.shp,,humidity
+1,Zabalo,,,,,relativeToGround,-1,0,-1,0,,239275.221102,1384948356.31,0.0160623574629426,5.45410439372063e-05,,,1374.03,humidity
