@@ -1,6 +1,5 @@
 # Goal: collect covariates for each community into one data frame for multidimensional scaling
 
-setwd("/Users/morganmanning/Documents/amazon/Global/Data")
 setwd("~/Documents/amazon/Global/Data")
 
 # source of elevation data: https://www.sciencebase.gov/catalog/item/5920dd83e4b0ac16dbdf3a4d
