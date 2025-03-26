@@ -3,5 +3,7 @@
 .Rhistory
 *.tif # to exclude those DEM files that are too big for GitHub; source of OG data: https://www.sciencebase.gov/catalog/item/5920dd83e4b0ac16dbdf3a4d
 .tif
+
 #*.RData
 #.RData
+Global/Data/Community-level Covariates/DEM
