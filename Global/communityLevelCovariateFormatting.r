@@ -20,6 +20,23 @@ require(dplyr)
 covariates <- read.csv("AllCommunityCovariates.csv")
 stations <- read.csv("AllStationsFormatted.csv")
 cameraCoords <- stations[, c("gps_x", "gps_y")]
+Data <- read.csv("AllIndependentRecordsFormatted.csv")
+
+
+# average the number of animal detections per day
+nDetections <- Data %>%
+    group_by(CommunityName) %>%
+    mutate(nDetectionsTotal = n(), nDays = max(as.Date(DateTimeOriginal)) - min(as.Date(DateTimeOriginal))) %>%
+    mutate(nDetectionsPerDay = as.numeric(nDetectionsTotal) / as.numeric(nDays))
+
+nDetections <- nDetections[,c("CommunityName", "nDetectionsPerDay")]
+nDetections <- nDetections[!duplicated(nDetections), ]
+
+# rename "CommunityName" to "Community" for merging
+colnames(nDetections) <- c("Community", "nDetectionsPerDay")
+
+# add to covariates dataset
+covariates <- merge(covariates, nDetections, by = "Community")
 
 
 
@@ -32,11 +49,11 @@ cameraCoords <- stations[, c("gps_x", "gps_y")]
 # source of elevation data: https://www.sciencebase.gov/catalog/item/5920dd83e4b0ac16dbdf3a4d
 
 # load elevation data (only stored locally on work computer)
-dem0 <- rast("DEM/sa_dem_0.tif")
-dem1 <- rast("DEM/sa_dem_1.tif")
-dem2 <- rast("DEM/sa_dem_2.tif")
-dem3 <- rast("DEM/sa_dem_3.tif")
-dem4 <- rast("DEM/sa_dem_4.tif")
+dem0 <- rast("Community-level Covariates/DEM/sa_dem_0.tif")
+dem1 <- rast("Community-level Covariates/DEM/sa_dem_1.tif")
+dem2 <- rast("Community-level Covariates/DEM/sa_dem_2.tif")
+dem3 <- rast("Community-level Covariates/DEM/sa_dem_3.tif")
+dem4 <- rast("Community-level Covariates/DEM/sa_dem_4.tif")
 
 # merge rasters
 all.equal(crs(dem0), crs(dem1), crs(dem2), crs(dem3), crs(dem4)) # make sure all in same crs

@@ -25,7 +25,19 @@ communityCovariates$Community <- NULL
 ################################################################################
 ################################################################################
 
+# Columns to exclude
+excludeColumns <- c(
+    "X", "Y", "OperatingDays", "MeanTemperature", "MeanDistToWater",
+    "DaysHuntingPerMonthDry", "DaysHuntingPerMonthWet", "DaysFishingPerMonthWet",
+    "DaysFishingPerMonthDry", "PercentPopWhoHunt", "PercentPopWhoFish"
+)
+communityCovariatesRemoved <- communityCovariates[, !(names(communityCovariates) %in% excludeColumns)]
 
+# Calculate the distance matrix
+distance_matrix <- dist(communityCovariatesRemoved)
 
-
+# Perform MDS analysis
+mds <- cmdscale(distance_matrix)
+plot(mds, type = "n")
+text(mds, labels = rownames(communityCovariates))
 
