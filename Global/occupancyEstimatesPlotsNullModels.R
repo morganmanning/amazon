@@ -18,14 +18,14 @@ require(rphylopic)
 
 
 # input
-communities <- c("Sinangoe", "Siona", "San Pablo", "Remolino", "Zabalo")
-communitiesAbrv <- c("SGE", "SNA", "SPA", "REM", "ZAB")
+communities <- c("Sinangoe", "Zabalo", "Remolino", "San Pablo", "Siona")
+communitiesAbrv <- c("SGE", "ZAB", "REM", "SPA", "SNA")
   # Sinangoe = SGE
   # Siona = SNA
   # Siekopai = SKP
   # Zabalo = ZAB
-speciesNames <- c("Pecari tajacu", "Mazama americana", "Cuniculus paca", "Psophia crepitans")
-commonNames <- c("Collared peccary", "Red brocket", "Lowland paca", "Grey-winged trumpeter") # listTitles
+speciesNames <- c("Pecari tajacu", "Mazama sp.", "Cuniculus paca", "Psophia crepitans", "Metachirus nudicaudatus", "Dasyprocta fuliginosa", "Dasypus novemcinctus", "Tinamus major", "Didelphis marsupialis", "Leopardus pardalis")
+commonNames <- c("Collared peccary", "Brockets", "Lowland paca", "Grey-winged trumpeter", "Brown four-eyed opossum", "Black agouti", "Nine-banded armadillo", "Great tinamou", "Common opossum", "Ocelot")
   # paca = Cuniculus paca
   # brocket = Mazama americana
   # collared peccary = Pecari tajacu 
@@ -38,7 +38,7 @@ commonNames <- c("Collared peccary", "Red brocket", "Lowland paca", "Grey-winged
 ################################################################################
 ########################## CONDENSING TIME STEPS ###############################
 ################################################################################
-# mission: make unmarked occupancy frames (ufo) and 
+# mission: make unmarked occupancy frames (ufo) and
 # plot the detection across clumped vs. regular time steps
 
 
@@ -50,144 +50,164 @@ unclumpedUFOMasterList <- list()
 
 # find optimal time step clumping and plot it
 for (i in 1:length(communities)) {
-  # make a list to put all detection histories into
-  detHistory <- list()
-  
-    for (j in 1:length(speciesNames)){
-      csv <- paste0(communitiesAbrv[i], gsub(" ", "", speciesNames[j]), ".csv")
-      species <- read.csv(paste0(communities[i], "/Data/", csv))
-      species <- species[,-1] # remove the column of ID names
-      
-      # save each detection history in a list
-      detHistory[[j]] <- species    
-      }
- 
-  # now, with the list of species' detection histories, proceed for each community
-  names(detHistory) <- commonNames
-  
-  # stations info
-  stations <- read.csv(paste0(communities[i], "/Data/", communitiesAbrv[i], "StationsFormatted.csv"))
-  cameraRecords <- read.csv(paste0(communities[i], "/Data/", communitiesAbrv[i], "IndependentRecordsFormatted.csv"))
-  siteCovariate <- NULL # no covariates for remaining communities 
-  
-  # turn all species detection histories for community i into matrices
-  for (j in 1:length(detHistory)) {
-    detHistory[[j]] <- detHistory[[j]][ order(as.numeric(row.names(detHistory[[j]]))), ] #order matters
-    detHistory[[j]] <- as.matrix(detHistory[[j]])
-  }
-  
-  # clump all matrices according to their best clumping factor
-  source("./Zabalo/Scripts/optimalClumping.R")
-  
-  clumpedMatrixList <- list()
-  for (j in 1:length(detHistory)) { # for each species
-    y <- detHistory[[j]] # detection history for each species
-    clumpEvery <- as.numeric(best_clumping_factor(y)[1])
-    nClumpedColumns <- ncol(y)/clumpEvery
-    clumpedMatrix <- matrix(0, ncol = nClumpedColumns, nrow = nrow(y)) 
-    
-    clumpStart <- seq(1, ncol(y), by = clumpEvery) # the first column in the clump
-    clumpEnd <- seq(clumpEvery, ncol(y), by = clumpEvery) # the last column in the clump
-    
-    ### make the clumped matrix
-    for (k in 1:nrow(y)){ # for every camera trap station
-      for (m in 1:ncol(clumpedMatrix)){
-        if(all(is.na(y[k, clumpStart[m]:clumpEnd[m]])) == TRUE) {
-          clumpedMatrix[k,m] <- NA
-        } else if (sum(y[k, clumpStart[m]:clumpEnd[m]], na.rm=TRUE) >= 1) {
-          clumpedMatrix[k,m] <- 1
-        } else {
-          clumpedMatrix[k,m] <- 0
-        }
-      }
-    } # the clumped matrix is made
-    clumpedMatrixList[[j]] <- clumpedMatrix
-  }
-  names(clumpedMatrixList) <- commonNames # now we have a matrix of clumped detection histories
-  
-  # make unmarked df for each species with clumping
-  ufoList <- list()
-  for (j in 1:length(clumpedMatrixList)){
-    clumpedMatrix <- clumpedMatrixList[[j]]
-    ufo <- unmarkedFrameOccu(clumpedMatrix, 
-                             siteCovs = siteCovariate,
-                             obsCovs = NULL)
-    ufoList[[j]] <- ufo
+    # make a list to put all detection histories into
+    detHistory <- list()
+
+    for (j in 1:length(speciesNames)) {
+        csv <- paste0(communitiesAbrv[i], gsub(" ", "", speciesNames[j]), ".csv")
+        species <- read.csv(paste0(communities[i], "/Data/", csv))
+        species <- species[, -1] # remove the column of ID names
+
+        # save each detection history in a list
+        detHistory[[j]] <- species
     }
-  names(ufoList) <- commonNames
-  
-  # make unmarked df for each species without clumping
-  unclumpedUFOList <- list()
-  for (j in 1:length(detHistory)){
-    unclumpedMatrix <- detHistory[[j]]
-    ufo <- unmarkedFrameOccu(unclumpedMatrix, 
-                             siteCovs = siteCovariate,
-                             obsCovs = NULL)
-    unclumpedUFOList[[j]] <- ufo
-  }
-  names(unclumpedUFOList) <- commonNames
-  
-  ## make detection plots
-  # clumped
-  clumpPlotList <- list()
-  for (j in 1:length(ufoList)) { # for every species
-    ufo <- ufoList[[j]]
-    colnames(ufo@y) <- 1:ncol(ufo@y)
-    meltedComb <- melt(ufo@y)
-    meltedComb$value <- as.factor(meltedComb$value)
-    
-    # plot clumped
-    clumpPlotList[[j]] <- ggplot(meltedComb, aes(Var2, Var1, fill = value)) + 
-      geom_tile(colour = "gray50") +
-      scale_fill_manual(values=c("gray75", "red3"), na.value="white", name = "") +
-      scale_x_continuous(breaks = seq(0, ncol(ufo@y), by = 2)) +
-      scale_alpha_identity(guide = "none") +
-      coord_equal(expand = 0) +
-      xlab(paste("Time (1 unit = ~", 
-                 as.numeric(best_clumping_factor(detHistory[[j]]))*2,
-                 # number of columns/time steps divided by the clumping factor, times 2
-                 "days)")) +
-      ylab("Camera trap site") +
-      ggtitle(paste(communities[i], commonNames[j])) +
-      theme_bw() +
-      theme(plot.title = element_text(size = 25, hjust = 0.5))
-  }
-  
-  # unclumped
-  unclumpPlotList <- list()
-  for (j in 1:length(unclumpedUFOList)) {
-    ufo <- unclumpedUFOList[[j]]
-    colnames(ufo@y) <- 1:ncol(ufo@y)
-    meltedComb <- melt(ufo@y)
-    meltedComb$value <- as.factor(meltedComb$value)
-    
-    #plot
-    unclumpPlotList[[j]] <- ggplot(meltedComb, aes(Var2, Var1, fill = value)) + 
-      geom_tile(colour = "gray50") +
-      scale_fill_manual(values=c("gray75", "red3"), na.value="white", name = "") +
-      scale_x_continuous(breaks = seq(0, ncol(ufo@y), by = 2)) +
-      scale_alpha_identity(guide = "none") +
-      coord_equal(expand = 0) +
-      xlab("Time (1 unit = 2 days)") +
-      ylab("Camera trap site") +
-      ggtitle(paste(communities[i], commonNames[j])) +
-      theme_bw() +
-      theme(plot.title = element_text(size = 25, hjust = 0.5))
-   
-  }
-  
-  # output lists
-  clumpPlotMasterList[[i]] <- clumpPlotList
-  unclumpPlotMasterList[[i]] <- unclumpPlotList
-  ufoMasterList[[i]] <- ufoList
-  unclumpedUFOMasterList[[i]] <- unclumpedUFOList 
-  
+
+    # now, with the list of species' detection histories, proceed for each community
+    names(detHistory) <- commonNames
+
+    # stations info
+    stations <- read.csv(paste0(communities[i], "/Data/", communitiesAbrv[i], "StationsFormatted.csv"))
+    cameraRecords <- read.csv(paste0(communities[i], "/Data/", communitiesAbrv[i], "IndependentRecordsFormatted.csv"))
+    # replace all Mazama species with Mazama sp.
+    cameraRecords$Species <- gsub("Mazama americana", "Mazama sp.", cameraRecords$Species)
+    cameraRecords$Species <- gsub("Mazama nemorivaga", "Mazama sp.", cameraRecords$Species)
+    cameraRecords$Species <- gsub("Mazama gouazoubira", "Mazama sp.", cameraRecords$Species) # replace all Mazama species with Mazama sp.
+
+
+    # import site covariates for each community
+    if (communities[i] == "Sinangoe") {
+        siteCovariate <- data.frame(DistToComm = c(scale(stations$Community / 1000))) # scale
+    } else if (communities[i] == "Zabalo") {
+        load("Zabalo/Data/R Objects/siteCovs2018.RData") # loads 'siteCovariate'
+    } else if (communities[i] == "Global") {
+        siteCovariate <- read.csv("Global/Data/AllCommunityCovariates.csv")
+        siteCovariate$Rainfall <- siteCovariate$Rainfall * 1000 # convert to grams/m^2/s
+        siteCovariate$Community <- factor(siteCovariate$Community,
+            levels = c("Zabalo", "Remolino", "Sinangoe", "San Pablo", "Siona")
+        )
+    } else {
+        siteCovariate <- NULL # no covariates for remaining communities
+    }
+
+    # turn all species detection histories for community i into matrices
+    for (j in 1:length(detHistory)) {
+        detHistory[[j]] <- detHistory[[j]][order(as.numeric(row.names(detHistory[[j]]))), ] # order matters
+        detHistory[[j]] <- as.matrix(detHistory[[j]])
+    }
+
+    # clump all matrices according to their best clumping factor
+    source("./Zabalo/Scripts/optimalClumping.R")
+
+    clumpedMatrixList <- list()
+    for (j in 1:length(detHistory)) { # for each species
+        y <- detHistory[[j]] # detection history for each species
+        clumpEvery <- as.numeric(best_clumping_factor(y)[1])
+        nClumpedColumns <- ncol(y) / clumpEvery
+        clumpedMatrix <- matrix(0, ncol = nClumpedColumns, nrow = nrow(y))
+
+        clumpStart <- seq(1, ncol(y), by = clumpEvery) # the first column in the clump
+        clumpEnd <- seq(clumpEvery, ncol(y), by = clumpEvery) # the last column in the clump
+
+        ### make the clumped matrix
+        for (k in 1:nrow(y)) { # for every camera trap station
+            for (m in 1:ncol(clumpedMatrix)) {
+                if (all(is.na(y[k, clumpStart[m]:clumpEnd[m]])) == TRUE) {
+                    clumpedMatrix[k, m] <- NA
+                } else if (sum(y[k, clumpStart[m]:clumpEnd[m]], na.rm = TRUE) >= 1) {
+                    clumpedMatrix[k, m] <- 1
+                } else {
+                    clumpedMatrix[k, m] <- 0
+                }
+            }
+        } # the clumped matrix is made
+        clumpedMatrixList[[j]] <- clumpedMatrix
+    }
+    names(clumpedMatrixList) <- commonNames # now we have a matrix of clumped detection histories
+
+    # make unmarked df for each species with clumping
+    ufoList <- list()
+    for (j in 1:length(clumpedMatrixList)) {
+        clumpedMatrix <- clumpedMatrixList[[j]]
+        ufo <- unmarkedFrameOccu(clumpedMatrix,
+            siteCovs = siteCovariate,
+            obsCovs = NULL
+        )
+        ufoList[[j]] <- ufo
+    }
+    names(ufoList) <- commonNames
+
+    # make unmarked df for each species without clumping
+    unclumpedUFOList <- list()
+    for (j in 1:length(detHistory)) {
+        unclumpedMatrix <- detHistory[[j]]
+        ufo <- unmarkedFrameOccu(unclumpedMatrix,
+            siteCovs = siteCovariate,
+            obsCovs = NULL
+        )
+        unclumpedUFOList[[j]] <- ufo
+    }
+    names(unclumpedUFOList) <- commonNames
+
+    ## make detection plots
+    # clumped
+    clumpPlotList <- list()
+    for (j in 1:length(ufoList)) { # for every species
+        ufo <- ufoList[[j]]
+        colnames(ufo@y) <- 1:ncol(ufo@y)
+        meltedComb <- melt(ufo@y)
+        meltedComb$value <- as.factor(meltedComb$value)
+
+        # plot clumped
+        clumpPlotList[[j]] <- ggplot(meltedComb, aes(Var2, Var1, fill = value)) +
+            geom_tile(colour = "gray50") +
+            scale_fill_manual(values = c("gray75", "red3"), na.value = "white", name = "") +
+            scale_x_continuous(breaks = seq(0, ncol(ufo@y), by = 2)) +
+            scale_alpha_identity(guide = "none") +
+            coord_equal(expand = 0) +
+            xlab(paste(
+                "Time (1 unit = ~",
+                as.numeric(best_clumping_factor(detHistory[[j]])) * 2,
+                # number of columns/time steps divided by the clumping factor, times 2
+                "days)"
+            )) +
+            ylab("Camera trap site") +
+            ggtitle(paste(communities[i], commonNames[j])) +
+            theme_bw() +
+            theme(plot.title = element_text(size = 25, hjust = 0.5))
+    }
+
+    # unclumped
+    unclumpPlotList <- list()
+    for (j in 1:length(unclumpedUFOList)) {
+        ufo <- unclumpedUFOList[[j]]
+        colnames(ufo@y) <- 1:ncol(ufo@y)
+        meltedComb <- melt(ufo@y)
+        meltedComb$value <- as.factor(meltedComb$value)
+
+        # plot
+        unclumpPlotList[[j]] <- ggplot(meltedComb, aes(Var2, Var1, fill = value)) +
+            geom_tile(colour = "gray50") +
+            scale_fill_manual(values = c("gray75", "red3"), na.value = "white", name = "") +
+            scale_x_continuous(breaks = seq(0, ncol(ufo@y), by = 2)) +
+            scale_alpha_identity(guide = "none") +
+            coord_equal(expand = 0) +
+            xlab("Time (1 unit = 2 days)") +
+            ylab("Camera trap site") +
+            ggtitle(paste(communities[i], commonNames[j])) +
+            theme_bw() +
+            theme(plot.title = element_text(size = 25, hjust = 0.5))
+    }
+
+    # output lists
+    clumpPlotMasterList[[i]] <- clumpPlotList
+    unclumpPlotMasterList[[i]] <- unclumpPlotList
+    ufoMasterList[[i]] <- ufoList
+    unclumpedUFOMasterList[[i]] <- unclumpedUFOList
 }
 names(clumpPlotMasterList) <- communities
 names(unclumpPlotMasterList) <- communities
 names(ufoMasterList) <- communities
 names(unclumpedUFOMasterList) <- communities
-
 
 
 ################################################################################
@@ -407,7 +427,7 @@ names(masterUnmarkedPredDet) <- communities
 ################################################################################
 ############################## PLOT ESTIMATES ##################################
 ################################################################################
-
+allCommunities <- c("Zabalo", "Remolino", "Sinangoe", "San Pablo", "Siona")
 communitiesAccent <- gsub(pattern = "Zabalo", replacement = "Zábalo", communities)
 speciesNames
 
@@ -425,7 +445,7 @@ estimates <- data.frame(Community = rep(communitiesAccent, each = length(species
                         avgDetectionSD = NA)
 for (i in 1:length(communitiesAccent)) {
   for (j in 1:length(speciesNames)){
-    row <- estimates$Community == communitiesAccent[i] & estimates$Species == speciesNames[j]
+    row <- (estimates$Community == communitiesAccent[i]) & (estimates$Species == speciesNames[j])
     estimates[row, "avgOccupancy"] <- masterEstimatedParameters[[i]][[j]]$avgOccupancy[1]
     estimates[row, "avgOccupancySE"] <- masterEstimatedParameters[[i]][[j]]$avgOccupancySE[1]
     #estimates[row, "avgOccupancySEManual"] <- sd(masterUnmarkedPredOcc[[i]][[j]]$Predicted)/sqrt(nrow(masterUnmarkedPredOcc[[i]][[j]]))
@@ -436,6 +456,7 @@ for (i in 1:length(communitiesAccent)) {
     #estimates[row, "avgDetectionSD"] <- sd(masterUnmarkedPredDet[[i]][[j]]$Predicted)
   }
 }
+estimates$Species <- factor(estimates$Species, levels = speciesNames) # so plotting doesn't alphabetize species
 
 
 
@@ -451,11 +472,29 @@ for (i in 1:length(communitiesAccent)) {
 ################################################################################
 
 ########## MANUALLY MAKE X-AXIS LABELS FOR EACH SPECIES: ENSURE IN CORRECT ORDER 
-# work around to make x-axis labels with italics and divided into two lines
+# make axis titles per species
 peccary <- ~ atop(paste("Collared peccary"), paste("(", italic("Pecari tajacu"), ")"))
-brocket <- ~ atop(paste("Red brocket"), paste("(", italic("Mazama americana"), ")"))
+brocket <- ~ atop(paste("Brocket"), paste("(", italic("Mazama sp."), ")"))
 paca <- ~ atop(paste("Lowland paca"), paste("(", italic("Cuniculus paca"), ")"))
 trumpeter <- ~ atop(paste("Grey-winged trumpeter"), paste("(", italic("Psophia crepitans"), ")"))
+fourEyed <- ~ atop(paste("Brown four-eyed opossum"), paste("(", italic("Metachirus nudicaudatus"), ")"))
+agouti <- ~ atop(paste("Black agouti"), paste("(", italic("Dasyprocta fuliginosa"), ")"))
+armadillo <- ~ atop(paste("Nine-banded armadillo"), paste("(", italic("Dasypus novemcinctus"), ")"))
+tinamou <- ~ atop(paste("Great tinamou"), paste("(", italic("Tinamus major"), ")"))
+opossum <- ~ atop(paste("Common opossum"), paste("(", italic("Didelphis marsupialis"), ")"))
+ocelot <- ~ atop(paste("Ocelot"), paste("(", italic("Leopardus pardalis"), ")"))
+
+# rphylopic per species
+peccPic <- get_phylopic(uuid = get_uuid(name = "Pecari tajacu", n = 1))
+brockPic <- get_phylopic(uuid = get_uuid(name = "Mazama americana", n = 1))
+pacaPic <- get_phylopic(uuid = get_uuid(name = "Cuniculus paca", n = 1))
+trumpPic <- get_phylopic(uuid = get_uuid(name = "Psophia crepitans", n = 1))
+fourEyedPic <- get_phylopic(uuid = get_uuid(name = "Metachirus nudicaudatus", n = 1))
+agoutiPic <- get_phylopic(uuid = get_uuid(name = "Dasyprocta", n = 1))
+armadilloPic <- get_phylopic(uuid = get_uuid(name = "Dasypus novemcinctus", n = 1))
+tinamouPic <- get_phylopic(uuid = get_uuid(name = "Tinamus major", n = 1))
+opossumPic <- get_phylopic(uuid = get_uuid(name = "Didelphis", n = 1))
+ocelotPic <- get_phylopic(uuid = get_uuid(name = "Leopardus pardalis", n = 1))
 
 #### in the correct order???
 commonNames
@@ -476,7 +515,7 @@ plot <- ggplot(estimates, aes(x = Species,
                     color = Community), 
                 position = dodge, width = 0.2, linewidth = 1) +
   scale_color_manual(values = colors) +
-  scale_x_discrete(labels = c(peccary, brocket, paca, trumpeter)) +
+  scale_x_discrete(labels = c(peccary, brocket, paca, trumpeter, fourEyed, agouti, armadillo, tinamou, opossum, ocelot)) +
   labs(x = "Species", y = "Naive occupancy probability") +
   ylim(c(0,1)) +
   theme_classic() +
@@ -485,20 +524,21 @@ plot <- ggplot(estimates, aes(x = Species,
         legend.title = element_blank(),
         axis.title.x = element_blank(), 
         legend.position="top")
-#plot
+plot
 
-# add animal silhouettes 
-peccPic <- get_phylopic(uuid = get_uuid(name = "Dicotyles tajacu", n = 1))
-brockPic <- get_phylopic(uuid = get_uuid(name = "Mazama americana", n = 1))
-pacaPic <- get_phylopic(uuid = get_uuid(name = "Cuniculus paca", n = 1))
-trumpPic <- get_phylopic(uuid = get_uuid(name = "Psophia crepitans", n = 1))
-
+commonNames
 # plot the animal silhouettes
-plot + 
-  add_phylopic(peccPic, alpha = 0.2, x = 1.0, y = 0.10, ysize = 0.25) +
-  add_phylopic(brockPic, alpha = 0.2, x = 2.0, y = 0.19, ysize = 0.45) +
-  add_phylopic(pacaPic, alpha = 0.2, x = 3.0, y = 0.10, ysize = 0.25) +
-  add_phylopic(trumpPic, alpha = 0.2, x = 4.0, y = 0.19, ysize = 0.45)
+plot +
+    add_phylopic(peccPic, alpha = 0.2, x = 1.0, y = 0.05, ysize = 0.1) +
+    add_phylopic(brockPic, alpha = 0.2, x = 2.0, y = 0.05, ysize = 0.125) +
+    add_phylopic(pacaPic, alpha = 0.2, x = 3.0, y = 0.05, ysize = 0.1) +
+    add_phylopic(trumpPic, alpha = 0.2, x = 4.0, y = 0.05, ysize = 0.13) +
+    add_phylopic(fourEyedPic, alpha = 0.2, x = 5.0, y = 0.05, ysize = 0.1) +
+    add_phylopic(agoutiPic, alpha = 0.2, x = 6.0, y = 0.05, ysize = 0.1) +
+    add_phylopic(armadilloPic, alpha = 0.2, x = 7.0, y = 0.05, ysize = 0.1) +
+    add_phylopic(tinamouPic, alpha = 0.2, x = 8.0, y = 0.05, ysize = 0.125) +
+    add_phylopic(opossumPic, alpha = 0.2, x = 9.0, y = 0.05, ysize = 0.1) +
+    add_phylopic(ocelotPic, alpha = 0.2, x = 10.0, y = 0.05, ysize = 0.1)
 
 # save it
 ggsave(filename = "Global/Figures/AllCommunitiesOccupancyEstimatesNullModels.png", width = 8, height = 4)
