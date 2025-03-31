@@ -24,8 +24,18 @@ communitiesAbrv <- c("SGE", "ZAB", "REM", "SPA", "SNA")
   # Siona = SNA
   # Siekopai = SKP
   # Zabalo = ZAB
-speciesNames <- c("Pecari tajacu", "Mazama sp.", "Cuniculus paca", "Psophia crepitans", "Metachirus nudicaudatus", "Dasyprocta fuliginosa", "Dasypus novemcinctus", "Tinamus major", "Didelphis marsupialis", "Leopardus pardalis")
-commonNames <- c("Collared peccary", "Brockets", "Lowland paca", "Grey-winged trumpeter", "Brown four-eyed opossum", "Black agouti", "Nine-banded armadillo", "Great tinamou", "Common opossum", "Ocelot")
+speciesNames <- c(
+    "Pecari tajacu", "Mazama sp.", "Cuniculus paca",
+    "Psophia crepitans", "Metachirus nudicaudatus", "Dasyprocta fuliginosa",
+    "Dasypus novemcinctus", "Tinamus major", "Didelphis marsupialis",
+    "Leopardus pardalis"
+)
+commonNames <- c(
+    "Collared peccary", "Brockets", "Lowland paca",
+    "Grey-winged trumpeter", "Brown four-eyed opossum", "Black agouti",
+    "Nine-banded armadillo", "Great tinamou", "Common opossum",
+    "Ocelot"
+)
   # paca = Cuniculus paca
   # brocket = Mazama americana
   # collared peccary = Pecari tajacu 
@@ -55,6 +65,13 @@ for (i in 1:length(communities)) {
 
     for (j in 1:length(speciesNames)) {
         csv <- paste0(communitiesAbrv[i], gsub(" ", "", speciesNames[j]), ".csv")
+
+        # skip the species if a detection history doesn't exist
+        if (!file.exists(paste0(communities[i], "/Data/", csv))) {
+            detHistory[[j]] <- NA
+            next
+        }
+
         species <- read.csv(paste0(communities[i], "/Data/", csv))
         species <- species[, -1] # remove the column of ID names
 
@@ -73,24 +90,17 @@ for (i in 1:length(communities)) {
     cameraRecords$Species <- gsub("Mazama nemorivaga", "Mazama sp.", cameraRecords$Species)
     cameraRecords$Species <- gsub("Mazama gouazoubira", "Mazama sp.", cameraRecords$Species) # replace all Mazama species with Mazama sp.
 
-
-    # import site covariates for each community
-    if (communities[i] == "Sinangoe") {
-        siteCovariate <- data.frame(DistToComm = c(scale(stations$Community / 1000))) # scale
-    } else if (communities[i] == "Zabalo") {
-        load("Zabalo/Data/R Objects/siteCovs2018.RData") # loads 'siteCovariate'
-    } else if (communities[i] == "Global") {
-        siteCovariate <- read.csv("Global/Data/AllCommunityCovariates.csv")
-        siteCovariate$Rainfall <- siteCovariate$Rainfall * 1000 # convert to grams/m^2/s
-        siteCovariate$Community <- factor(siteCovariate$Community,
-            levels = c("Zabalo", "Remolino", "Sinangoe", "San Pablo", "Siona")
-        )
-    } else {
-        siteCovariate <- NULL # no covariates for remaining communities
-    }
+    # import covariates
+    siteCovariate <- read.csv("Global/Data/AllCommunityCovariates.csv")
+    siteCovariate <- subset(siteCovariate, siteCovariate$Community == communities[i])
+    siteCovariate$Rainfall <- siteCovariate$Rainfall * 1000 # convert to grams/m^2/s
 
     # turn all species detection histories for community i into matrices
     for (j in 1:length(detHistory)) {
+        # if that species was not in that community, skip it
+        if (all(is.na(detHistory[[j]])) | is.null(detHistory[[j]])) {
+            next
+        }
         detHistory[[j]] <- detHistory[[j]][order(as.numeric(row.names(detHistory[[j]]))), ] # order matters
         detHistory[[j]] <- as.matrix(detHistory[[j]])
     }
@@ -100,6 +110,11 @@ for (i in 1:length(communities)) {
 
     clumpedMatrixList <- list()
     for (j in 1:length(detHistory)) { # for each species
+        # if that species was not in that community, skip it
+        if (all(is.na(detHistory[[j]])) | is.null(detHistory[[j]])) {
+            next
+        }
+    
         y <- detHistory[[j]] # detection history for each species
         clumpEvery <- as.numeric(best_clumping_factor(y)[1])
         nClumpedColumns <- ncol(y) / clumpEvery
@@ -127,6 +142,11 @@ for (i in 1:length(communities)) {
     # make unmarked df for each species with clumping
     ufoList <- list()
     for (j in 1:length(clumpedMatrixList)) {
+        # if that species was not in that community, skip it
+        if (all(is.na(detHistory[[j]])) | is.null(detHistory[[j]])) {
+            next
+        }
+
         clumpedMatrix <- clumpedMatrixList[[j]]
         ufo <- unmarkedFrameOccu(clumpedMatrix,
             siteCovs = siteCovariate,
@@ -139,6 +159,10 @@ for (i in 1:length(communities)) {
     # make unmarked df for each species without clumping
     unclumpedUFOList <- list()
     for (j in 1:length(detHistory)) {
+        # if that species was not in that community, skip it
+        if (all(is.na(detHistory[[j]])) | is.null(detHistory[[j]])) {
+            next
+        }
         unclumpedMatrix <- detHistory[[j]]
         ufo <- unmarkedFrameOccu(unclumpedMatrix,
             siteCovs = siteCovariate,
@@ -152,6 +176,11 @@ for (i in 1:length(communities)) {
     # clumped
     clumpPlotList <- list()
     for (j in 1:length(ufoList)) { # for every species
+        # if that species was not in that community, skip it
+        if (all(is.na(detHistory[[j]])) | is.null(detHistory[[j]])) {
+            next
+        }
+
         ufo <- ufoList[[j]]
         colnames(ufo@y) <- 1:ncol(ufo@y)
         meltedComb <- melt(ufo@y)
@@ -179,6 +208,11 @@ for (i in 1:length(communities)) {
     # unclumped
     unclumpPlotList <- list()
     for (j in 1:length(unclumpedUFOList)) {
+        # if that species was not in that community, skip it
+        if (all(is.na(detHistory[[j]])) | is.null(detHistory[[j]])) {
+            next
+        }
+
         ufo <- unclumpedUFOList[[j]]
         colnames(ufo@y) <- 1:ncol(ufo@y)
         meltedComb <- melt(ufo@y)

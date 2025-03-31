@@ -44,10 +44,10 @@ best_clumping_factor <- function(occupancyData){
   
   ### run model for each matrix
   allClumpedModels <- list()
-  for (m in 1:length(allClumpedMatrices)) { 
+  for (m in 1:(length(allClumpedMatrices))) { 
     
     umf <- unmarkedFrameOccu(y = allClumpedMatrices[[m]])
-    model <- occu(formula = ~1 ~1, data=umf)
+    model <- occu(formula = ~1 ~1, data = umf)
     allClumpedModels[[m]] <- model # store all models
 
   }
@@ -56,7 +56,23 @@ best_clumping_factor <- function(occupancyData){
   allSE <- data.frame(clumpingFactor = 1:ncol,
                       modelSE = NA)
   for (n in 1:length(allClumpedModels)) {
-    allSE$modelSE[n] <- summary(allClumpedModels[[n]])$state$SE[1] # occupancy intercept SE
+    # if there is an error when trying to extract the SE, then set it to NA
+    # tryCatch is a function that allows you to catch errors in R
+    # it will run the code in the first argument, and if there is an error, it will run the code in the second argument
+    # in this case, if there is an error, it will set the SE to NA
+    result <- tryCatch(
+        {
+            summary(allClumpedModels[[n]])$state$SE[1] # occupancy intercept SE
+        },
+      error = function(e) e
+    )
+    if (inherits(result, "error")) {
+        allSE$modelSE[n] <- NA
+    } else {
+        allSE$modelSE[n] <- result
+    }
+    
+    # allSE$modelSE[n] <- summary(allClumpedModels[[n]])$state$SE[1] # occupancy intercept SE
   }
   
   print(allSE)
