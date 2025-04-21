@@ -30,14 +30,46 @@ communities <- "Global"
 communitiesAbrv <- "All"
 #speciesNames <- c("Pecari tajacu", "Mazama americana", "Cuniculus paca", "Psophia crepitans")
 #commonNames <- c("Collared peccary", "Red brocket", "Lowland paca", "Grey-winged trumpeter") # listTitles
-speciesNames <- c("Pecari tajacu", "Mazama sp.", "Cuniculus paca", "Psophia crepitans", "Metachirus nudicaudatus", "Dasyprocta fuliginosa", "Dasypus novemcinctus", "Tinamus major", "Didelphis marsupialis", "Leopardus pardalis")
-commonNames <- c("Collared peccary", "Brockets", "Lowland paca", "Grey-winged trumpeter", "Brown four-eyed opossum", "Black agouti", "Nine-banded armadillo", "Great tinamou", "Common opossum", "Ocelot") 
+#speciesNames <- c("Eira barbara")
+speciesNames <- c("Pecari tajacu", "Mazama sp.", "Cuniculus paca", "Psophia crepitans", "Dasyprocta fuliginosa", "Dasypus novemcinctus", "Tinamus major", "Leopardus pardalis", "Eira barbara")
+#commonNames <- c("Tayra") 
+commonNames <- c("Collared peccary", "Brockets", "Lowland paca", "Grey-winged trumpeter", "Black agouti", "Nine-banded armadillo", "Great tinamou", "Ocelot", "Tayra") 
   # paca = Cuniculus paca
   # brocket = Mazama americana
   # collared peccary = Pecari tajacu 
   # trumpeter = Psophia crepitans
   # brown four-eyed possum = Metachirus nudicaudatus (#1 species in SGE)
   # black agouti = Dasyprocta fuliginosa (#2 species in SGE)
+
+
+
+
+
+################################################################################
+################################################################################
+######################### QUESTIONS BEFORE PROCEEDING ##########################
+################################################################################
+################################################################################
+
+
+# DO YOU WANT TO PLOT BASED ON THE GROUPED OR UNGROUPED DATA?
+proceedWithClumpedData <- "YES"
+
+# DO YOU WANT TO FORCE THE GROUPING TO BE EVERY TWO DAYS FOR ALL SPECIES?
+force4DayGrouping <- "NO"
+
+
+################################################################################
+################################################################################
+################################################################################
+################################################################################
+
+
+
+
+
+
+
 
 
 
@@ -107,7 +139,14 @@ for (i in 1:length(communities)) {
   clumpedMatrixList <- list()
   for (j in 1:length(detHistory)) { # for each species
     y <- detHistory[[j]] # detection history for each species
-    clumpEvery <- as.numeric(best_clumping_factor(y)[1])
+
+    # if you want to force grouping by 2: 
+    if (force4DayGrouping == "YES") {
+      clumpEvery <- 4
+    } else {
+      clumpEvery <- as.numeric(best_clumping_factor(detHistory[[j]], maximumClumpingFactor = 20)[1])
+    }
+
     nClumpedColumns <- ncol(y)/clumpEvery
     clumpedMatrix <- matrix(0, ncol = nClumpedColumns, nrow = nrow(y)) 
     
@@ -215,7 +254,42 @@ names(unclumpedUFOMasterList) <- communities
 
 
 
+
+
+
+
+
+
+######################## CLUMPING VERSUS RAW DETECTION #########################
 ################################################################################
+################################################################################
+################################################################################
+
+# BASED ON ANSWER AT THE BEGINNING OF THE SCRIPT
+print(paste0("You said ", proceedWithClumpedData, " to proceeding with clumped data"))
+print(paste0("You said ", force4DayGrouping, " to forcing 2-day grouping for all species"))
+
+if (proceedWithClumpedData == "NO") {
+    ufoMasterList <- unclumpedUFOMasterList
+}
+
+
+
+
+################################################################################
+################################################################################
+################################################################################
+
+
+
+
+
+
+
+
+
+
+###############################################################################
 ############################ OCCUPANCY MODELING ################################
 ################################################################################
 
@@ -260,8 +334,8 @@ for (i in 1:length(communities)) {
     match_detection <- c("1")
     match_occupancy <- c("1")
   } else if (communities[i] == "Global") {
-    match_detection <- c("Community")
-    match_occupancy <- c("Community", "percentNatural", "RainfallScaled",
+    match_detection <- c("Community", "DaysEffortScaled")
+    match_occupancy <- c("DaysEffortScaled", "Community", "percentNatural", "RainfallScaled",
                          "DistToWater", "TemperatureScaled", "DistToComm")
   }
   
@@ -333,6 +407,8 @@ for (i in 1:length(communities)) {
   
   # run occupancy unmarked model for all models
   allModels <- list()
+  modelAICs <- list() # all models and their AICs
+  topModels <- list() # only models within 2 AIC of lowest AIC
   for (j in 1:length(speciesNames)) { # for all the species
     occupancyMods <- list()
     for(m in 1:length(occupancyModelsList[[j]])) {
@@ -344,9 +420,55 @@ for (i in 1:length(communities)) {
     names(occupancyMods) <- 1:length(occupancyMods)
     allModels[[j]] <- occupancyMods
 
+    # # make a df taking the model name and AIC
+    # # but automatically put an NA if running the model outputs an error
+    # df <- data.frame(ModelName = rep(NA, length(occupancyModelsList[[j]])),
+    #                  AIC = NA,
+    #                  diffFromBest = NA)
+    
+    # # if (is.na(summary(allModels[[j]][[m]])$state$SE[1]) == TRUE) {
+    # #     df[m, 1] <- NA
+    # #     df[m, 2] <- NA
+    # # } else {
+    # #     df[m, 1] <- as.character(c(allModels[[j]][[m]]@formula))
+    # #     df[m, 2] <- allModels[[j]][[m]]@AIC
+    # # }
+
+    # # if the model outputs an error, put NA (use tryCatch)
+    # tryCatch(
+    #     suppressWarnings({
+    #         model <- allModels[[j]][[m]]
+    #         model_summary <- summary(model)
+
+    #         if (is.na(summary(allModels[[j]][[m]])$state$SE[1]) == TRUE) {
+    #             df[m, 1] <- NA
+    #             df[m, 2] <- NA
+    #         } else {
+    #             df[m, 1] <- as.character(c(allModels[[j]][[m]]@formula))
+    #             df[m, 2] <- allModels[[j]][[m]]@AIC
+    #         }
+    #     }),
+    #     error = function(e) {
+    #         df[m, 1:2] <- NA
+    #     }
+    # )
+
+
+    # # order the DF by AIC
+    # df <- df[order(df$AIC), ]
+    # df <- df[!is.na(df$ModelName), ]
+    # df$diffFromBest <- df$AIC - min(df$AIC)
+    # modelAICs[[j]] <- df
+
+    # # only the best
+    # ANTM <- subset(df, diffFromBest <= 2)
+    # topModels[[j]] <- ANTM
+
     # print a message at the end of each species
     print(paste("Done with", j, "out of", length(speciesNames), "species :)"))
   }
+  names(topModels) <- speciesNames
+  masterTopModels[[i]] <- topModels
   
   # Make a data frame to show the model names and their AICs
   modelAICs <- list() # all models and their AICs
@@ -357,13 +479,31 @@ for (i in 1:length(communities)) {
                      diffFromBest = NA)
     for(m in 1:length(allModels[[j]])){
         # remove all models with NaN in standard error of model output
-        if (is.na(summary(allModels[[j]][[m]])$state$SE[1]) == TRUE) {
-            df[m, 1] <- NA
-            df[m, 2] <- NA
+        result <- tryCatch(
+            {
+                summary(allModels[[j]][[m]])
+            },
+            error = function(e) e
+        )
+        if (inherits(result, "error")) {
+            df[m, 1:2] <- NA
+        } else {
+            if (is.na(summary(allModels[[j]][[m]])$state$SE[1]) == TRUE) {
+                df[m, 1] <- NA
+                df[m, 2] <- NA
             } else {
                 df[m, 1] <- as.character(c(allModels[[j]][[m]]@formula))
                 df[m, 2] <- allModels[[j]][[m]]@AIC
             }
+        }
+
+        # if (is.na(summary(allModels[[j]][[m]])$state$SE[1]) == TRUE) {
+        #     df[m, 1] <- NA
+        #     df[m, 2] <- NA
+        #     } else {
+        #         df[m, 1] <- as.character(c(allModels[[j]][[m]]@formula))
+        #         df[m, 2] <- allModels[[j]][[m]]@AIC
+        #     }
       
     }
     df <- df[order(df$AIC),]
@@ -575,7 +715,7 @@ for (i in 1:length(communities)) {
         }
     } else if (communities[i] == "Global") {
         covariates <- c(
-            "Community", "percentNatural", "RainfallScaled",
+            "DaysEffortScaled", "Community", "percentNatural", "RainfallScaled",
             "DistToWater", "TemperatureScaled", "DistToComm"
         )
         siteCovariate <- read.csv("Global/Data/AllCommunityCovariates.csv")
@@ -588,7 +728,8 @@ for (i in 1:length(communities)) {
             percentNatural = mean(siteCovariate$percentNatural),
             DistToWater = mean(siteCovariate$DistToWater),
             TemperatureScaled = mean(siteCovariate$TemperatureScaled),
-            DistToComm = mean(siteCovariate$DistToComm)
+            DistToComm = mean(siteCovariate$DistToComm),
+            DaysEffortScaled = mean(siteCovariate$DaysEffortScaled)
         )
 
         for (j in 1:length(speciesNames)) { # for each species

@@ -30,7 +30,7 @@ rm(list = ls())
 # input
 community <- c("Sinangoe", "Siona", "Zabalo", "Remolino", "San Pablo")
 communityAbrv <- c("SGE", "SNA", "ZAB", "REM", "SPA")
-species <- c("Pecari tajacu", "Mazama sp.", "Cuniculus paca", "Psophia crepitans", "Metachirus nudicaudatus", "Dasyprocta fuliginosa", "Dasypus novemcinctus", "Tinamus major", "Didelphis marsupialis", "Leopardus pardalis")
+species <- c("Pecari tajacu", "Mazama sp.", "Cuniculus paca", "Psophia crepitans", "Metachirus nudicaudatus", "Dasyprocta fuliginosa", "Dasypus novemcinctus", "Tinamus major", "Didelphis marsupialis", "Leopardus pardalis", "Eira barbara")
 
 
 for (j in 1:length(community)) {
@@ -51,29 +51,30 @@ for (j in 1:length(community)) {
     total <- data.frame(table(Data$Species)) # number of detections / species
     colnames(total) <- c("Species", "Total")
 
+    # camera operability matrix
+    Operation = cameraOperation(
+        CTtable = Traps,
+        stationCol = "Station",
+        cameraCol = "Camera",
+        setupCol = "Setup_date",
+        retrievalCol = "Retrieval_date",
+        hasProblems = TRUE,
+        byCamera = FALSE,
+        allCamsOn = FALSE,
+        camerasIndependent = FALSE,
+        dateFormat = "%Y-%m-%d",
+        writecsv = FALSE
+    )
+
     # get detection history for each species
     for (i in 1:length(species)) {
         # if species is not in the data, skip
         if (length(which(Data$Species == species[i])) == 0) {
             next
         }
-        # camera operability matrix
-        Operation = cameraOperation(
-            CTtable = Traps,
-            stationCol = "Station",
-            cameraCol = "Camera",
-            setupCol = "Setup_date",
-            retrievalCol = "Retrieval_date",
-            hasProblems = TRUE,
-            byCamera = FALSE,
-            allCamsOn = FALSE,
-            camerasIndependent = FALSE,
-            dateFormat = "%Y-%m-%d",
-            writecsv = FALSE
-        )
 
         # occasion length
-        occasion = 2
+        occasion = 1
 
         # species detection histories for occupancy analyses
         DetHis = detectionHistory(
@@ -102,10 +103,9 @@ for (j in 1:length(community)) {
         )
     }
 
-
+    print(paste0("Finished ", community[j], " of ", length(community), " :)"))
 
 }
-?detectionHistory
 
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
@@ -135,7 +135,7 @@ Data$Species <- gsub("Mazama nemorivaga", "Mazama sp.", Data$Species)
 Data$Species <- gsub("Mazama gouazoubira", "Mazama sp.", Data$Species)
 
 ##### Pick species of interest
-species <- c("Pecari tajacu", "Mazama sp.", "Cuniculus paca", "Psophia crepitans", "Metachirus nudicaudatus", "Dasyprocta fuliginosa", "Dasypus novemcinctus", "Tinamus major", "Didelphis marsupialis", "Leopardus pardalis")
+species <- c("Pecari tajacu", "Mazama sp.", "Cuniculus paca", "Psophia crepitans", "Metachirus nudicaudatus", "Dasyprocta fuliginosa", "Dasypus novemcinctus", "Tinamus major", "Didelphis marsupialis", "Leopardus pardalis", "Eira barbara")
 
 #species <- c("Cuniculus paca", "Mazama americana", "Pecari tajacu", "Psophia crepitans")
 # paca = Cuniculus paca
@@ -164,7 +164,7 @@ for (i in 1:length(species)) {
                               writecsv = FALSE)
   
   # occasion length
-  occasion = 2
+  occasion = 1
   
   # species detection histories for occupancy analyses
   DetHis = detectionHistory(recordTable = Data,

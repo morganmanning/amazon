@@ -70,6 +70,10 @@ huntingTally <- ZABhunting |>
 
 
 
+    # + ocelot/agouti: predator prey (albeit, ocelot are nocturnal and agouti are diurnal)
+    # + agouti/paca: competitors (albeit, agouti are diurnal and paca are nocturnal)
+    # + agouti/peccary: two hunted species but peccary is more desirable
+
 
 # species of interest                       ************* INPUT ***************
 species <- c(

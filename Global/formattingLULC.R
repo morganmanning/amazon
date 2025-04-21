@@ -184,8 +184,9 @@ communityCovariates$Community <- ifelse(grepl('^ZAB', communityCovariates$Statio
                                    ifelse(grepl('^SKP', communityCovariates$Station), 'Siekopai',
                                           ifelse(grepl('^SGE', communityCovariates$Station), 'Sinangoe', "Siona")))
 communityCovariates$Community <- factor(communityCovariates$Community,
-                                   levels = c("Zabalo", "Siekopai", "Sinangoe", "Siona"))
+                                   levels = c("Zabalo", "Remolino", "Sinangoe", "San Pablo", "Siona"))
 communityCovariates$Year <- ifelse(communityCovariates$Community == "Zabalo", "2018", "2022")
+communityCovariates <- communityCovariates %>% distinct()
 communityCovariates$RainfallScaled <- c(scale(communityCovariates$Rainfall))
 communityCovariates$TemperatureScaled <- c(scale(communityCovariates$Temperature))
 
@@ -214,6 +215,47 @@ communityCovariates <- base::merge(communityCovariates, distToCommunity,
                                   by = "Station")
 names(communityCovariates)[names(communityCovariates) == 'Distance'] <- 'DistToComm'
 communityCovariates$X <- NULL
+
+# add effort per camera
+Traps <- read.csv("Data/AllStationsFormatted.csv")
+Traps$DaysEffort <- NA
+
+# calculate the number of days each camera was operational
+for (i in 1:nrow(Traps)){
+    # first tally the number of days problems occurred
+    prob1 <- as.numeric(difftime(Traps$Problem1_to[i], Traps$Problem1_from[i], units = "days"))
+    prob2 <- as.numeric(difftime(Traps$Problem2_to[i], Traps$Problem2_from[i], units = "days"))
+    prob3 <- as.numeric(difftime(Traps$Problem3_to[i], Traps$Problem3_from[i], units = "days"))
+    
+    # if a problem is NA, set to 0
+    if (is.na(prob1)){
+        prob1 <- 0
+    }
+    if (is.na(prob2)){
+        prob2 <- 0
+    }
+    if (is.na(prob3)){
+        prob3 <- 0
+    }
+    allProbs <- c(prob1, prob2, prob3)
+    
+    # calculate the number of days the camera was set up
+    Traps$DaysEffort[i] <- round(as.numeric(difftime(Traps$Retrieval_date[i], Traps$Setup_date[i], units = "days")) - sum(allProbs))
+}
+
+# keep the highest number of days effort for each camera
+Traps <- Traps %>% group_by(Station) %>%
+  summarize(DaysEffort = max(DaysEffort, na.rm = TRUE))
+
+# merge the effort data with the covariates
+communityCovariates <- base::merge(communityCovariates, Traps[,c("Station", "DaysEffort")],
+                                  by = "Station")
+
+# remove those duplicate cameras at a single site in Zabalo
+communityCovariates <- communityCovariates %>% distinct()
+
+# scale the effort data
+communityCovariates$DaysEffortScaled <- c(scale(communityCovariates$DaysEffort))
 
 # save it
 write.csv(communityCovariates, file = "Data/AllCommunityCovariates.csv")

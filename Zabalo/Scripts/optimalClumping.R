@@ -5,7 +5,7 @@
 require(unmarked)
 
 # function that takes the species occupancy data and tells you what the best clumping factor is
-best_clumping_factor <- function(occupancyData){
+best_clumping_factor <- function(occupancyData, maximumClumpingFactor = ncol(occupancyData)) {
   
   # make sure the first row and column are not row or column names
   if(sum(occupancyData[,1], na.rm = TRUE) > ncol(occupancyData) | # if the first row is column names
@@ -17,7 +17,7 @@ best_clumping_factor <- function(occupancyData){
   allClumpedMatrices <- list()
   ncol <- ncol(occupancyData)
   
-  for (i in 1:(ncol)) { # for every possible clumping factor i, make a clumped matrix
+  for (i in 1:(maximumClumpingFactor)) { # for every possible clumping factor i, make a clumped matrix
     clumpingFactor <- i
     nClumpedColumns <- ncol/clumpingFactor
     clumpedMatrix <- matrix(0, ncol = nClumpedColumns, nrow = nrow(occupancyData))
@@ -53,7 +53,7 @@ best_clumping_factor <- function(occupancyData){
   }
   
   ### get SE for each possible model
-  allSE <- data.frame(clumpingFactor = 1:ncol,
+  allSE <- data.frame(clumpingFactor = 1:(maximumClumpingFactor),
                       modelSE = NA)
   for (n in 1:length(allClumpedModels)) {
     # if there is an error when trying to extract the SE, then set it to NA
