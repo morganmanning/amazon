@@ -467,8 +467,6 @@ for (i in 1:length(communities)) {
     # print a message at the end of each species
     print(paste("Done with", j, "out of", length(speciesNames), "species :)"))
   }
-  names(topModels) <- speciesNames
-  masterTopModels[[i]] <- topModels
   
   # Make a data frame to show the model names and their AICs
   modelAICs <- list() # all models and their AICs
