@@ -71,8 +71,7 @@ best_clumping_factor <- function(occupancyData, maximumClumpingFactor = ncol(occ
     } else {
         allSE$modelSE[n] <- result
     }
-    
-    # allSE$modelSE[n] <- summary(allClumpedModels[[n]])$state$SE[1] # occupancy intercept SE
+
   }
   
   print(allSE)

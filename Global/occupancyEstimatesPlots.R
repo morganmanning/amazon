@@ -31,9 +31,9 @@ communitiesAbrv <- "All"
 #speciesNames <- c("Pecari tajacu", "Mazama americana", "Cuniculus paca", "Psophia crepitans")
 #commonNames <- c("Collared peccary", "Red brocket", "Lowland paca", "Grey-winged trumpeter") # listTitles
 #speciesNames <- c("Eira barbara")
-speciesNames <- c("Pecari tajacu", "Mazama sp.", "Cuniculus paca", "Psophia crepitans", "Dasyprocta fuliginosa", "Dasypus novemcinctus", "Tinamus major", "Leopardus pardalis", "Eira barbara")
+speciesNames <- c("Pecari tajacu", "Mazama sp.", "Cuniculus paca", "Psophia crepitans", "Dasyprocta fuliginosa", "Dasypus novemcinctus", "Tinamus major", "Leopardus pardalis")
 #commonNames <- c("Tayra") 
-commonNames <- c("Collared peccary", "Brockets", "Lowland paca", "Grey-winged trumpeter", "Black agouti", "Nine-banded armadillo", "Great tinamou", "Ocelot", "Tayra") 
+commonNames <- c("Collared peccary", "Brockets", "Lowland paca", "Grey-winged trumpeter", "Black agouti", "Nine-banded armadillo", "Great tinamou", "Ocelot") 
   # paca = Cuniculus paca
   # brocket = Mazama americana
   # collared peccary = Pecari tajacu 
@@ -55,8 +55,11 @@ commonNames <- c("Collared peccary", "Brockets", "Lowland paca", "Grey-winged tr
 # DO YOU WANT TO PLOT BASED ON THE GROUPED OR UNGROUPED DATA?
 proceedWithClumpedData <- "YES"
 
-# DO YOU WANT TO FORCE THE GROUPING TO BE EVERY TWO DAYS FOR ALL SPECIES?
+# DO YOU WANT TO FORCE THE GROUPING TO BE EVERY FOUR DAYS FOR ALL SPECIES?
 force4DayGrouping <- "NO"
+
+# DO YOU WANT TO USE THE GLOBAL MODELS FOR EACH SPECIES?
+useGlobalModels <- "NO"
 
 
 ################################################################################
@@ -137,6 +140,11 @@ for (i in 1:length(communities)) {
   source("./Zabalo/Scripts/optimalClumping.R")
   
   clumpedMatrixList <- list()
+  nDaysGroupedPerSpecies <- data.frame(
+    Species = speciesNames,
+    CommonNames = commonNames,
+    DaysGrouped = NA
+  )
   for (j in 1:length(detHistory)) { # for each species
     y <- detHistory[[j]] # detection history for each species
 
@@ -147,6 +155,10 @@ for (i in 1:length(communities)) {
       clumpEvery <- as.numeric(best_clumping_factor(detHistory[[j]], maximumClumpingFactor = 20)[1])
     }
 
+    # store what each species was grouped by
+    nDaysGroupedPerSpecies$DaysGrouped[j] <- clumpEvery
+
+    # make a list of clumped matrices
     nClumpedColumns <- ncol(y)/clumpEvery
     clumpedMatrix <- matrix(0, ncol = nClumpedColumns, nrow = nrow(y)) 
     
@@ -335,7 +347,7 @@ for (i in 1:length(communities)) {
     match_occupancy <- c("1")
   } else if (communities[i] == "Global") {
     match_detection <- c("Community", "DaysEffortScaled")
-    match_occupancy <- c("DaysEffortScaled", "Community", "percentNatural", "RainfallScaled",
+    match_occupancy <- c("Community", "percentNatural", "RainfallScaled",
                          "DistToWater", "TemperatureScaled", "DistToComm")
   }
   
@@ -553,10 +565,10 @@ for (i in 1:length(communities)) {
 # calculate the global model for each species (minus distToWater since that wasn't in any best model)
 globalModels <- list()
 for (j in 1:length(speciesNames)){ # for each species
-      test <- occu(~Community ~RainfallScaled + percentNatural + DistToComm + TemperatureScaled + Community, 
+      test <- occu(~Community + DaysEffortScaled ~RainfallScaled + percentNatural + DistToComm + TemperatureScaled + Community, 
                     ufoMasterList[[1]][[j]]) # i = 1 when all communities are together
       
-      globalModels[[j]] <- occu(~Community ~RainfallScaled + percentNatural + DistToComm +
+      globalModels[[j]] <- occu(~Community + DaysEffortScaled ~RainfallScaled + percentNatural + DistToComm +
                     TemperatureScaled + Community, 
                     ufoMasterList[[1]][[j]], 
                                    control = 10000, 
@@ -587,14 +599,12 @@ names(communityOnlyModels) <- speciesNames
 communityOnlyModelsNested <- list(Global = communityOnlyModels) # need to nest so it matches the dimensions of masterBestModsFitLists moving forwards
 
 
-
-
-# to proceed using the global models rather than the best models, uncomment the following
-#masterBestModsFitLists <- list()
-#masterBestModsFitLists <- communityOnlyModelsNested
-#names(masterBestModsFitLists) <- communities
-
-
+# if proceeding with forced global models:
+if (useGlobalModels == "YES") {
+    masterBestModsFitLists <- list()
+    masterBestModsFitLists <- globalModelsNested
+    names(masterBestModsFitLists) <- communities
+} 
 
   
 ################################################################################
@@ -713,7 +723,7 @@ for (i in 1:length(communities)) {
         }
     } else if (communities[i] == "Global") {
         covariates <- c(
-            "DaysEffortScaled", "Community", "percentNatural", "RainfallScaled",
+            "Community", "percentNatural", "RainfallScaled",
             "DistToWater", "TemperatureScaled", "DistToComm"
         )
         siteCovariate <- read.csv("Global/Data/AllCommunityCovariates.csv")
@@ -721,7 +731,7 @@ for (i in 1:length(communities)) {
         allCommunities <- unique(siteCovariate$Community)
         N <- 50
         dfTemplate <- data.frame(
-            Community = rep("Sinangoe", N), # picked because it's kind of a middle community
+            Community = rep(allCommunities, each = N), 
             RainfallScaled = mean(siteCovariate$RainfallScaled),
             percentNatural = mean(siteCovariate$percentNatural),
             DistToWater = mean(siteCovariate$DistToWater),
@@ -773,9 +783,9 @@ for (i in 1:length(communities)) {
 
                 # prediction DF
                 if (covariateInQuestion == "Community") {
-                    dfEdited[, covariateInQuestion] <- rep(unique(siteCovariate$Community),
+                    dfEdited[, covariateInQuestion] <- rep(rep(unique(siteCovariate$Community),
                         each = N / length(unique(siteCovariate$Community))
-                    )
+                    ), times = length(allCommunities))
                 } else {
                     # dfEdited[, "Community"] <- allCommunities[m]
                     dfEdited[, covariateInQuestion] <- seq(min(siteCovariate[, covariateInQuestion]),
@@ -927,7 +937,9 @@ orderedCommunities <- c(siteCovariate %>%
                           select(Community))$Community
 orderedCommunities <- gsub("Zabalo", "Zábalo", x = orderedCommunities)
 plottingDF <- plottingDF %>% dplyr::filter(Community %in% orderedCommunities)
-plottingDF$Community <- factor(plottingDF$Community, levels=orderedCommunities)
+plottingDF$Community <- factor(plottingDF$Community, levels = orderedCommunities)
+plottingDF$Species <- factor(plottingDF$Species, levels = speciesNames) # so plotting doesn't alphabetize species
+
 
 # add species common names
 crossList <- data.frame(commonNames = commonNames,
@@ -955,11 +967,11 @@ peccPic <- get_phylopic(uuid = get_uuid(name = "Pecari tajacu", n = 1))
 brockPic <- get_phylopic(uuid = get_uuid(name = "Mazama americana", n = 1))
 pacaPic <- get_phylopic(uuid = get_uuid(name = "Cuniculus paca", n = 1))
 trumpPic <- get_phylopic(uuid = get_uuid(name = "Psophia crepitans", n = 1))
-fourEyedPic <- get_phylopic(uuid = get_uuid(name = "Metachirus nudicaudatus", n = 1))
+#fourEyedPic <- get_phylopic(uuid = get_uuid(name = "Metachirus nudicaudatus", n = 1))
 agoutiPic <- get_phylopic(uuid = get_uuid(name = "Dasyprocta", n = 1))
 armadilloPic <- get_phylopic(uuid = get_uuid(name = "Dasypus novemcinctus", n = 1))
 tinamouPic <- get_phylopic(uuid = get_uuid(name = "Tinamus major", n = 1))
-opossumPic <- get_phylopic(uuid = get_uuid(name = "Didelphis", n = 1))
+#opossumPic <- get_phylopic(uuid = get_uuid(name = "Didelphis", n = 1))
 ocelotPic <- get_phylopic(uuid = get_uuid(name = "Leopardus pardalis", n = 1))
 
 # plot naive occupancy
@@ -974,7 +986,7 @@ p <- ggplot(estimates, aes(x = Species,
   #scale_color_manual(values = c("darkorange", "royalblue", "green3", "yellow3")) +
   scale_color_manual(values = "black") +
   scale_fill_manual(values = "black") +
-  scale_x_discrete(labels = c(peccary, brocket, paca, trumpeter, fourEyed, agouti, armadillo, tinamou, opossum, ocelot)) +
+  scale_x_discrete(labels = c(peccary, brocket, paca, trumpeter, agouti, armadillo, tinamou, ocelot)) +
   labs(x = "Species", y = "Naive occupancy probability (SE)") +
   ylim(c(0,1)) +
   theme_classic() +
@@ -989,19 +1001,19 @@ p <- ggplot(estimates, aes(x = Species,
   add_phylopic(brockPic, alpha = 0.2, x = 2.0, y = 0.05, ysize = 0.125) +
   add_phylopic(pacaPic, alpha = 0.2, x = 3.0, y = 0.05, ysize = 0.1) +
   add_phylopic(trumpPic, alpha = 0.2, x = 4.0, y = 0.05, ysize = 0.13) +
-  add_phylopic(fourEyedPic, alpha = 0.2, x = 5.0, y = 0.05, ysize = 0.1) +
-    add_phylopic(agoutiPic, alpha = 0.2, x = 6.0, y = 0.05, ysize = 0.1) +
-    add_phylopic(armadilloPic, alpha = 0.2, x = 7.0, y = 0.05, ysize = 0.1) +
-    add_phylopic(tinamouPic, alpha = 0.2, x = 8.0, y = 0.05, ysize = 0.125) +
-    add_phylopic(opossumPic, alpha = 0.2, x = 9.0, y = 0.05, ysize = 0.1) +
-    add_phylopic(ocelotPic, alpha = 0.2, x = 10.0, y = 0.05, ysize = 0.1)
+  #add_phylopic(fourEyedPic, alpha = 0.2, x = 5.0, y = 0.05, ysize = 0.1) +
+    add_phylopic(agoutiPic, alpha = 0.2, x = 5.0, y = 0.05, ysize = 0.1) +
+    add_phylopic(armadilloPic, alpha = 0.2, x = 6.0, y = 0.05, ysize = 0.1) +
+    add_phylopic(tinamouPic, alpha = 0.2, x = 7.0, y = 0.05, ysize = 0.125) +
+    #add_phylopic(opossumPic, alpha = 0.2, x = 9.0, y = 0.05, ysize = 0.1) +
+    add_phylopic(ocelotPic, alpha = 0.2, x = 8.0, y = 0.05, ysize = 0.1)
 
 # plot with the animal silhouettes
 p
 
 # save it
 if (savePlots == "YES") {
-  ggsave(filename = paste0(communities, "/Figures/", 
+  ggsave(filename = paste0(communities, "/Figures/SingleSpeciesModeling/", 
                            communitiesAbrv, "NaiveOccupancyEstimates.png"), 
          width = 8, height = 4)
   }
@@ -1015,6 +1027,8 @@ communityPlottingDF$Species <- factor(communityPlottingDF$Species, levels = spec
 communityPlottingDF$Community <- factor(communityPlottingDF$Community,
     levels = c("Zábalo", "Remolino", "Sinangoe", "San Pablo", "Siona")
 )
+communityPlottingDF$Species <- factor(communityPlottingDF$Species, levels = speciesNames) # so plotting doesn't alphabetize species
+
 communityPlottingDF <- communityPlottingDF %>% distinct()
 
 
@@ -1037,7 +1051,7 @@ p <- ggplot(communityPlottingDF, aes(
     # scale_color_manual(values = c("darkorange", "royalblue", "green3", "yellow3")) +
     scale_color_manual(values = colors) +
     scale_fill_manual(values = colors) +
-    scale_x_discrete(labels = c(peccary, brocket, paca, trumpeter, fourEyed, agouti, armadillo, tinamou, opossum, ocelot)) +
+    scale_x_discrete(labels = c(peccary, brocket, paca, trumpeter, agouti, armadillo, tinamou, ocelot)) +
     labs(x = "Species", y = "Predicted occupancy probability (95% CI)") +
     ylim(c(0, 1)) +
     theme_classic() +
@@ -1047,19 +1061,19 @@ p <- ggplot(communityPlottingDF, aes(
         axis.text.x = element_text(angle = 45, vjust = 0.60),
         legend.title = element_blank(),
         axis.title.x = element_blank(),
-        legend.position = "none",
+        #legend.position = "none",
         panel.grid.major.y = element_line(color = "#cecece", linewidth = 0.2)
     ) +
     add_phylopic(peccPic, alpha = 0.2, x = 1.0, y = 0.05, ysize = 0.1) +
     add_phylopic(brockPic, alpha = 0.2, x = 2.0, y = 0.05, ysize = 0.125) +
     add_phylopic(pacaPic, alpha = 0.2, x = 3.0, y = 0.05, ysize = 0.1) +
     add_phylopic(trumpPic, alpha = 0.2, x = 4.0, y = 0.05, ysize = 0.13) +
-    add_phylopic(fourEyedPic, alpha = 0.2, x = 5.0, y = 0.05, ysize = 0.1) +
-    add_phylopic(agoutiPic, alpha = 0.2, x = 6.0, y = 0.05, ysize = 0.1) +
-    add_phylopic(armadilloPic, alpha = 0.2, x = 7.0, y = 0.05, ysize = 0.1) +
-    add_phylopic(tinamouPic, alpha = 0.2, x = 8.0, y = 0.05, ysize = 0.125) +
-    add_phylopic(opossumPic, alpha = 0.2, x = 9.0, y = 0.05, ysize = 0.1) +
-    add_phylopic(ocelotPic, alpha = 0.2, x = 10.0, y = 0.05, ysize = 0.1)
+    #add_phylopic(fourEyedPic, alpha = 0.2, x = 5.0, y = 0.05, ysize = 0.1) +
+    add_phylopic(agoutiPic, alpha = 0.2, x = 5.0, y = 0.05, ysize = 0.1) +
+    add_phylopic(armadilloPic, alpha = 0.2, x = 6.0, y = 0.05, ysize = 0.1) +
+    add_phylopic(tinamouPic, alpha = 0.2, x = 7.0, y = 0.05, ysize = 0.125) +
+    #add_phylopic(opossumPic, alpha = 0.2, x = 9.0, y = 0.05, ysize = 0.1) +
+    add_phylopic(ocelotPic, alpha = 0.2, x = 8.0, y = 0.05, ysize = 0.1)
 
 # plot with the animal silhouettes
 p
@@ -1068,7 +1082,7 @@ p
 if (savePlots == "YES") {
     ggsave(
         filename = paste0(
-            communities, "/Figures/",
+            communities, "/Figures/SingleSpeciesModeling/",
             communitiesAbrv, "OccupancyEstimates.png"
         ),
         width = 8, height = 4
@@ -1124,6 +1138,8 @@ for (i in 1:length(covariatesMinusCommunity)){
     xlabel <- "Percent natural area within 25 km"
   } else if (covariatesMinusCommunity[i] == "DistToComm") {
     xlabel <- "Distance to a community (km)"
+  } else if (covariatesMinusCommunity[i] == "DaysEffortScaled") {
+    xlabel <- "Camera trap effort (days, scaled)"
   }
   
   # xlab:
@@ -1152,19 +1168,19 @@ for (i in 1:length(covariatesMinusCommunity)){
           axis.text = element_text(colour = "black"),
           legend.title = element_blank(),
           #axis.title.x = element_blank(), 
-          #legend.position="top"
+          legend.position="top"
     )
   #theme(plot.title = element_text(hjust = 0.5))
   
   # save it
   if (savePlots == "YES") {
-    ggsave(filename = paste0(communities, "/Figures/", 
+    ggsave(filename = paste0(communities, "/Figures/SingleSpeciesModeling/", 
                              cov, "Prediction.png"), 
            width = 8, height = 4)
   }
   
 }
-
+nDaysGroupedPerSpecies
 
 
 
@@ -1527,21 +1543,25 @@ if (savePlots == "YES") {
 # Make a table with average occupancy and detection estimates from above
 if (communities == "Global" & savePlots == "YES"){
     # table with occupancy and detection estimates
-    estimatesCut <- estimates |> 
-      dplyr::select(CommonNames, avgOccupancy, avgOccupancySE, avgDetection, avgDetectionSE) |>
+
+    # merge the estimates with nDaysGroupedPerSpecies to show the number of days grouped
+    estimatesWithDays <- merge(estimates, nDaysGroupedPerSpecies, by = "CommonNames")
+
+    estimatesCut <- estimatesWithDays |> 
+      dplyr::select(CommonNames, DaysGrouped, avgOccupancy, avgOccupancySE, avgDetection, avgDetectionSE) |>
       arrange(desc(avgOccupancy)) |>
       mutate(across(where(is.numeric), round, 3))
-    kbl(estimatesCut, col.names = c("Species",
+    kbl(estimatesCut, col.names = c("Species", "Days per Detection Occasion",
                                  "Average Occupancy Estimate", "Occupancy SE", 
                                  "Average Detection Estimate", "Detection SE")) %>%
       kable_classic(full_width = FALSE, html_font = "TimesNewRoman") %>%
-      kableExtra::save_kable(file = "Global/Figures/occupancyDetectionEstimates.png", zoom = 10)
+      kableExtra::save_kable(file = "Global/Figures/SingleSpeciesModeling/occupancyDetectionEstimates.png", zoom = 10)
 
 }
 
 
 # Make a table with the covariates included in the top models for each species
-if (communities == "Global" & savePlots == "YES" & all(speciesNames == names(masterTopModels[[1]])) & length(speciesNames) == 10){
+if (communities == "Global" & savePlots == "YES" & all(speciesNames == names(masterTopModels[[1]])) & length(speciesNames) == 8){
     
     for (i in 1:length(speciesNames)){
         # make a column with the species and how many best models
@@ -1599,15 +1619,7 @@ if (communities == "Global" & savePlots == "YES" & all(speciesNames == names(mas
             start_row = nModelsPerSpecies[1] + nModelsPerSpecies[2] + nModelsPerSpecies[3] + nModelsPerSpecies[4] + nModelsPerSpecies[5] + nModelsPerSpecies[6] + nModelsPerSpecies[7] + 1,
             end_row = nModelsPerSpecies[1] + nModelsPerSpecies[2] + nModelsPerSpecies[3] + nModelsPerSpecies[4] + nModelsPerSpecies[5] + nModelsPerSpecies[6] + nModelsPerSpecies[7] + nModelsPerSpecies[8]
         ) %>%
-        pack_rows(speciesNames[9],
-            start_row = nModelsPerSpecies[1] + nModelsPerSpecies[2] + nModelsPerSpecies[3] + nModelsPerSpecies[4] + nModelsPerSpecies[5] + nModelsPerSpecies[6] + nModelsPerSpecies[7] + nModelsPerSpecies[8] + 1,
-            end_row = nModelsPerSpecies[1] + nModelsPerSpecies[2] + nModelsPerSpecies[3] + nModelsPerSpecies[4] + nModelsPerSpecies[5] + nModelsPerSpecies[6] + nModelsPerSpecies[7] + nModelsPerSpecies[8] + nModelsPerSpecies[9]
-        ) %>%
-        pack_rows(speciesNames[10],
-            start_row = nModelsPerSpecies[1] + nModelsPerSpecies[2] + nModelsPerSpecies[3] + nModelsPerSpecies[4] + nModelsPerSpecies[5] + nModelsPerSpecies[6] + nModelsPerSpecies[7] + nModelsPerSpecies[8] + nModelsPerSpecies[9] + 1,
-            end_row = nrow(bestModelsDF)
-        ) %>%
-        kableExtra::save_kable(file = "Global/Figures/AllBestModelsTable.png", zoom = 2)
+        kableExtra::save_kable(file = "Global/Figures/SingleSpeciesModeling/AllBestModelsTable.png", zoom = 2)
 
 
 }
@@ -1615,6 +1627,6 @@ if (communities == "Global" & savePlots == "YES" & all(speciesNames == names(mas
 
 
 # TIME!
-toc() # typically takes 210 seconds (3.5 minutes)
+toc() 
 
 
