@@ -28,3 +28,6 @@
 - sensitivity analysis with percent natural area looking at different buffer distances
 - plot null occupancies versus average occupancy considering covariates on the same plot?
 - move everything to Bayesian instead of unmarked
+- find better Ecuador shapefile for plotting sites
+    - plot territories on site map?
+-

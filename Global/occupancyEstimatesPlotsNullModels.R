@@ -26,14 +26,14 @@ communitiesAbrv <- c("SGE", "ZAB", "REM", "SPA", "SNA")
   # Zabalo = ZAB
 speciesNames <- c(
     "Pecari tajacu", "Mazama sp.", "Cuniculus paca",
-    "Psophia crepitans", "Metachirus nudicaudatus", "Dasyprocta fuliginosa",
-    "Dasypus novemcinctus", "Tinamus major", "Didelphis marsupialis",
+    "Psophia crepitans", "Dasyprocta fuliginosa",
+    "Dasypus novemcinctus", "Tinamus major", 
     "Leopardus pardalis"
 )
 commonNames <- c(
     "Collared peccary", "Brockets", "Lowland paca",
-    "Grey-winged trumpeter", "Brown four-eyed opossum", "Black agouti",
-    "Nine-banded armadillo", "Great tinamou", "Common opossum",
+    "Grey-winged trumpeter", "Black agouti",
+    "Nine-banded armadillo", "Great tinamou", 
     "Ocelot"
 )
   # paca = Cuniculus paca
