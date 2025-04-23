@@ -42,8 +42,7 @@ speciesTally <- Data |>
   #filter(nDetections > 10) |>
   group_by(Species) |>
   mutate(nCommunities = n()) |>
-  arrange(desc(nDetections), desc(nCommunities)) |>
-  filter(nCommunities == 5) # only pull species that were detected in all four communities
+  arrange(desc(nDetections), desc(nCommunities)) 
 
 huntingTally <- ZABhunting |> 
   group_by(Species) |>
@@ -79,8 +78,8 @@ huntingTally <- ZABhunting |>
 species <- c(
             #"Leopardus pardalis",
              #"Didelphis marsupialis"
-             #"Pecari tajacu", 
-             "Cuniculus paca",
+             "Pecari tajacu", 
+             #"Cuniculus paca",
              "Dasyprocta fuliginosa" # by FAR the most detected species, but not hunted in ZAB much
              #"Psophia crepitans",
              #"Mazama sp."
@@ -90,8 +89,8 @@ species <- c(
 commonNames <- c(
                 #"Ocelot", 
                  #"Common opossum"
-                 #"Collared peccary", 
-                 "Lowland paca",
+                 "Collared peccary", 
+                 #"Lowland paca",
                  "Black agouti"
                  #"Grey-winged trumpeter",
                  #"Brockets"
@@ -101,8 +100,8 @@ commonNames <- c(
 casualNames <- c(
                 #"ocelot",
                  #"opossum"
-                 #"peccary",
-                 "paca",
+                 "peccary",
+                 #"paca",
                  "agouti"
                  #"trumpeter",
                  #"brockets"
@@ -195,11 +194,11 @@ wantToGroupSpecies <- "NO" #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 if (wantToGroupSpecies == "YES") {
 
     species_groups <- list(
-    "Brockets" = c("Mazama americana", "Mazama nemorivaga", "Mazama gouazoubira", "Mazama sp."),
-    "Cracidae" = c("Mitu salvini", "Penelope jacquacu"),
-    "Peccaries" = c("Pecari tajacu", "Tayassu pecari"),
-    "Rodents" = c("Cuniculus paca", "Dasyprocta fuliginosa", "Myoprocta pratti"),
-    "Competitors" = c("Leopardus pardalis", "Panthera onca", "Puma concolor")
+    #"Brockets" = c("Mazama americana", "Mazama nemorivaga", "Mazama gouazoubira", "Mazama sp."),
+    #"Birds" = c("Mitu salvini", "Penelope jacquacu", "Tinamus major", "Psophia crepitans", "Geotrygon montana"),
+    "Desirables" = c("Pecari tajacu", "Tayassu pecari", "Tapirus terrestris"),
+    "Rodents" = c("Cuniculus paca", "Dasyprocta fuliginosa", "Myoprocta pratti")
+    #"Competitors" = c("Leopardus pardalis", "Panthera onca", "Puma concolor", "Canis lupus")
 )
 commonNames <- names(species_groups)
 casualNames <- names(species_groups)
@@ -236,7 +235,7 @@ for (i in 1:length(commonNames)) {
 
     # sum all the group matrices to get one per group with only 1s, 0s, and NAs
     detection[[i]] <- Reduce("+", group_detection)
-    names(detection)[i] <- species_groups_names[i]
+    names(detection)[i] <- names(species_groups)[i]
     detection[[i]] <- ifelse(detection[[i]] > 0, 1, ifelse(detection[[i]] == 0, 0, NA))
 
 }
@@ -354,8 +353,9 @@ str(umf)
 # Temperature (C)
 # Distance to a water source (m)
 
-match_detection <- c("Community")
+match_detection <- c("Community", "DaysEffortScaled")
 match_occupancy <- c("RainfallScaled", "percentNatural", "DistToWater", "TemperatureScaled", "Year")
+forcedDetectionFormula <- "~Community + DaysEffortScaled"
 # excluded "Community" from occupancy covariates bc it correlated with percentNatural (per chisq.test())
 
 
@@ -374,7 +374,7 @@ occupancyFormulas <- forms
 ############### COMBINE DETECTION WITH ALL POSSIBLE OCCUPANCY PREDICTORS AND MODEL
 occupancyModelsList <- list()
 for (j in 1:length(species)) {
-df <- data.frame(detection = '~ Community',
+df <- data.frame(detection = forcedDetectionFormula,
                 occupancy = occupancyFormulas)
 occupancyModelsList[[j]] <- c(paste(df$detection, df$occupancy, sep = " "))
 }
@@ -514,7 +514,8 @@ if (length(species) == 2) {
 ################################ MODELING ######################################
 ################################################################################
 # look at occupancy covariates
-topModels_df$OccupancyFormula <- gsub("~Community", "", topModels_df$ModelName)
+# remove from the first ~ up to the second ~ in the formula 
+topModels_df$OccupancyFormula <- gsub(".*~", "", topModels_df$ModelName)
 topModels_df[c("Species", "OccupancyFormula")]
 
 # extract the words/letter strings

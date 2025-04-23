@@ -257,6 +257,9 @@ communityCovariates <- communityCovariates %>% distinct()
 # scale the effort data
 communityCovariates$DaysEffortScaled <- c(scale(communityCovariates$DaysEffort))
 
+# Siekopai year gets messed up somewhere?
+communityCovariates$Year <- ifelse(communityCovariates$Community == "Zabalo", "2018", "2022")
+
 # save it
 write.csv(communityCovariates, file = "Data/AllCommunityCovariates.csv")
 
