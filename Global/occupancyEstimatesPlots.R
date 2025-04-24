@@ -1207,6 +1207,10 @@ stations$CommunityName <- NULL
 SA <- c("ecuador", "bolivia", "brazil", "chile", "colombia", "argentina", "guyana", "paraguay", "peru", "suriname", "uruguay", "venezuela")
 mapColors <- rep("white", length(SA))
 mapColors[2] <- "lightyellow"
+colors <- c(
+    "Zábalo" = "darkgreen", "Remolino" = "forestgreen",
+    "Sinangoe" = "yellowgreen", "San Pablo" = "gold1", "Siona" = "darkgoldenrod3"
+)
 
 # option A with data("world")
 worldEdited <- world
@@ -1267,7 +1271,7 @@ together <- ecuadorMap + geom_magnify(from = e,
 together
 
 if (savePlots == "YES") {
-  ggsave(filename = paste0(communities, "/Figures/mapInlayWithSites.png"), 
+  ggsave(plot = together, filename = paste0(communities, "/Figures/mapInlayWithSites.png"), 
          width = 7, height = 5)
 }
 
