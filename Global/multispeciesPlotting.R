@@ -19,9 +19,13 @@ require(gridExtra)
 require(ggpubr)
 require(reshape2)
 
+rm(list = ls())
 
 # load the data
-load("R Objects/multispeciesModels.RData")
+#load("R Objects/peccary_agouti_MSM.RData")
+#load("R Objects/paca_agouti_MSM.RData")
+load("R Objects/ocelot_agouti_MSM.RData")
+
 
 
 ################################################################################
@@ -687,6 +691,11 @@ community_conditional_occupancy$Community <- factor(community_conditional_occupa
 )
 community_conditional_occupancy$Species1 <- factor(community_conditional_occupancy$Species1, levels = commonNames) # so plotting doesn't alphabetize species
 community_conditional_occupancy$Species2 <- factor(community_conditional_occupancy$Species2, levels = commonNames) # so plotting doesn't alphabetize species
+
+# save it to facilitate plotting
+save(community_conditional_occupancy,
+    file = paste0("R Objects/", gsub(" ", "", casualNames[1]), gsub(" ", "", casualNames[2]), "MSM_byCommunity.RData")
+)
 
 # make labels per covariate
 colors <- c(

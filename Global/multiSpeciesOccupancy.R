@@ -76,9 +76,9 @@ huntingTally <- ZABhunting |>
 
 # species of interest                       ************* INPUT ***************
 species <- c(
-            #"Leopardus pardalis",
+            "Leopardus pardalis",
              #"Didelphis marsupialis"
-             "Pecari tajacu", 
+             #"Pecari tajacu", 
              #"Cuniculus paca",
              "Dasyprocta fuliginosa" # by FAR the most detected species, but not hunted in ZAB much
              #"Psophia crepitans",
@@ -87,9 +87,9 @@ species <- c(
              # "Panthera onca" # for funsies!
              ) 
 commonNames <- c(
-                #"Ocelot", 
+                "Ocelot", 
                  #"Common opossum"
-                 "Collared peccary", 
+                 #"Collared peccary", 
                  #"Lowland paca",
                  "Black agouti"
                  #"Grey-winged trumpeter",
@@ -98,9 +98,9 @@ commonNames <- c(
                  #"Jaguar"
                  ) 
 casualNames <- c(
-                #"ocelot",
+                "ocelot",
                  #"opossum"
-                 "peccary",
+                 #"peccary",
                  #"paca",
                  "agouti"
                  #"trumpeter",
@@ -716,8 +716,7 @@ save(null_multispecies_model, best_multispecies_model, global_multispecies_model
     natural_multispecies_model, community_multispecies_model, 
     best_mod_penalty, natural_mod_penalty, community_mod_penalty, 
     casualNames, commonNames, species, umf,
-    file = "R Objects/multispeciesModels.RData"
+    file = paste0("R Objects/", gsub(" ", "", casualNames[1]), "_", gsub(" ", "", casualNames[2]), "_MSM.RData")
 )
-
 
 
