@@ -81,5 +81,5 @@ for (i in 1:length(communities)){
 
 }
 
-write.csv(changethis, "changethis.csv")
+write.csv(HedgesG, "hedges_g.csv")
 
