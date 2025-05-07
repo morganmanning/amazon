@@ -13,7 +13,7 @@
     - The best model (per AIC) for detection was then used for consideration of occupancy covariates
 
 ### Occupancy covariates
-- Using the best detection model per species, the following covariates were considered for occupancy: the community where the camera trap is associated with, the percent natural area within 25 km, the amount of rainfall at the camera trap location (scaled), the distance to a water source, the temperature at the camera trap location (scaled), and the distance to the nearest community.
+- Using the best detection model per species, the following covariates were considered for occupancy: the community where the camera trap is associated with, the percent natural area within 25 km (https://www.arcgis.com/home/item.html?id=cfcb7609de5f478eb7666240902d4d3d; ESRI Sentinel-2 10m time series; Coordinate system: WGS84; UTM; ESPG:3857; water, trees, and flodded vegetations were considered "natural area"), the amount of rainfall at the camera trap location (scaled; https://disc.gsfc.nasa.gov/datasets/GLDAS_NOAH025_M_2.1/summary), the distance to a water source (derived from https://www.arcgis.com/home/item.html?id=cfcb7609de5f478eb7666240902d4d3d), the temperature at the camera trap location (scaled; https://disc.gsfc.nasa.gov/datasets/GLDAS_NOAH025_M_2.1/summary), and the distance to the nearest community.
     - All combinations of these covariates (including the null) were considered for each species.
     - Models with convergence issues were removed from consideration
     - All best models (within 2 AIC of the best model) were averaged 
@@ -21,7 +21,47 @@
 - The best models averaged were used to back-predict occupancy assuming the average of each covariate and then that occupancy was averaged to get an estimate of occupancy considering existing conditions/covariates
 - The best models averaged were used to predict species occupancy across each covariate at each community
 
+
 ## Multispecies models
+- Species interactions looked at:
+    + predator/prey: ocelot/agouti
+    + competitors: agouti/paca
+    + two hunted species but peccary is more desirable: agouti/peccary
+- The species type interactions were chosen to answer ecological/biological questions about how animal interactions are impacted across communities, but the specific species were chosen because they had the highest number of detections within the species type
+- Detection histories were condensed to where each trapping occasion equaled two days
+    + this was picked because it was the most stable grouping across the study species and detection histories needed to have the same dimensions (i.e., I had to pick one grouping for all species)
+- Ran multispecies models for each pairing using the unmarked package in R
+- Due to low detection, the inclusion of environmental covariates was ruled out. When an environmental covariate was included, the model broke.
+    + Instead, only the community was included as a predictor of both occupancy and detection. 
+- Utilized penalized likelihood with the community model to improve parameter estimates (https://besjournals.onlinelibrary.wiley.com/doi/pdf/10.1111/2041-210X.12368).
+    + Identified the optimal value of the bayes-inspired penalty term for the models that support penalized likelihood. 
+    + For each potential value of the penalty term (0.5 and 1), K-fold cross validation is performed.
+    + Log-likelihoods for the test data in each fold are calculated and summed. 
+    + The penalty term that maximizes the sum of the fold log-likelihoods is selected as the optimal value. 
+    + Finally, the community model is re-fit with the full dataset using the selected penalty term. 
+- Using the penalized model, occupancy of each species was predicted across all communities in two scenarios: where the paired species was present and where the paired species was absent
+- The magnitude of difference in occupancy predictions was quantified for each species pairing at each community using Hedge's g
+
+### Multidimensional scaling
+- Because the data did not allow for the inclusion of covariates in the multispecies models, we opted to use multivariate analysis, specifically multidimensional scaling, to examine the relationship among communities. 
+- The MDS results will help us better understand the differences in wildlife interactions among communities.
+- The covariates that were included in the MDS include geographical, ecological, and sociological forces:
+    + The distance from the community to the nearest community
+    + The area of the indigenous territory
+    + Rainfall and rainfall SD (Averaged within the community/territory between July 2020 and December 2020 (the months that the cameras were out); https://disc.gsfc.nasa.gov/datasets/GLDAS_NOAH025_M_2.1/summary)
+    + Humidity and humidity SD (Averaged within the community/territory between July 2020 and December 2020 (the months that the cameras were out); https://disc.gsfc.nasa.gov/datasets/GLDAS_NOAH025_M_2.1/summary)
+    + Air temperature and SD (Averaged within the community/territory between July 2020 and December 2020 (the months that the cameras were out); https://disc.gsfc.nasa.gov/datasets/GLDAS_NOAH025_M_2.1/summary)
+    + Root moisture  and SD(Averaged within the community/territory between July 2020 and December 2020 (the months that the cameras were out); https://disc.gsfc.nasa.gov/datasets/GLDAS_NOAH025_M_2.1/summary)
+    + Average percent natural area within 25 km of camera traps (https://www.arcgis.com/home/item.html?id=cfcb7609de5f478eb7666240902d4d3d; ESRI Sentinel-2 10m time series; Coordinate system: WGS84; UTM; ESPG:3857; water, trees, and flodded vegetations were considered "natural area")
+    + The number of detections
+    + The number of species detected
+    + Shannon diversity index
+    + Simpson diversity index
+    + Population size (don't have data for San Pablo and Remolino)
+    + Mean elevation within territory (https://www.sciencebase.gov/catalog/item/5920dd83e4b0ac16dbdf3a4d)
+    + Potentials: Average number of days spent hunting per person per month (divided by wet and dry season; verify this), average number of days spent fishing per person per month (divided by wet and dry season; verify this), percent of the population who hunt, percent of the population who fish
+- The a distance matrix was calculated pairwise for all covariates, then we used multidimensional scaling
+
 
 
 ## Other ideas:
