@@ -62,6 +62,7 @@
     + Mean elevation within territory (https://www.sciencebase.gov/catalog/item/5920dd83e4b0ac16dbdf3a4d)
     + Potentials: Average number of days spent hunting per person per month (divided by wet and dry season; verify this), average number of days spent fishing per person per month (divided by wet and dry season; verify this), percent of the population who hunt, percent of the population who fish
 - The a distance matrix was calculated pairwise for all covariates, then we used multidimensional scaling
+- Issue with defining what N is to quantify SE to quantify Hedge's g
 
 
 
