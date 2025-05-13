@@ -42,6 +42,7 @@
 - Using the penalized model, occupancy of each species was predicted across all communities in two scenarios: where the paired species was present and where the paired species was absent
 - The magnitude of difference in occupancy predictions was quantified for each species pairing at each community using Hedge's g
 
+
 ### Multidimensional scaling
 - Because the data did not allow for the inclusion of covariates in the multispecies models, we opted to use multivariate analysis, specifically multidimensional scaling, to examine the relationship among communities. 
 - The MDS results will help us better understand the differences in wildlife interactions among communities.
