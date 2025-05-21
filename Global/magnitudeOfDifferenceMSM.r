@@ -50,6 +50,8 @@ HedgesG$SD1 <- NA
 HedgesG$SD2 <- NA
 HedgesG$SE1 <- NA
 HedgesG$SE2 <- NA
+HedgesG$meanDifference <- NA
+HedgesG$meanDifferenceSE <- NA
 
 # loop through communities and species
 for (i in 1:length(communities)){
@@ -69,12 +71,18 @@ for (i in 1:length(communities)){
         mean2 <- subDF$Occupancy[2]
         g <- (mean1 - mean2) / pooledSD
 
+        # difference in means
+        meanDifference <- mean1 - mean2
+        meanDifferenceSE <- sqrt((subDF$SE[1]^2) + (subDF$SE[2]^2))
+
         # store results
         HedgesG$g[HedgesG$Community == communities[i] & HedgesG$Species1 == species[j]] <- g
         HedgesG$SD1[HedgesG$Community == communities[i] & HedgesG$Species1 == species[j]] <- SD1
         HedgesG$SD2[HedgesG$Community == communities[i] & HedgesG$Species1 == species[j]] <- SD2
         HedgesG$SE1[HedgesG$Community == communities[i] & HedgesG$Species1 == species[j]] <- subDF$SE[1]
         HedgesG$SE2[HedgesG$Community == communities[i] & HedgesG$Species1 == species[j]] <- subDF$SE[2]
+        HedgesG$meanDifference[HedgesG$Community == communities[i] & HedgesG$Species1 == species[j]] <- meanDifference
+        HedgesG$meanDifferenceSE[HedgesG$Community == communities[i] & HedgesG$Species1 == species[j]] <- meanDifferenceSE
         
         
     }
@@ -83,3 +91,5 @@ for (i in 1:length(communities)){
 
 write.csv(HedgesG, "hedges_g.csv")
 
+
+# left off 5/21: not plotting properly

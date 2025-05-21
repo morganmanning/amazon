@@ -26,7 +26,11 @@ rm(list = ls())
 #load("R Objects/paca_agouti_MSM.RData")
 load("R Objects/ocelot_agouti_MSM.RData")
 
-
+# magnitude of difference
+difference <- read.csv("hedges_g.csv")
+difference$Community <- factor(difference$Community,
+    levels = c("Zábalo", "Remolino", "Sinangoe", "San Pablo", "Siona")
+)
 
 ################################################################################
 ###################### MARGINAL OCCUPANCY PREDICTIONS ##########################
@@ -782,6 +786,81 @@ if (length(casualNames) == 2) {
 }
 
 }
+
+
+
+
+#################### PLOT DIFFERENCE IN MEANS WITH SE FOR EACH SPECIES PAIR
+differenceSpecies <- unique(difference$Species1)
+communities <- unique(difference$Community)
+
+# prevent issues
+difference$Species1 <- factor(difference$Species1, levels = differenceSpecies) # so plotting doesn't alphabetize species
+difference$Species2 <- factor(difference$Species2, levels = differenceSpecies) # so plotting doesn't alphabetize species
+differenceSpecies <- factor(differenceSpecies, levels = differenceSpecies) # so plotting doesn't alphabetize species
+
+# make a plot for each species pair showing difference in means at each community
+for (i in 1:length(differenceSpecies)) {
+    dataSub <- subset(difference, Species1 == differenceSpecies[i])
+    possibleInteractions <- unique(dataSub$Species2)
+
+    differencePlots <- list()
+    for (j in 1:length(possibleInteractions)) {
+        dataSubSub <- subset(dataSub, Species2 == possibleInteractions[j])
+
+        # facet by Species2
+        dodge <- position_dodge(width = 0.3)
+        p <- ggplot(dataSubSub, aes(x = Community, y = meanDifference, color = Community)) +
+            #facet_wrap(~Species2) +
+            geom_point(aes(color = Community), position = dodge, size = 1.5) +
+            geom_errorbar(
+                aes(
+                    ymin = meanDifference - meanDifferenceSE,
+                    ymax = meanDifference + meanDifferenceSE,
+                    color = Community
+                ),
+                position = dodge, width = 0.15, linewidth = .5
+            ) +
+            labs(
+                x = "Community",
+                y = paste0("Difference in mean conditional ", tolower(commonNames[i]), " occupancy probability")
+            ) +
+            ylim(c(-0.1, 1)) +
+            scale_color_manual(values = colors) +
+            scale_fill_manual(values = colors) +
+            theme_classic() +
+            theme(
+                text = element_text(family = "Times", colour = "black"),
+                axis.text = element_text(colour = "black"),
+                legend.title = element_blank(),
+                legend.position = "top",
+                axis.title.x = element_blank(),
+                panel.grid.major.y = element_line(color = "#cecece", linewidth = 0.2)
+            )
+        differencePlots[[j]] <- p
+    }
+    # make the plot
+    n <- length(differencePlots)
+    nCol <- floor(sqrt(n))
+    p <- do.call("grid.arrange", c(differencePlots, ncol = nCol))
+    annotate_figure(p, top = text_grob(paste0(differenceSpecies[i], " Interactions (Penalized community-only model)"),
+        face = "bold", size = 14
+    ))
+    # make the plot
+    if (length(differenceSpecies) == 2) {
+        otherSpecies <- casualNames[casualNames != casualNames[i]]
+        ggsave(paste0("../Figures/MultispeciesModeling/", differenceSpecies[i], "_", otherSpecies, "_DifferencesByCommunity.png"),
+            plot = p, width = 10, height = 8
+        )
+    }
+}
+
+
+
+
+
+
+
 
 
 
