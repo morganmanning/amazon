@@ -40,7 +40,7 @@
     + The penalty term that maximizes the sum of the fold log-likelihoods is selected as the optimal value. 
     + Finally, the community model is re-fit with the full dataset using the selected penalty term. 
 - Using the penalized model, occupancy of each species was predicted across all communities in two scenarios: where the paired species was present and where the paired species was absent
-- The magnitude of difference in occupancy predictions was quantified for each species pairing at each community using Hedge's g
+- The magnitude of difference in occupancy predictions was quantified for each species pairing at each community using the difference in means with the standard error calculated accounting for the unequal variances among communities (https://math.stackexchange.com/questions/1257855/two-different-formulas-for-standard-error-of-difference-between-two-means)
 
 
 ### Multidimensional scaling
@@ -59,6 +59,7 @@
     + Shannon diversity index
     + Simpson diversity index
     + Population size (don't have data for San Pablo and Remolino)
+    + Lat and lon
     + Mean elevation within territory (https://www.sciencebase.gov/catalog/item/5920dd83e4b0ac16dbdf3a4d)
     + Potentials: Average number of days spent hunting per person per month (divided by wet and dry season; verify this), average number of days spent fishing per person per month (divided by wet and dry season; verify this), percent of the population who hunt, percent of the population who fish
 - The a distance matrix was calculated pairwise for all covariates, then we used multidimensional scaling

@@ -54,42 +54,45 @@ HedgesG$meanDifference <- NA
 HedgesG$meanDifferenceSE <- NA
 
 # loop through communities and species
-for (i in 1:length(communities)){
-    for (j in 1:length(species)){
+for (i in 1:length(communities)) {
+    for (j in 1:length(species)) {
         # subset data
         subDF <- bigDF[bigDF$Community == communities[i] & bigDF$Species1 == species[j], ]
 
         # get N
         N <- nSites$nSites[nSites$Community == communities[i]]
 
-        # calculate hedge's g
-        SD1 <- subDF$SE[1] * N
-        SD2 <- subDF$SE[2] * N
-        pooledSD <- sqrt(((N - 1) * (SD1^2) + (N - 1) * (SD2^2)) / (N + N - 2)) # https://www.statisticshowto.com/pooled-standard-deviation/
-        #pooledSD <- sqrt((SD1^2 + SD2^2) / 2) # https://www.statisticshowto.com/pooled-standard-deviation/
-        mean1 <- subDF$Occupancy[1]
-        mean2 <- subDF$Occupancy[2]
-        g <- (mean1 - mean2) / pooledSD
+        # species interactions
+        others <- unique(subDF$Species2)
 
-        # difference in means
-        meanDifference <- mean1 - mean2
-        meanDifferenceSE <- sqrt((subDF$SE[1]^2) + (subDF$SE[2]^2))
+        # break up by species #2 (agouti is the only species that interacts with multiple other species)
+        for (k in 1:length(others)) {
+            subsubDF <- subDF[subDF$Species2 == others[k], ]
 
-        # store results
-        HedgesG$g[HedgesG$Community == communities[i] & HedgesG$Species1 == species[j]] <- g
-        HedgesG$SD1[HedgesG$Community == communities[i] & HedgesG$Species1 == species[j]] <- SD1
-        HedgesG$SD2[HedgesG$Community == communities[i] & HedgesG$Species1 == species[j]] <- SD2
-        HedgesG$SE1[HedgesG$Community == communities[i] & HedgesG$Species1 == species[j]] <- subDF$SE[1]
-        HedgesG$SE2[HedgesG$Community == communities[i] & HedgesG$Species1 == species[j]] <- subDF$SE[2]
-        HedgesG$meanDifference[HedgesG$Community == communities[i] & HedgesG$Species1 == species[j]] <- meanDifference
-        HedgesG$meanDifferenceSE[HedgesG$Community == communities[i] & HedgesG$Species1 == species[j]] <- meanDifferenceSE
-        
-        
+            # calculate hedge's g
+            SD1 <- subsubDF$SE[1] * N
+            SD2 <- subsubDF$SE[2] * N
+            pooledSD <- sqrt(((N - 1) * (SD1^2) + (N - 1) * (SD2^2)) / (N + N - 2)) # https://www.statisticshowto.com/pooled-standard-deviation/
+            # pooledSD <- sqrt((SD1^2 + SD2^2) / 2) # https://www.statisticshowto.com/pooled-standard-deviation/
+            mean1 <- subsubDF$Occupancy[1]
+            mean2 <- subsubDF$Occupancy[2]
+            g <- (mean1 - mean2) / pooledSD
+
+            # difference in means
+            meanDifference <- mean1 - mean2
+            meanDifferenceSE <- sqrt((subsubDF$SE[1]^2) + (subsubDF$SE[2]^2))
+
+            # store results
+            HedgesG$g[HedgesG$Community == communities[i] & HedgesG$Species1 == species[j] & HedgesG$Species2 == others[k]] <- g
+            HedgesG$SD1[HedgesG$Community == communities[i] & HedgesG$Species1 == species[j] & HedgesG$Species2 == others[k]] <- SD1
+            HedgesG$SD2[HedgesG$Community == communities[i] & HedgesG$Species1 == species[j] & HedgesG$Species2 == others[k]] <- SD2
+            HedgesG$SE1[HedgesG$Community == communities[i] & HedgesG$Species1 == species[j] & HedgesG$Species2 == others[k]] <- subsubDF$SE[1]
+            HedgesG$SE2[HedgesG$Community == communities[i] & HedgesG$Species1 == species[j] & HedgesG$Species2 == others[k]] <- subsubDF$SE[2]
+            HedgesG$meanDifference[HedgesG$Community == communities[i] & HedgesG$Species1 == species[j] & HedgesG$Species2 == others[k]] <- meanDifference
+            HedgesG$meanDifferenceSE[HedgesG$Community == communities[i] & HedgesG$Species1 == species[j] & HedgesG$Species2 == others[k]] <- meanDifferenceSE
+        }
     }
-
 }
 
 write.csv(HedgesG, "hedges_g.csv")
 
-
-# left off 5/21: not plotting properly

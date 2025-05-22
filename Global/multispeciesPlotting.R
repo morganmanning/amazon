@@ -45,24 +45,24 @@ for (i in 1:length(casualNames)) {
 }
 all_predictions$Species <- casualNames
 
-# plot null model predictions for occupancy
-plot(1:length(species), all_predictions$Predicted,
-    # ylim = c(0.1, 0.4),
-    xlim = c(0.5, 2.5),
-    pch = 19, cex = 1.5, xaxt = "n",
-    xlab = "", ylab = "Marginal occupancy and 95% CI",
-    main = "Null model predictions for occupancy",
-    ylim = c(0, 1)
-)
-axis(1, at = 1:length(species), labels = all_predictions$Species)
+# # plot null model predictions for occupancy
+# plot(1:length(species), all_predictions$Predicted,
+#     # ylim = c(0.1, 0.4),
+#     xlim = c(0.5, 2.5),
+#     pch = 19, cex = 1.5, xaxt = "n",
+#     xlab = "", ylab = "Marginal occupancy and 95% CI",
+#     main = "Null model predictions for occupancy",
+#     ylim = c(0, 1)
+# )
+# axis(1, at = 1:length(species), labels = all_predictions$Species)
 
-# CIs
-top <- 0.1
-for (i in 1:length(species)) {
-    segments(i, all_predictions$lower[i], i, all_predictions$upper[i])
-    segments(i - top, all_predictions$lower[i], i + top)
-    segments(i - top, all_predictions$upper[i], i + top)
-}
+# # CIs
+# top <- 0.1
+# for (i in 1:length(species)) {
+#     segments(i, all_predictions$lower[i], i, all_predictions$upper[i])
+#     segments(i - top, all_predictions$lower[i], i + top)
+#     segments(i - top, all_predictions$upper[i], i + top)
+# }
 
 # ggplot version
 all_predictions$Species <- factor(all_predictions$Species, levels = casualNames) # so plotting doesn't alphabetize species
@@ -823,11 +823,11 @@ for (i in 1:length(differenceSpecies)) {
             ) +
             labs(
                 x = "Community",
-                y = paste0("Difference in mean conditional ", tolower(commonNames[i]), " occupancy probability")
+                y = paste0("Difference in mean conditional ", tolower(differenceSpecies[i]), " occupancy probability when ", tolower(possibleInteractions[j]), " is present vs. absent")
             ) +
             ylim(c(-0.1, 1)) +
             scale_color_manual(values = colors) +
-            scale_fill_manual(values = colors) +
+            #scale_fill_manual(values = colors) +
             theme_classic() +
             theme(
                 text = element_text(family = "Times", colour = "black"),
@@ -837,22 +837,33 @@ for (i in 1:length(differenceSpecies)) {
                 axis.title.x = element_blank(),
                 panel.grid.major.y = element_line(color = "#cecece", linewidth = 0.2)
             )
+            annotate_figure(p, top = text_grob(
+                paste0(
+                    "Difference in mean conditional ",
+                    tolower(differenceSpecies[i]), " occupancy when ",
+                    tolower(possibleInteractions[j]), " is present vs. absent \n (Penalized community-only model)"
+                ),
+                face = "bold", size = 14
+            ))
+            figurePath <- paste0(
+                "../Figures/MultispeciesModeling/",
+                gsub(" ", "", tolower(differenceSpecies[i])), "_",
+                gsub(" ", "", tolower(possibleInteractions[j])),
+                "_DifferencesByCommunity.png"
+            )
+            ggsave(figurePath,
+                  width = 10, height = 8
+            )
         differencePlots[[j]] <- p
     }
-    # make the plot
-    n <- length(differencePlots)
-    nCol <- floor(sqrt(n))
-    p <- do.call("grid.arrange", c(differencePlots, ncol = nCol))
-    annotate_figure(p, top = text_grob(paste0(differenceSpecies[i], " Interactions (Penalized community-only model)"),
-        face = "bold", size = 14
-    ))
-    # make the plot
-    if (length(differenceSpecies) == 2) {
-        otherSpecies <- casualNames[casualNames != casualNames[i]]
-        ggsave(paste0("../Figures/MultispeciesModeling/", differenceSpecies[i], "_", otherSpecies, "_DifferencesByCommunity.png"),
-            plot = p, width = 10, height = 8
-        )
-    }
+    # # make the plot
+    # n <- length(differencePlots)
+    # nCol <- floor(sqrt(n))
+    # p <- do.call("grid.arrange", c(differencePlots, ncol = nCol))
+    # annotate_figure(p, top = text_grob(paste0(differenceSpecies[i], " Interactions (Penalized community-only model)"),
+    #     face = "bold", size = 14
+    # ))
+
 }
 
 
