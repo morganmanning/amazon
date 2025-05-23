@@ -44,26 +44,26 @@
 
 
 ### Multidimensional scaling
-- Because the data did not allow for the inclusion of covariates in the multispecies models, we opted to use multivariate analysis, specifically multidimensional scaling, to examine the relationship among communities. 
-- The MDS results will help us better understand the differences in wildlife interactions among communities.
-- The covariates that were included in the MDS include geographical, ecological, and sociological forces:
+- Because the data did not allow for the inclusion of covariates in the multispecies models, we opted to use multivariate analysis, specifically non-metric multidimensional scaling, to examine the relationship among communities. 
+- The NMDS results will help us better understand the differences in wildlife interactions among communities, as a result of community characteristics.
+- The covariates that were included in the NMDS include geographical, ecological, and sociological forces:
     + The distance from the community to the nearest community
     + The area of the indigenous territory
-    + Rainfall and rainfall SD (Averaged within the community/territory between July 2020 and December 2020 (the months that the cameras were out); https://disc.gsfc.nasa.gov/datasets/GLDAS_NOAH025_M_2.1/summary)
-    + Humidity and humidity SD (Averaged within the community/territory between July 2020 and December 2020 (the months that the cameras were out); https://disc.gsfc.nasa.gov/datasets/GLDAS_NOAH025_M_2.1/summary)
-    + Air temperature and SD (Averaged within the community/territory between July 2020 and December 2020 (the months that the cameras were out); https://disc.gsfc.nasa.gov/datasets/GLDAS_NOAH025_M_2.1/summary)
-    + Root moisture  and SD(Averaged within the community/territory between July 2020 and December 2020 (the months that the cameras were out); https://disc.gsfc.nasa.gov/datasets/GLDAS_NOAH025_M_2.1/summary)
+    + Rainfall (Averaged within the community/territory between July 2020 and December 2020 (the months that the cameras were out); https://disc.gsfc.nasa.gov/datasets/GLDAS_NOAH025_M_2.1/summary)
+    + Humidity (Averaged within the community/territory between July 2020 and December 2020 (the months that the cameras were out); https://disc.gsfc.nasa.gov/datasets/GLDAS_NOAH025_M_2.1/summary)
+    + Air temperature (Averaged within the community/territory between July 2020 and December 2020 (the months that the cameras were out); https://disc.gsfc.nasa.gov/datasets/GLDAS_NOAH025_M_2.1/summary)
+    + Root moisture (Averaged within the community/territory between July 2020 and December 2020 (the months that the cameras were out); https://disc.gsfc.nasa.gov/datasets/GLDAS_NOAH025_M_2.1/summary)
     + Average percent natural area within 25 km of camera traps (https://www.arcgis.com/home/item.html?id=cfcb7609de5f478eb7666240902d4d3d; ESRI Sentinel-2 10m time series; Coordinate system: WGS84; UTM; ESPG:3857; water, trees, and flodded vegetations were considered "natural area")
-    + The number of detections
+    + The total number of individual detections
     + The number of species detected
     + Shannon diversity index
     + Simpson diversity index
     + Population size (don't have data for San Pablo and Remolino)
     + Lat and lon
     + Mean elevation within territory (https://www.sciencebase.gov/catalog/item/5920dd83e4b0ac16dbdf3a4d)
-    + Potentials: Average number of days spent hunting per person per month (divided by wet and dry season; verify this), average number of days spent fishing per person per month (divided by wet and dry season; verify this), percent of the population who hunt, percent of the population who fish
+    + Potentials: Average number of days spent hunting per person per month (divided by wet and dry season; verify this), average number of days spent fishing per person per month (divided by wet and dry season; verify this), percent of the population who hunt, percent of the population who fish, lat and lon, standard deviation of root moisture/air temp/humidity/rainfall
 - The a distance matrix was calculated pairwise for all covariates, then we used multidimensional scaling
-- Issue with defining what N is to quantify SE to quantify Hedge's g
+- used "vegan" package in R to do NMDS
 
 
 

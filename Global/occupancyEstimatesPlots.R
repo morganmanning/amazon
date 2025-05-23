@@ -664,10 +664,10 @@ for (i in 1:length(communities)) {
                 avgOccupancy = mean(unmarkedPredOcc[[j]]$Predicted),
                 avgOccupancySE = mean(unmarkedPredOcc[[j]]$SE),
                 occupancyRange = range(unmarkedPredOcc[[j]]$Predicted),
-                naiveOccupancy = nullOccuPred@estimate,
-                naiveOccupancySE = SE(nullOccuPred),
-                naiveDetection = nullDetPred@estimate,
-                naiveDetectionSE = SE(nullDetPred),
+                nullOccupancy = nullOccuPred@estimate,
+                nullOccupancySE = SE(nullOccuPred),
+                nullDetection = nullDetPred@estimate,
+                nullDetectionSE = SE(nullDetPred),
                 detectionRange = NA
             )
         }
@@ -764,10 +764,10 @@ for (i in 1:length(communities)) {
                 occupancyRange = range(unmarkedPredOcc[[j]]$Predicted),
                 avgDetection = mean(unmarkedPredDet[[j]]$Predicted),
                 avgDetectionSE = mean(unmarkedPredDet[[j]]$SE),
-                naiveOccupancy = nullOccuPred@estimate,
-                naiveOccupancySE = SE(nullOccuPred),
-                naiveDetection = nullDetPred@estimate,
-                naiveDetectionSE = SE(nullDetPred),
+                nullOccupancy = nullOccuPred@estimate,
+                nullOccupancySE = SE(nullOccuPred),
+                nullDetection = nullDetPred@estimate,
+                nullDetectionSE = SE(nullDetPred),
                 detectionRange = NA
             )
 
@@ -856,10 +856,10 @@ speciesNames
 estimates <- data.frame(Community = rep(communitiesAccent, each = length(speciesNames)),
                         Species = rep(speciesNames, times = length(communitiesAccent)),
                         CommonNames = rep(commonNames, times = length(communitiesAccent)),
-                        naiveOccupancy = NA,
-                        naiveOccupancySE = NA,
-                        naiveDetection = NA,
-                        naiveDetectionSE = NA,
+                        nullOccupancy = NA,
+                        nullOccupancySE = NA,
+                        nullDetection = NA,
+                        nullDetectionSE = NA,
                         avgOccupancy = NA,
                         avgOccupancySE = NA,
                         avgOccupancySEManual = NA,
@@ -873,10 +873,10 @@ for (i in 1:length(communitiesAccent)) {
     row <- which((estimates$Community == communitiesAccent[i]) & (estimates$Species == speciesNames[j]))
     estimates[row, "avgOccupancy"] <- masterEstimatedParameters[[i]][[j]]$avgOccupancy[1]
     estimates[row, "avgOccupancySE"] <- masterEstimatedParameters[[i]][[j]]$avgOccupancySE[1]
-    estimates[row, "naiveOccupancy"] <- masterEstimatedParameters[[i]][[j]]$naiveOccupancy[1]
-    estimates[row, "naiveOccupancySE"] <- masterEstimatedParameters[[i]][[j]]$naiveOccupancySE[1]
-    estimates[row, "naiveDetection"] <- masterEstimatedParameters[[i]][[j]]$naiveDetection[1]
-    estimates[row, "naiveDetectionSE"] <- masterEstimatedParameters[[i]][[j]]$naiveDetectionSE[1]
+    estimates[row, "nullOccupancy"] <- masterEstimatedParameters[[i]][[j]]$nullOccupancy[1]
+    estimates[row, "nullOccupancySE"] <- masterEstimatedParameters[[i]][[j]]$nullOccupancySE[1]
+    estimates[row, "nullDetection"] <- masterEstimatedParameters[[i]][[j]]$nullDetection[1]
+    estimates[row, "nullDetectionSE"] <- masterEstimatedParameters[[i]][[j]]$nullDetectionSE[1]
     #estimates[row, "avgOccupancySEManual"] <- sd(masterUnmarkedPredOcc[[i]][[j]]$Predicted)/sqrt(nrow(masterUnmarkedPredOcc[[i]][[j]]))
     #estimates[row, "avgOccupancySD"] <- sd(masterUnmarkedPredOcc[[i]][[j]]$Predicted)
     estimates[row, "avgDetection"] <- masterEstimatedParameters[[i]][[j]]$avgDetection[1]
@@ -974,20 +974,20 @@ tinamouPic <- get_phylopic(uuid = get_uuid(name = "Tinamus major", n = 1))
 #opossumPic <- get_phylopic(uuid = get_uuid(name = "Didelphis", n = 1))
 ocelotPic <- get_phylopic(uuid = get_uuid(name = "Leopardus pardalis", n = 1))
 
-# plot naive occupancy
+# plot null occupancy
 # dodge <- position_dodge(width = 0.3)
 p <- ggplot(estimates, aes(x = Species,
-                              y = naiveOccupancy)) +
+                              y = nullOccupancy)) +
                               #color = Community)) +
   geom_point(size = 1.5) +
-  geom_errorbar(aes(ymin = naiveOccupancy - naiveOccupancySE, 
-                    ymax = naiveOccupancy + naiveOccupancySE), 
+  geom_errorbar(aes(ymin = nullOccupancy - nullOccupancySE, 
+                    ymax = nullOccupancy + nullOccupancySE), 
                  width = 0.15, linewidth = .5) +
   #scale_color_manual(values = c("darkorange", "royalblue", "green3", "yellow3")) +
   scale_color_manual(values = "black") +
   scale_fill_manual(values = "black") +
   scale_x_discrete(labels = c(peccary, brocket, paca, trumpeter, agouti, armadillo, tinamou, ocelot)) +
-  labs(x = "Species", y = "Naive occupancy probability (SE)") +
+  labs(x = "Species", y = "Null occupancy probability (SE)") +
   ylim(c(0,1)) +
   theme_classic() +
   theme(text = element_text(family = "Times", colour = "black"),
@@ -1014,7 +1014,7 @@ p
 # save it
 if (savePlots == "YES") {
   ggsave(filename = paste0(communities, "/Figures/SingleSpeciesModeling/", 
-                           communitiesAbrv, "NaiveOccupancyEstimates.png"), 
+                           communitiesAbrv, "nullOccupancyEstimates.png"), 
          width = 8, height = 4)
   }
 

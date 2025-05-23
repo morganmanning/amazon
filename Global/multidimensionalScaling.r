@@ -62,7 +62,11 @@ ggplot(mds_df, aes(x = x, y = y, label = label)) +
     theme_bw() +
     theme(aspect.ratio = 1) 
 
-# the 'vegan' way based on https://andrewirwin.github.io/data-viz-notes/lessons/122-mds.html
+
+
+
+# this is how I found a way to add the arrows to the plot
+####### the 'vegan' way based on https://andrewirwin.github.io/data-viz-notes/lessons/122-mds.html
 NMDS <- metaMDS(distance_matrix, trace = 0)
 
 # add arrows showing the direction of the covariates
@@ -91,5 +95,7 @@ ggsave(
     filename = paste0("../Figures/MultispeciesModeling/multiDimensionalScaling.png"),
     width = 12, height = 12
 )
+
+# base plot for comparison
 plot(NMDS, type = "text", cex = 1.5)
 plot(ef)
