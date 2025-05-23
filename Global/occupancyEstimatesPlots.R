@@ -23,7 +23,7 @@ require(knitr)
 require(lubridate)
 require(tictoc)
 
-tic() # time it
+#tic() # time it
 
 # input
 communities <- "Global"
@@ -1631,6 +1631,6 @@ if (communities == "Global" & savePlots == "YES" & all(speciesNames == names(mas
 
 
 # TIME!
-toc() 
+#toc() 
 
 
