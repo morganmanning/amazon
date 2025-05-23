@@ -22,9 +22,9 @@ require(reshape2)
 rm(list = ls())
 
 # load the data
-#load("R Objects/peccary_agouti_MSM.RData")
+load("R Objects/peccary_agouti_MSM.RData")
 #load("R Objects/paca_agouti_MSM.RData")
-load("R Objects/ocelot_agouti_MSM.RData")
+#load("R Objects/ocelot_agouti_MSM.RData")
 
 # magnitude of difference
 difference <- read.csv("hedges_g.csv")
@@ -721,14 +721,14 @@ ocelot <- ~ atop(paste("Ocelot"), paste("(", italic("Leopardus pardalis"), ")"))
 
 # rphylopic per species
 peccaryPic <- get_phylopic(uuid = get_uuid(name = "Pecari tajacu", n = 1))
-brocketsPic <- get_phylopic(uuid = get_uuid(name = "Mazama americana", n = 1))
+#brocketsPic <- get_phylopic(uuid = get_uuid(name = "Mazama americana", n = 1))
 pacaPic <- get_phylopic(uuid = get_uuid(name = "Cuniculus paca", n = 1))
-trumpPic <- get_phylopic(uuid = get_uuid(name = "Psophia crepitans", n = 1))
-fourEyedPic <- get_phylopic(uuid = get_uuid(name = "Metachirus nudicaudatus", n = 1))
+#trumpPic <- get_phylopic(uuid = get_uuid(name = "Psophia crepitans", n = 1))
+#fourEyedPic <- get_phylopic(uuid = get_uuid(name = "Metachirus nudicaudatus", n = 1))
 agoutiPic <- get_phylopic(uuid = get_uuid(name = "Dasyprocta", n = 1))
-armadilloPic <- get_phylopic(uuid = get_uuid(name = "Dasypus novemcinctus", n = 1))
-tinamouPic <- get_phylopic(uuid = get_uuid(name = "Tinamus major", n = 1))
-opossumPic <- get_phylopic(uuid = get_uuid(name = "Didelphis", n = 1))
+#armadilloPic <- get_phylopic(uuid = get_uuid(name = "Dasypus novemcinctus", n = 1))
+#tinamouPic <- get_phylopic(uuid = get_uuid(name = "Tinamus major", n = 1))
+#opossumPic <- get_phylopic(uuid = get_uuid(name = "Didelphis", n = 1))
 ocelotPic <- get_phylopic(uuid = get_uuid(name = "Leopardus pardalis", n = 1))
 
 
