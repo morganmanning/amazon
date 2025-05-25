@@ -38,9 +38,21 @@ for (j in 1:length(community)) {
     rm(list = setdiff(ls(), c("community", "communityAbrv", "species", "j", "i")))
 
     # load data
-    Data <- read.csv(paste0(community[j], "/Data/", communityAbrv[j], "IndependentRecordsFormatted.csv")) # just independent records
-    Traps <- read.csv(paste0(community[j], "/Data/", communityAbrv[j], "StationsFormatted.csv"))
+    Data <- read.csv("./Global/Data/AllIndependentRecordsFormatted.csv")
+    Data <- subset(Data, Data$Community == community[j])
+    Traps <- read.csv("./Global/Data/AllStationsFormatted.csv")
+    Traps <- subset(Traps, Traps$Community == community[j])
     Data$DateTimeOriginal <- parse_date_time(Data$DateTimeOriginal, c("%Y-%m-%d", "%Y-%m-%d %H:%M:%S"))
+    
+    # issue arose 5/25/25 with cameraOperation() having issues with all NA columns?
+    # Identify columns with all NA values
+    all_na_cols <- apply(Traps, 2, function(x) all(is.na(x)))
+    # Remove columns with all NA values
+    Traps <- Traps[, !all_na_cols]
+    
+    # don't do this this way anymore since SNA3 isn't Siona, etc. and I don't want to go back and rewrite formattingRawDates to change it
+    #Data <- read.csv(paste0(community[j], "/Data/", communityAbrv[j], "IndependentRecordsFormatted.csv")) # just independent records
+    #Traps <- read.csv(paste0(community[j], "/Data/", communityAbrv[j], "StationsFormatted.csv"))
 
     # replace all Mazama species with Mazama sp.
     Data$Species <- gsub("Mazama americana", "Mazama sp.", Data$Species)
@@ -117,6 +129,12 @@ rm(list = ls())
 Data <- read.csv("Global/Data/AllIndependentRecordsFormatted.csv") 
 Traps <- read.csv("Global/Data/AllStationsFormatted.csv")
 Data$DateTimeOriginal <- parse_date_time(Data$DateTimeOriginal, c("%Y-%m-%d", "%Y-%m-%d %H:%M:%S"))
+
+# count how many communities each animal is found in
+tally <- Data %>%
+  group_by(Species) %>%
+  summarise(Communities = n_distinct(CommunityName)) %>%
+  arrange(desc(Communities))
 
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#

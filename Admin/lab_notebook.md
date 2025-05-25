@@ -1,4 +1,9 @@
 ## Methods Briefly
+## Amazon/species info
+- Species included: "Collared peccary", "Brockets", "Lowland paca", "Grey-winged trumpeter", "Black agouti", "Nine-banded armadillo", "Great tinamou", "Ocelot"
+- Info about the five different indigenous communities 
+- Due to 
+
 
 ## Single species models
 ### Detection matrices

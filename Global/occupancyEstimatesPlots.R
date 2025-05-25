@@ -3,7 +3,7 @@
 ############# OCCUPANCY ESTIMATES ACROSS COMMUNITIES AND SPECIES ###############
 ################################################################################
 # mission: plot estimates for each species in each community
-
+rm(list = ls())
 setwd("~/Documents/amazon")
 
 # load packages
@@ -22,6 +22,7 @@ require(kableExtra)
 require(knitr)
 require(lubridate)
 require(tictoc)
+require(MuMIn)
 
 #tic() # time it
 
@@ -330,7 +331,7 @@ if (proceedWithClumpedData == "NO") {
 masterBestofTheBest <- list() # occu output for the best model for each species
 masterTopModels <- list() # df of the models within 2 AIC of the top model
 masterBestModsFitLists <- list() # fit list of the best models for model averaging
-bestModsOutputs <- list()
+masterBestModsOutputs <- list()
 masterBestModsOutputs <- list()
 
 for (i in 1:length(communities)) {
@@ -531,6 +532,7 @@ for (i in 1:length(communities)) {
   
   # take these best models and put them into a list
   bestModsFitLists <- list()
+  bestModsOutputs <- list()
   for (j in 1:length(topModels)){ # for each species
     speciesBestMods <- list()
     for(m in 1:nrow(topModels[[j]])) {
@@ -607,6 +609,180 @@ if (useGlobalModels == "YES") {
 } 
 
   
+
+#################################################################################
+################################################################################
+################################################################################
+# Model averaging
+
+# model average all the model outputs and get coefficients for all covariates
+# make an empty list with the same length as the number of species
+modelAverages <- list()
+# model average the best models
+for (j in 1:length(speciesNames)) {
+    if (length(masterBestModsOutputs[[1]][[j]]) == 1) {
+        modelAverages[[j]] <- masterBestModsOutputs[[1]][[j]][[1]]@estimates
+    } else {
+        # model average the best models
+        bestModsOutputs <- masterBestModsOutputs[[1]][[j]]
+        # model average the best models
+        avg <- model.avg(bestModsOutputs)
+        # save full model averages to list
+        modelAverages[[j]] <- avg$coefficients["full", ] # less biased
+    }
+}
+names(modelAverages) <- speciesNames
+
+
+# save model averages to r object
+save(modelAverages, file = "Global/Data/R Objects/modelAverages.RData")
+load("Global/Data/R Objects/modelAverages.RData") # loads 'modelAverages'
+
+# make a dataframe with the model averaged coefficients with each covariate as a column
+modelAveragesDF <- data.frame(
+    Species = names(modelAverages),
+    percentNatural = NA,
+    percentNaturalSE = NA,
+    RainfallScaled = NA,
+    RainfallScaledSE = NA,
+    DistToWater = NA,
+    DistToWaterSE = NA,
+    TemperatureScaled = NA,
+    TemperatureScaledSE = NA,
+    DistToComm = NA,
+    DistToCommSE = NA,
+    CommunityZabalo = NA,
+    CommunityZabaloSE = NA,
+    CommunitySinangoe = NA,
+    CommunitySinangoeSE = NA,
+    CommunitySanPablo = NA,
+    CommunitySanPablo = NA,
+    CommunityRemolino = NA,
+    CommunityRemolinoSE = NA,
+    CommunitySiona = NA,
+    CommunitySionaSE = NA
+)
+detectionModelAverages <- data.frame(
+    Species = names(modelAverages),
+    DaysEffortScaled = NA,
+    DaysEffortScaledSE = NA,
+    CommunityZabalo = NA,
+    CommunityZabaloSE = NA,
+    CommunitySinangoe = NA,
+    CommunitySinangoeSE = NA,
+    CommunitySanPablo = NA,
+    CommunitySanPabloSE = NA,
+    CommunityRemolino = NA,
+    CommunityRemolinoSE = NA,
+    CommunitySiona = NA,
+    CommunitySionaSE = NA
+)
+for (i in 1:length(modelAverages)) {
+
+    if (names(modelAverages)[i] != "Leopardus pardalis") {
+        coefficients <- as.data.frame(gsub(" ", "", rbind(
+            names(modelAverages[[i]]),
+            modelAverages[[i]])
+        ))
+
+        
+        
+        for (j in 1:ncol(coefficients)){
+            # if the column is a psi column
+            if (grepl("psi", coefficients[1, j]) == TRUE) {
+                # if Community is a covariate in ANY column, then put the value from "psi(Int)" for Zabalo
+                if (any(grepl("Community", coefficients[1, j]))) {
+                    modelAveragesDF[i, "CommunityZabalo"] <- coefficients[2, "psi(Int)"]
+                    modelAveragesDF[i, "CommunitySinangoe"] <- coefficients[2, "psi(CommunitySinangoe)"]
+                    modelAveragesDF[i, "CommunitySanPablo"] <- coefficients[2, "psi(CommunitySan Pablo)"]
+                    modelAveragesDF[i, "CommunityRemolino"] <- coefficients[2, "psi(CommunityRemolino)"]
+                    modelAveragesDF[i, "CommunitySiona"] <- coefficients[2, "psi(CommunitySiona)"]
+                } else if (any(grepl("Rainfall", coefficients[1, j]))) {
+                    modelAveragesDF[i, "RainfallScaled"] <- coefficients[2, "psi(RainfallScaled)"]
+                } else if (any(grepl("percentNatural", coefficients[1, j]))) {
+                    modelAveragesDF[i, "percentNatural"] <- coefficients[2, "psi(percentNatural)"]
+                } else if (any(grepl("DistToWater", coefficients[1, j]))) {
+                    modelAveragesDF[i, "DistToWater"] <- coefficients[2, "psi(DistToWater)"]
+                } else if (any(grepl("TemperatureScaled", coefficients[1, j]))) {
+                    modelAveragesDF[i, "TemperatureScaled"] <- coefficients[2, "psi(TemperatureScaled)"]
+                } else if (any(grepl("DistToComm", coefficients[1, j]))) {
+                    modelAveragesDF[i, "DistToComm"] <- coefficients[2, "psi(DistToComm)"]
+                } else next
+
+            } else if (grepl("p", coefficients[1, j]) == TRUE) {
+
+                # if Community is a covariate, then put the value from "psi(Int)" for Zabalo
+                if (any(grepl("Community", coefficients[1, j]))) {
+                    detectionModelAverages[i, "CommunityZabalo"] <- coefficients[2, "p(Int)"]
+                    detectionModelAverages[i, "CommunitySinangoe"] <- coefficients[2, "p(CommunitySinangoe)"]
+                    detectionModelAverages[i, "CommunitySanPablo"] <- coefficients[2, "p(CommunitySan Pablo)"]
+                    detectionModelAverages[i, "CommunityRemolino"] <- coefficients[2, "p(CommunityRemolino)"]
+                    detectionModelAverages[i, "CommunitySiona"] <- coefficients[2, "p(CommunitySiona)"]
+                } else if (any(grepl("DaysEffortScaled", coefficients[1, j]))) {
+                    detectionModelAverages[i, "DaysEffortScaled"] <- coefficients[2, "p(DaysEffortScaled)"]
+                } else next
+
+
+
+
+
+            } 
+        }
+
+
+    } else  if (names(modelAverages)[i] == "Leopardus pardalis"){ # if it is the ocelot
+        model <- modelAverages[[i]]
+        coefficients <- c(coef(model@estimates$state), coef(model@estimates$det))
+        SEs <- c(SE(model@estimates$state), SE(model@estimates$det))
+        
+        # for every coefficient
+        for (j in 1:length(coefficients)) {
+            # if the column is a psi column
+            if (grepl("psi", names(coefficients)[j]) == TRUE) {
+                # if Community is a covariate in ANY column, then put the value from "psi(Int)" for Zabalo
+                if (any(grepl("Community", names(coefficients)[j]))) {
+                    modelAveragesDF[i, "CommunityZabalo"] <- coefficients["psi(Int)"]
+                    modelAveragesDF[i, "CommunitySinangoe"] <- coefficients["psi(CommunitySinangoe)"]
+                    modelAveragesDF[i, "CommunitySanPablo"] <- coefficients["psi(CommunitySan Pablo)"]
+                    modelAveragesDF[i, "CommunityRemolino"] <- coefficients["psi(CommunityRemolino)"]
+                    modelAveragesDF[i, "CommunitySiona"] <- coefficients["psi(CommunitySiona)"]
+                } else if (any(grepl("RainfallScaled", names(coefficients)[j]))) {
+                    modelAveragesDF[i, "RainfallScaled"] <- coefficients["psi(RainfallScaled)"]
+                } else if (any(grepl("percentNatural", names(coefficients)[j]))) {
+                    modelAveragesDF[i, "percentNatural"] <- coefficients["psi(percentNatural)"]
+                } else if (any(grepl("DistToWater", names(coefficients)[j]))) {
+                    modelAveragesDF[i, "DistToWater"] <- coefficients["psi(DistToWater)"]
+                } else if (any(grepl("TemperatureScaled", names(coefficients)[j]))) {
+                    modelAveragesDF[i, "TemperatureScaled"] <- coefficients["psi(TemperatureScaled)"]
+                } else if (any(grepl("DistToComm", names(coefficients)[j]))) {
+                    modelAveragesDF[i, "DistToComm"] <- coefficients["psi(DistToComm)"]
+                } else next
+
+            } else if (grepl("p", names(coefficients)[j]) == TRUE) {
+
+                # if Community is a covariate, then put the value from "psi(Int)" for Zabalo
+                if (any(grepl("Community", names(coefficients)[j]))) {
+                    detectionModelAverages[i, "CommunityZabalo"] <- coefficients["p(Int)"]
+                    detectionModelAverages[i, "CommunityZabaloSE"] <- SEs["p(Int)"]
+                    detectionModelAverages[i, "CommunitySinangoe"] <- coefficients["p(CommunitySinangoe)"]
+                    detectionModelAverages[i, "CommunitySinangoeSE"] <- SEs["p(CommunitySinangoe)"]
+                    detectionModelAverages[i, "CommunitySanPablo"] <- coefficients["p(CommunitySan Pablo)"]
+                    detectionModelAverages[i, "CommunitySanPabloSE"] <- SEs["p(CommunitySan Pablo)"]
+                    detectionModelAverages[i, "CommunityRemolino"] <- coefficients["p(CommunityRemolino)"]
+                    detectionModelAverages[i, "CommunityRemolinoSE"] <- SEs["p(CommunityRemolino)"]
+                    detectionModelAverages[i, "CommunitySiona"] <- coefficients["p(CommunitySiona)"]
+                    detectionModelAverages[i, "CommunitySionaSE"] <- SEs["p(CommunitySiona)"]
+                } else if (any(grepl("DaysEffortScaled", names(coefficients)[j]))) {
+                    detectionModelAverages[i, "DaysEffortScaled"] <- coefficients["p(DaysEffortScaled)"]
+                    detectionModelAverages[i, "DaysEffortScaledSE"] <- SEs["p(DaysEffortScaled)"]
+                } else next
+
+    }
+
+}
+
+}
+}
 ################################################################################
 ########################## ESTIMATE CALCULATING ################################
 ################################################################################
@@ -914,7 +1090,6 @@ commonNames
 
 
 
-
 ################################################################################
 ############################## PLOT ESTIMATES ##################################
 ################################################################################
@@ -1030,6 +1205,20 @@ communityPlottingDF$Community <- factor(communityPlottingDF$Community,
 communityPlottingDF$Species <- factor(communityPlottingDF$Species, levels = speciesNames) # so plotting doesn't alphabetize species
 
 communityPlottingDF <- communityPlottingDF %>% distinct()
+
+
+
+### Check for significance
+## See what is statistically significant
+model <- lm(Predicted ~ Species, data = communityPlottingDF)
+# You can also specify other variables to include in the model, like this:
+# model <- lm(occupancy ~ treatment + other_variable, data = your_data)
+summary(model)
+test <- aov(Predicted ~ Species, data = communityPlottingDF)
+summary(test)
+TukeyHSD(test)
+
+
 
 
 # plot it
@@ -1560,6 +1749,18 @@ if (communities == "Global" & savePlots == "YES"){
                                  "Average Detection Estimate", "Detection SE")) %>%
       kable_classic(full_width = FALSE, html_font = "TimesNewRoman") %>%
       kableExtra::save_kable(file = "Global/Figures/SingleSpeciesModeling/occupancyDetectionEstimates.png", zoom = 10)
+    
+    estimatesCutNull <- estimatesWithDays |>
+        dplyr::select(CommonNames, DaysGrouped, nullOccupancy, nullOccupancySE, nullDetection, nullDetectionSE) |>
+        arrange(desc(nullOccupancy)) |>
+        mutate(across(where(is.numeric), round, 3))
+    kbl(estimatesCutNull, col.names = c(
+        "Species", "Days per Detection Occasion",
+        "Null Occupancy Estimate", "Null Occupancy SE",
+        "Null Detection Estimate", "Null Detection SE"
+    )) %>%
+        kable_classic(full_width = FALSE, html_font = "TimesNewRoman") %>%
+        kableExtra::save_kable(file = "Global/Figures/SingleSpeciesModeling/nullOccupancyDetectionEstimates.png", zoom = 10)
 
 }
 
