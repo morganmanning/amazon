@@ -81,6 +81,109 @@ ggsave(paste0("../Figures/MultispeciesModeling/", paste0(casualNames, collapse =
 
 
 
+################################################################################
+############################### PLOT EFFECT SIZES ##############################
+################################################################################
+
+sum_out <- summary(community_mod_penalty)
+
+# helper function to convert coefficient matrix into a tidy data frame
+tidy_coefs <- function(mat, type) {
+    as.data.frame(mat) |>
+        tibble::rownames_to_column("term") |>
+        dplyr::mutate(
+            param_type = type,
+            estimate = Estimate,
+            lower = Estimate - 1.96 * SE,
+            upper = Estimate + 1.96 * SE,
+            Species = gsub("^\\[|\\].*", "", term),
+            param = gsub(".*\\] ", "", term),
+            significant = ifelse(`P(>|z|)` < 0.05, "Significant", "Not Significant")
+        ) |>
+        dplyr::select(Species, param, estimate, lower, upper, significant, param_type)
+}
+
+# tidy up both occupancy and detection
+occ_df <- tidy_coefs(sum_out$state, "Occupancy")
+det_df <- tidy_coefs(sum_out$det, "Detection")
+
+# combine them and make zabalo the intercept
+longDF <- dplyr::bind_rows(occ_df, det_df)
+longDF$param <- gsub("^\\(Intercept\\)$", "CommunityZabalo", longDF$param)
+
+# just occupancy
+longDFOccupancy <- longDF[longDF$param_type == "Occupancy", ]
+
+# now plot it
+ggplot(longDFOccupancy, aes(x = estimate, y = Species, color = significant)) +
+    geom_point(size = 2) +
+    geom_errorbarh(aes(xmin = lower, xmax = upper), height = 0.2) +
+    geom_vline(xintercept = 0, linetype = "dashed", color = "gray50") +
+    facet_wrap(~ param, labeller = label_wrap_gen(width = 20)) +
+    labs(x = "Effect size (95% CI)", y = NULL) +
+    scale_color_manual(values = c("Significant" = "darkred", "Not Significant" = "gray40")) +
+    theme_minimal() +
+    theme(
+        text = element_text(family = "Times", colour = "black"),
+        legend.title = element_blank(),
+        strip.text = element_text(size = 10),
+        axis.text.y = element_text(size = 8),
+        axis.title.x = element_text(size = 12),
+        panel.border = element_rect(color = "black", size = 0.5, fill = "transparent")
+    )
+
+# save it
+ggsave(paste0("../Figures/MultispeciesModeling/", paste0(casualNames, collapse = ""), "CommunityPenalizedEffectSizes.png"),
+    width = 7, height = 5
+)
+
+
+
+##### TABLE
+# prep the table
+table_df <- longDF %>%
+    filter(param_type == "Occupancy") %>%
+    mutate(
+        Covariate = param,
+        `95% CI` = ifelse(
+            !is.na(lower) & !is.na(upper),
+            sprintf("[%.2f, %.2f]", lower, upper),
+            "-"
+        ),
+        Estimate_fmt = ifelse(
+            !is.na(lower) & !is.na(upper) & (lower > 0 | upper < 0),
+            sprintf("<b>%.3f</b>", estimate),
+            sprintf("%.3f", estimate)
+        )
+    ) %>%
+    arrange(Species, Covariate) %>%
+    group_by(Species) %>%
+    mutate(
+        Species_display = ifelse(row_number() == 1, Species, "")
+    ) %>%
+    ungroup() %>%
+    select(
+        Species = Species_display,
+        Covariate,
+        Estimate = Estimate_fmt,
+        `95% CI`
+    )
+
+kbl(table_df,
+    col.names = c("Species", "Covariate", "Estimate", "95% CI"),
+    escape = FALSE
+) %>%
+    kable_classic(full_width = TRUE, html_font = "Times New Roman") %>%
+    column_spec(1, bold = TRUE, italic = TRUE) %>%
+    save_kable(paste0("../Figures/MultispeciesModeling/", paste0(casualNames, collapse = ""), "CommunityPenalizedEffectSizesTable.png"),
+        zoom = 1.5
+    )
+
+
+
+
+
+
 
 
 

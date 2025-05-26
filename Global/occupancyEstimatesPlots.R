@@ -23,6 +23,7 @@ require(knitr)
 require(lubridate)
 require(tictoc)
 require(MuMIn)
+require(tidyverse)
 
 #tic() # time it
 
@@ -627,8 +628,10 @@ for (j in 1:length(speciesNames)) {
         bestModsOutputs <- masterBestModsOutputs[[1]][[j]]
         # model average the best models
         avg <- model.avg(bestModsOutputs)
+        summ <- summary(avg)
+
         # save full model averages to list
-        modelAverages[[j]] <- avg$coefficients["full", ] # less biased
+        modelAverages[[j]] <- summ # less biased
     }
 }
 names(modelAverages) <- speciesNames
@@ -643,49 +646,87 @@ modelAveragesDF <- data.frame(
     Species = names(modelAverages),
     percentNatural = NA,
     percentNaturalSE = NA,
+    percentNaturalUpper = NA,
+    percentNaturalLower = NA,
     RainfallScaled = NA,
     RainfallScaledSE = NA,
+    RainfallScaledUpper = NA,
+    RainfallScaledLower = NA,
     DistToWater = NA,
     DistToWaterSE = NA,
+    DistToWaterUpper = NA,
+    DistToWaterLower = NA,
     TemperatureScaled = NA,
     TemperatureScaledSE = NA,
+    TemperatureScaledUpper = NA,
+    TemperatureScaledLower = NA,
     DistToComm = NA,
     DistToCommSE = NA,
+    DistToCommUpper = NA,
+    DistToCommLower = NA,
     CommunityZabalo = NA,
     CommunityZabaloSE = NA,
+    CommunityZabaloUpper = NA,
+    CommunityZabaloLower = NA,
     CommunitySinangoe = NA,
     CommunitySinangoeSE = NA,
+    CommunitySinangoeUpper = NA,
+    CommunitySinangoeLower = NA,
     CommunitySanPablo = NA,
-    CommunitySanPablo = NA,
+    CommunitySanPabloSE = NA,
+    CommunitySanPabloUpper = NA,
+    CommunitySanPabloLower = NA,
     CommunityRemolino = NA,
     CommunityRemolinoSE = NA,
+    CommunityRemolinoUpper = NA,
+    CommunityRemolinoLower = NA,
     CommunitySiona = NA,
-    CommunitySionaSE = NA
+    CommunitySionaSE = NA,
+    CommunitySionaUpper = NA,
+    CommunitySionaLower = NA
 )
 detectionModelAverages <- data.frame(
     Species = names(modelAverages),
     DaysEffortScaled = NA,
     DaysEffortScaledSE = NA,
+    DaysEffortScaledUpper = NA,
+    DaysEffortScaledLower = NA,
     CommunityZabalo = NA,
     CommunityZabaloSE = NA,
+    CommunityZabaloUpper = NA,
+    CommunityZabaloLower = NA,
     CommunitySinangoe = NA,
     CommunitySinangoeSE = NA,
+    CommunitySinangoeUpper = NA,
+    CommunitySinangoeLower = NA,
     CommunitySanPablo = NA,
     CommunitySanPabloSE = NA,
+    CommunitySanPabloUpper = NA,
+    CommunitySanPabloLower = NA,
     CommunityRemolino = NA,
     CommunityRemolinoSE = NA,
+    CommunityRemolinoUpper = NA,
+    CommunityRemolinoLower = NA,
     CommunitySiona = NA,
-    CommunitySionaSE = NA
+    CommunitySionaSE = NA,
+    CommunitySionaUpper = NA,
+    CommunitySionaLower = NA
 )
 for (i in 1:length(modelAverages)) {
+#coefTable(summ, full = TRUE)
+#confint(summ, full = TRUE)
+#modelAverages[[i]]$coefficients["full", ]
 
     if (names(modelAverages)[i] != "Leopardus pardalis") {
         coefficients <- as.data.frame(gsub(" ", "", rbind(
-            names(modelAverages[[i]]),
-            modelAverages[[i]])
+            names(modelAverages[[i]]$coefficients["full", ]),
+            modelAverages[[i]]$coefficients["full", ])
         ))
-
-        
+        coefficients <- rbind(
+            coefficients,
+            as.data.frame(confint(modelAverages[[i]], full = TRUE))[, "2.5 %"], # lower
+            as.data.frame(confint(modelAverages[[i]], full = TRUE))[, "97.5 %"] # upper
+        ) 
         
         for (j in 1:ncol(coefficients)){
             # if the column is a psi column
@@ -693,20 +734,40 @@ for (i in 1:length(modelAverages)) {
                 # if Community is a covariate in ANY column, then put the value from "psi(Int)" for Zabalo
                 if (any(grepl("Community", coefficients[1, j]))) {
                     modelAveragesDF[i, "CommunityZabalo"] <- coefficients[2, "psi(Int)"]
+                    modelAveragesDF[i, "CommunityZabaloLower"] <- coefficients[3, "psi(Int)"]
+                    modelAveragesDF[i, "CommunityZabaloUpper"] <- coefficients[4, "psi(Int)"]
                     modelAveragesDF[i, "CommunitySinangoe"] <- coefficients[2, "psi(CommunitySinangoe)"]
+                    modelAveragesDF[i, "CommunitySinangoeLower"] <- coefficients[3, "psi(CommunitySinangoe)"]
+                    modelAveragesDF[i, "CommunitySinangoeUpper"] <- coefficients[4, "psi(CommunitySinangoe)"]
                     modelAveragesDF[i, "CommunitySanPablo"] <- coefficients[2, "psi(CommunitySan Pablo)"]
+                    modelAveragesDF[i, "CommunitySanPabloLower"] <- coefficients[3, "psi(CommunitySan Pablo)"]
+                    modelAveragesDF[i, "CommunitySanPabloUpper"] <- coefficients[4, "psi(CommunitySan Pablo)"]
                     modelAveragesDF[i, "CommunityRemolino"] <- coefficients[2, "psi(CommunityRemolino)"]
+                    modelAveragesDF[i, "CommunityRemolinoLower"] <- coefficients[3, "psi(CommunityRemolino)"]
+                    modelAveragesDF[i, "CommunityRemolinoUpper"] <- coefficients[4, "psi(CommunityRemolino)"]
                     modelAveragesDF[i, "CommunitySiona"] <- coefficients[2, "psi(CommunitySiona)"]
+                    modelAveragesDF[i, "CommunitySionaLower"] <- coefficients[3, "psi(CommunitySiona)"]
+                    modelAveragesDF[i, "CommunitySionaUpper"] <- coefficients[4, "psi(CommunitySiona)"]
                 } else if (any(grepl("Rainfall", coefficients[1, j]))) {
                     modelAveragesDF[i, "RainfallScaled"] <- coefficients[2, "psi(RainfallScaled)"]
+                    modelAveragesDF[i, "RainfallScaledLower"] <- coefficients[3, "psi(RainfallScaled)"]
+                    modelAveragesDF[i, "RainfallScaledUpper"] <- coefficients[4, "psi(RainfallScaled)"]
                 } else if (any(grepl("percentNatural", coefficients[1, j]))) {
                     modelAveragesDF[i, "percentNatural"] <- coefficients[2, "psi(percentNatural)"]
+                    modelAveragesDF[i, "percentNaturalLower"] <- coefficients[3, "psi(percentNatural)"]
+                    modelAveragesDF[i, "percentNaturalUpper"] <- coefficients[4, "psi(percentNatural)"]
                 } else if (any(grepl("DistToWater", coefficients[1, j]))) {
                     modelAveragesDF[i, "DistToWater"] <- coefficients[2, "psi(DistToWater)"]
+                    modelAveragesDF[i, "DistToWaterLower"] <- coefficients[3, "psi(DistToWater)"]
+                    modelAveragesDF[i, "DistToWaterUpper"] <- coefficients[4, "psi(DistToWater)"]
                 } else if (any(grepl("TemperatureScaled", coefficients[1, j]))) {
                     modelAveragesDF[i, "TemperatureScaled"] <- coefficients[2, "psi(TemperatureScaled)"]
+                    modelAveragesDF[i, "TemperatureScaledLower"] <- coefficients[3, "psi(TemperatureScaled)"]
+                    modelAveragesDF[i, "TemperatureScaledUpper"] <- coefficients[4, "psi(TemperatureScaled)"]
                 } else if (any(grepl("DistToComm", coefficients[1, j]))) {
                     modelAveragesDF[i, "DistToComm"] <- coefficients[2, "psi(DistToComm)"]
+                    modelAveragesDF[i, "DistToCommLower"] <- coefficients[3, "psi(DistToComm)"]
+                    modelAveragesDF[i, "DistToCommUpper"] <- coefficients[4, "psi(DistToComm)"]
                 } else next
 
             } else if (grepl("p", coefficients[1, j]) == TRUE) {
@@ -714,17 +775,25 @@ for (i in 1:length(modelAverages)) {
                 # if Community is a covariate, then put the value from "psi(Int)" for Zabalo
                 if (any(grepl("Community", coefficients[1, j]))) {
                     detectionModelAverages[i, "CommunityZabalo"] <- coefficients[2, "p(Int)"]
+                    detectionModelAverages[i, "CommunityZabaloLower"] <- coefficients[3, "p(Int)"]
+                    detectionModelAverages[i, "CommunityZabaloUpper"] <- coefficients[4, "p(Int)"]
                     detectionModelAverages[i, "CommunitySinangoe"] <- coefficients[2, "p(CommunitySinangoe)"]
+                    detectionModelAverages[i, "CommunitySinangoeLower"] <- coefficients[3, "p(CommunitySinangoe)"]
+                    detectionModelAverages[i, "CommunitySinangoeUpper"] <- coefficients[4, "p(CommunitySinangoe)"]
                     detectionModelAverages[i, "CommunitySanPablo"] <- coefficients[2, "p(CommunitySan Pablo)"]
+                    detectionModelAverages[i, "CommunitySanPabloLower"] <- coefficients[3, "p(CommunitySan Pablo)"]
+                    detectionModelAverages[i, "CommunitySanPabloUpper"] <- coefficients[4, "p(CommunitySan Pablo)"]
                     detectionModelAverages[i, "CommunityRemolino"] <- coefficients[2, "p(CommunityRemolino)"]
+                    detectionModelAverages[i, "CommunityRemolinoLower"] <- coefficients[3, "p(CommunityRemolino)"]
+                    detectionModelAverages[i, "CommunityRemolinoUpper"] <- coefficients[4, "p(CommunityRemolino)"]
                     detectionModelAverages[i, "CommunitySiona"] <- coefficients[2, "p(CommunitySiona)"]
+                    detectionModelAverages[i, "CommunitySionaLower"] <- coefficients[3, "p(CommunitySiona)"]
+                    detectionModelAverages[i, "CommunitySionaUpper"] <- coefficients[4, "p(CommunitySiona)"]
                 } else if (any(grepl("DaysEffortScaled", coefficients[1, j]))) {
                     detectionModelAverages[i, "DaysEffortScaled"] <- coefficients[2, "p(DaysEffortScaled)"]
+                    detectionModelAverages[i, "DaysEffortScaledLower"] <- coefficients[3, "p(DaysEffortScaled)"]
+                    detectionModelAverages[i, "DaysEffortScaledUpper"] <- coefficients[4, "p(DaysEffortScaled)"]
                 } else next
-
-
-
-
 
             } 
         }
@@ -733,6 +802,16 @@ for (i in 1:length(modelAverages)) {
     } else  if (names(modelAverages)[i] == "Leopardus pardalis"){ # if it is the ocelot
         model <- modelAverages[[i]]
         coefficients <- c(coef(model@estimates$state), coef(model@estimates$det))
+        lowerState <- as.data.frame(confint(model@estimates$state))[, "0.025"]
+        names(lowerState) <- rownames(as.data.frame(confint(model@estimates$state)))
+        lowerDet <- as.data.frame(confint(model@estimates$det))[, "0.025"]
+        names(lowerDet) <- rownames(as.data.frame(confint(model@estimates$det)))
+        lowers <- c(lowerState, lowerDet)
+        upperState <- as.data.frame(confint(model@estimates$state))[, "0.975"]
+        names(upperState) <- rownames(as.data.frame(confint(model@estimates$state)))
+        upperDet <- as.data.frame(confint(model@estimates$det))[, "0.975"]
+        names(upperDet) <- rownames(as.data.frame(confint(model@estimates$det)))
+        uppers <- c(upperState, upperDet)
         SEs <- c(SE(model@estimates$state), SE(model@estimates$det))
         
         # for every coefficient
@@ -742,20 +821,40 @@ for (i in 1:length(modelAverages)) {
                 # if Community is a covariate in ANY column, then put the value from "psi(Int)" for Zabalo
                 if (any(grepl("Community", names(coefficients)[j]))) {
                     modelAveragesDF[i, "CommunityZabalo"] <- coefficients["psi(Int)"]
+                    modelAveragesDF[i, "CommunityZabaloUpper"] <- uppers["psi(Int)"]
+                    modelAveragesDF[i, "CommunityZabaloLower"] <- lowers["psi(Int)"]
                     modelAveragesDF[i, "CommunitySinangoe"] <- coefficients["psi(CommunitySinangoe)"]
+                    modelAveragesDF[i, "CommunitySinangoeUpper"] <- uppers["psi(CommunitySinangoe)"]
+                    modelAveragesDF[i, "CommunitySinangoeLower"] <- lowers["psi(CommunitySinangoe)"]
                     modelAveragesDF[i, "CommunitySanPablo"] <- coefficients["psi(CommunitySan Pablo)"]
+                    modelAveragesDF[i, "CommunitySanPabloUpper"] <- uppers["psi(CommunitySan Pablo)"]
+                    modelAveragesDF[i, "CommunitySanPabloLower"] <- lowers["psi(CommunitySan Pablo)"]
                     modelAveragesDF[i, "CommunityRemolino"] <- coefficients["psi(CommunityRemolino)"]
+                    modelAveragesDF[i, "CommunityRemolinoUpper"] <- uppers["psi(CommunityRemolino)"]
+                    modelAveragesDF[i, "CommunityRemolinoLower"] <- lowers["psi(CommunityRemolino)"]
                     modelAveragesDF[i, "CommunitySiona"] <- coefficients["psi(CommunitySiona)"]
+                    modelAveragesDF[i, "CommunitySionaUpper"] <- uppers["psi(CommunitySiona)"]
+                    modelAveragesDF[i, "CommunitySionaLower"] <- lowers["psi(CommunitySiona)"]
                 } else if (any(grepl("RainfallScaled", names(coefficients)[j]))) {
                     modelAveragesDF[i, "RainfallScaled"] <- coefficients["psi(RainfallScaled)"]
+                    modelAveragesDF[i, "RainfallScaledUpper"] <- uppers["psi(RainfallScaled)"]
+                    modelAveragesDF[i, "RainfallScaledLower"] <- lowers["psi(RainfallScaled)"]
                 } else if (any(grepl("percentNatural", names(coefficients)[j]))) {
                     modelAveragesDF[i, "percentNatural"] <- coefficients["psi(percentNatural)"]
+                    modelAveragesDF[i, "percentNaturalUpper"] <- uppers["psi(percentNatural)"]
+                    modelAveragesDF[i, "percentNaturalLower"] <- lowers["psi(percentNatural)"]
                 } else if (any(grepl("DistToWater", names(coefficients)[j]))) {
                     modelAveragesDF[i, "DistToWater"] <- coefficients["psi(DistToWater)"]
+                    modelAveragesDF[i, "DistToWaterUpper"] <- uppers["psi(DistToWater)"]
+                    modelAveragesDF[i, "DistToWaterLower"] <- lowers["psi(DistToWater)"]
                 } else if (any(grepl("TemperatureScaled", names(coefficients)[j]))) {
                     modelAveragesDF[i, "TemperatureScaled"] <- coefficients["psi(TemperatureScaled)"]
+                    modelAveragesDF[i, "TemperatureScaledUpper"] <- uppers["psi(TemperatureScaled)"]
+                    modelAveragesDF[i, "TemperatureScaledLower"] <- lowers["psi(TemperatureScaled)"]
                 } else if (any(grepl("DistToComm", names(coefficients)[j]))) {
                     modelAveragesDF[i, "DistToComm"] <- coefficients["psi(DistToComm)"]
+                    modelAveragesDF[i, "DistToCommUpper"] <- uppers["psi(DistToComm)"]
+                    modelAveragesDF[i, "DistToCommLower"] <- lowers["psi(DistToComm)"]
                 } else next
 
             } else if (grepl("p", names(coefficients)[j]) == TRUE) {
@@ -763,17 +862,29 @@ for (i in 1:length(modelAverages)) {
                 # if Community is a covariate, then put the value from "psi(Int)" for Zabalo
                 if (any(grepl("Community", names(coefficients)[j]))) {
                     detectionModelAverages[i, "CommunityZabalo"] <- coefficients["p(Int)"]
+                    detectionModelAverages[i, "CommunityZabaloUpper"] <- uppers["p(Int)"]
+                    detectionModelAverages[i, "CommunityZabaloLower"] <- lowers["p(Int)"]
                     detectionModelAverages[i, "CommunityZabaloSE"] <- SEs["p(Int)"]
                     detectionModelAverages[i, "CommunitySinangoe"] <- coefficients["p(CommunitySinangoe)"]
+                    detectionModelAverages[i, "CommunitySinangoeUpper"] <- uppers["p(CommunitySinangoe)"]
+                    detectionModelAverages[i, "CommunitySinangoeLower"] <- lowers["p(CommunitySinangoe)"]
                     detectionModelAverages[i, "CommunitySinangoeSE"] <- SEs["p(CommunitySinangoe)"]
                     detectionModelAverages[i, "CommunitySanPablo"] <- coefficients["p(CommunitySan Pablo)"]
+                    detectionModelAverages[i, "CommunitySanPabloUpper"] <- uppers["p(CommunitySan Pablo)"]
+                    detectionModelAverages[i, "CommunitySanPabloLower"] <- lowers["p(CommunitySan Pablo)"]
                     detectionModelAverages[i, "CommunitySanPabloSE"] <- SEs["p(CommunitySan Pablo)"]
                     detectionModelAverages[i, "CommunityRemolino"] <- coefficients["p(CommunityRemolino)"]
+                    detectionModelAverages[i, "CommunityRemolinoUpper"] <- uppers["p(CommunityRemolino)"]
+                    detectionModelAverages[i, "CommunityRemolinoLower"] <- lowers["p(CommunityRemolino)"]
                     detectionModelAverages[i, "CommunityRemolinoSE"] <- SEs["p(CommunityRemolino)"]
                     detectionModelAverages[i, "CommunitySiona"] <- coefficients["p(CommunitySiona)"]
+                    detectionModelAverages[i, "CommunitySionaUpper"] <- uppers["p(CommunitySiona)"]
+                    detectionModelAverages[i, "CommunitySionaLower"] <- lowers["p(CommunitySiona)"]
                     detectionModelAverages[i, "CommunitySionaSE"] <- SEs["p(CommunitySiona)"]
                 } else if (any(grepl("DaysEffortScaled", names(coefficients)[j]))) {
                     detectionModelAverages[i, "DaysEffortScaled"] <- coefficients["p(DaysEffortScaled)"]
+                    detectionModelAverages[i, "DaysEffortScaledUpper"] <- uppers["p(DaysEffortScaled)"]
+                    detectionModelAverages[i, "DaysEffortScaledLower"] <- lowers["p(DaysEffortScaled)"]
                     detectionModelAverages[i, "DaysEffortScaledSE"] <- SEs["p(DaysEffortScaled)"]
                 } else next
 
@@ -783,6 +894,173 @@ for (i in 1:length(modelAverages)) {
 
 }
 }
+
+head(modelAveragesDF)
+
+# pivot the data frame to long format
+# convert all non-Species columns to numeric (forcing "<NA>" strings to real NAs)
+modelAveragesDF_clean <- modelAveragesDF %>%
+    mutate(across(-Species, ~ as.numeric(as.character(.))))
+
+# reshape the data
+longDF <- modelAveragesDF_clean %>%
+    pivot_longer(
+        cols = -Species,
+        names_to = "full_param",
+        values_to = "value"
+    ) %>%
+    mutate(
+        param = str_replace(full_param, "(SE|Upper|Lower)$", ""),
+        type = case_when(
+            str_detect(full_param, "SE$") ~ "se",
+            str_detect(full_param, "Upper$") ~ "upper",
+            str_detect(full_param, "Lower$") ~ "lower",
+            TRUE ~ "estimate"
+        )
+    ) %>%
+    select(Species, param, type, value) %>%
+    pivot_wider(
+        names_from = type,
+        values_from = value
+    )
+
+# check
+head(longDF)
+
+# make significant column
+longDF <- longDF %>%
+    mutate(significant = ifelse(lower > 0 | upper < 0, "Significant", "Not Significant")) 
+longDF$significant <- factor(longDF$significant, levels = c("Significant", "Not Significant"))
+
+
+
+################################################################################
+########################## PLOTTING EFFECT SIZES ################################
+################################################################################
+
+
+ggplot(longDF, aes(x = estimate, y = Species, color = significant)) +
+    geom_point() +
+    geom_errorbarh(aes(xmin = lower, xmax = upper), height = 0.2) +
+    geom_vline(xintercept = 0, linetype = "dashed", color = "gray50") +
+    #geom_text(aes(x = upper + 3, label = significant), size = 8, hjust = 0, color = "red") + # nudge asterisk to the right
+    facet_wrap(~param, scales = "free_x") +
+    labs(x = "Effect size (95% CI)", y = NULL) +
+    scale_color_manual(values = c("Significant" = "darkred", "Not Significant" = "gray40")) +
+    theme_minimal() +
+    theme( 
+        text = element_text(family = "Times", colour = "black"),
+        legend.title = element_blank(),
+        strip.text = element_text(size = 10),
+        axis.text.y = element_text(size = 8),
+        axis.title.x = element_text(size = 12),
+        panel.border = element_rect(color = "black", size = 0.5, fill = "transparent")
+    )
+
+# save model averaged effect sizes 
+ggsave("Global/Figures/SingleSpeciesModeling/ModelAveragedEffectSizes.png", width = 10, height = 6)
+
+
+# extract covariate base names
+cols <- colnames(modelAveragesDF)
+covariates <- unique(gsub("(SE|Upper|Lower)$", "", grep("Upper|Lower|SE", cols, value = TRUE)))
+
+# function to pivot one covariate at a time for estimates and CIs
+get_covariate_df <- function(df, covariate) {
+    est_col <- covariate
+    lower_col <- paste0(covariate, "Lower")
+    upper_col <- paste0(covariate, "Upper")
+
+    # Use numeric vectors with NA if columns missing
+    Estimate <- if (est_col %in% names(df)) as.numeric(df[[est_col]]) else rep(NA_real_, nrow(df))
+    Lower <- if (lower_col %in% names(df)) as.numeric(df[[lower_col]]) else rep(NA_real_, nrow(df))
+    Upper <- if (upper_col %in% names(df)) as.numeric(df[[upper_col]]) else rep(NA_real_, nrow(df))
+
+    tibble(
+        Species = df$Species,
+        Covariate = covariate,
+        Estimate = Estimate,
+        Lower = Lower,
+        Upper = Upper
+    )
+}
+
+# build long table for all covariates
+cov_list <- lapply(covariates, get_covariate_df, df = modelAveragesDF)
+long_df <- bind_rows(cov_list)
+
+# format confidence intervals and bold estimates where CI excludes zero
+long_df <- long_df %>%
+    mutate(
+        # Format CI as ["lower", "upper"], NA if missing
+        ConfInt = ifelse(
+            !is.na(Lower) & !is.na(Upper),
+            paste0('[', round(Lower, 4), ', ', round(Upper, 4), ']'),
+            NA_character_
+        ),
+        # Check if CI excludes zero to bold Estimate
+        BoldEstimate = ifelse(
+            !is.na(Lower) & !is.na(Upper) & (Lower > 0 | Upper < 0),
+            paste0(round(Estimate, 4)),
+            as.character(round(Estimate, 4))
+        )
+    )
+
+# prep species column to only show species name once in bold (first occurrence)
+long_df <- long_df %>%
+    arrange(Species, Covariate) %>%
+    group_by(Species) %>%
+    mutate(
+        Species_bold = ifelse(row_number() == 1, paste0(Species[1]), "")
+    ) %>%
+    ungroup()
+
+
+# select and rename columns for the final table
+formatted_table <- long_df %>%
+    mutate(
+        `95% CI` = sprintf("[%.2f, %.2f]", Lower, Upper),
+        Estimate = ifelse(Lower > 0 | Upper < 0,
+            sprintf("<b>%.3f</b>", Estimate),
+            sprintf("%.3f", Estimate)
+        )
+    ) %>%
+    select(Species_bold, Covariate, Estimate, `95% CI`)
+
+final_table <- formatted_table %>%
+    select(
+        Species = Species_bold,
+        Covariate,
+        Estimate = Estimate,
+        ConfidenceInterval = `95% CI`
+    ) %>%
+    mutate(across(everything(), ~ ifelse(is.na(.), "-", .))) %>%
+    mutate(across(everything(), ~ ifelse(grepl("NA", .), "-", .)))
+
+# Step 6: Print with kable
+kbl(final_table,
+    col.names = c("Species", "Covariate", "Estimate", "95% CI"),
+    escape = FALSE
+) %>%
+    kable_classic(full_width = TRUE, html_font = "TimesNewRoman") %>%
+    column_spec(1, bold = TRUE, italic = TRUE) %>%
+    save_kable(file = "Global/Figures/SingleSpeciesModeling/modelAveragesTable.png", zoom = 1.5)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ################################################################################
 ########################## ESTIMATE CALCULATING ################################
 ################################################################################
@@ -1170,7 +1448,7 @@ p <- ggplot(estimates, aes(x = Species,
         axis.text.x = element_text(angle = 45, vjust = 0.60),
         legend.title = element_blank(),
         axis.title.x = element_blank(), 
-        legend.position="none",
+        legend.position = "none",
         panel.grid.major.y = element_line(color = "#cecece", linewidth = 0.2)) + 
   add_phylopic(peccPic, alpha = 0.2, x = 1.0, y = 0.05, ysize = 0.1) +
   add_phylopic(brockPic, alpha = 0.2, x = 2.0, y = 0.05, ysize = 0.125) +
