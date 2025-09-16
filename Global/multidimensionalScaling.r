@@ -1,6 +1,6 @@
 # Goal: do the multidimensional scaling
 
-setwd("~/Documents/amazon/Global/Data")
+setwd("~/amazon/Global/Data")
 
 # source of elevation data: https://www.sciencebase.gov/catalog/item/5920dd83e4b0ac16dbdf3a4d
 # source for rainfall, temperature, humidity, root moisture: https://disc.gsfc.nasa.gov/datasets/GLDAS_NOAH025_M_2.1/summary
@@ -33,10 +33,12 @@ excludeColumns <- c(
     "X", "Y", "OperatingDays", "MeanTemperature", "MeanDistToWater",
     "DaysHuntingPerMonthDry", "DaysHuntingPerMonthWet", "DaysFishingPerMonthWet",
     "DaysFishingPerMonthDry", "PercentPopWhoHunt", "PercentPopWhoFish", 
-    "humiditySD", "airTempSD", "rainfallSD", "rootMoistureSD"
+    "humiditySD", "airTempSD", "rainfallSD", "rootMoistureSD",
+    # new removals
+    "humidity", "rootMoisture", "shannonIndex", "simpsonIndex", "nSpecies", "nIndiv"
 )
 communityCovariatesRemoved <- communityCovariates[, !(names(communityCovariates) %in% excludeColumns)]
-
+communityCovariatesRemoved <- scale(communityCovariatesRemoved)
 
 # Calculate the distance matrix
 distance_matrix <- dist(communityCovariatesRemoved)
@@ -70,24 +72,24 @@ ggplot(mds_df, aes(x = x, y = y, label = label)) +
 NMDS <- metaMDS(distance_matrix, trace = 0)
 
 # add arrows showing the direction of the covariates
-ef <- envfit(NMDS, communityCovariatesRemoved, na.rm = TRUE)
+ef <- envfit(NMDS, as.data.frame(communityCovariatesRemoved), na.rm = TRUE)
 ef
-
+labelFactor <- 2.5
 arrows1 <- ef$vectors$arrows |> as_tibble(rownames = "community")
 as_tibble(NMDS$points, rownames = "community") |>
     ggplot(aes(x = MDS1, y = MDS2, label = community)) +
-    xlim(min(NMDS$points[, 1]) * 1.3, max(NMDS$points[, 1]) * 1.3) +
+    #geom_point()
+    xlim(min(NMDS$points[, 1]) * 1.4, max(NMDS$points[, 1]) * 1.4) +
     geom_tile(
-        aes(fill = community, color = "black", alpha = 0.5),
-        width = 210000000,
+        aes(fill = community, color = "black", alpha = 0.2),
+        width = 1,
+        height = 0.2,
         col = "black"
     ) +
     scale_fill_manual(values = colors) +
-    geom_text(aes(fontface = "bold"), size = 5) +
-    geom_segment(data = arrows1, aes(x = 50000000 * NMDS1, y = 50000000 * NMDS2, xend = 0, yend = 0)) +
-    geom_label_repel(data = arrows1, aes(x = 50000000 * NMDS1, y = 50000000 * NMDS2),
-     max.overlaps = 15,
-     min.segment.length = .5, box.padding = 0.9) +
+    geom_text(aes(fontface = "bold"), size = 7) +
+    geom_segment(data = arrows1, aes(x = labelFactor * NMDS1, y = labelFactor * NMDS2, xend = 0, yend = 0), arrow = arrow(ends = "first")) +
+    geom_label_repel(data = arrows1, aes(x = labelFactor * NMDS1, y = labelFactor * NMDS2), nudge_y = .1, segment.colour = NA) +
     theme_bw() +
     theme(aspect.ratio = 1,
         legend.position = "none")
