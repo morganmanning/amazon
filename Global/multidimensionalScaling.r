@@ -14,6 +14,8 @@ require(dplyr)
 require(vegan)
 require(ggplot2)
 require(ggrepel)
+library(knitr)
+library(kableExtra)
 
 # load in necessary data
 communityCovariates <- read.csv("CommunityLevelCovariates.csv")
@@ -29,6 +31,10 @@ communityCovariates$Community <- NULL
 ################################################################################
 
 # Columns to exclude
+keepColumns <- c(
+    "TerritoryArea", "distanceToNearestCommunity",
+    "airTemp", "airTempSD", "rainfall", "rainfallSD", "MeanElevation", "MeanDistToWater"
+)
 excludeColumns <- c(
     "X", "Y", "OperatingDays", "MeanTemperature", "MeanDistToWater",
     "DaysHuntingPerMonthDry", "DaysHuntingPerMonthWet", "DaysFishingPerMonthWet",
@@ -37,7 +43,7 @@ excludeColumns <- c(
     # new removals
     "humidity", "rootMoisture", "shannonIndex", "simpsonIndex", "nSpecies", "nIndiv"
 )
-communityCovariatesRemoved <- communityCovariates[, !(names(communityCovariates) %in% excludeColumns)]
+communityCovariatesRemoved <- communityCovariates[, (names(communityCovariates) %in% keepColumns)]
 communityCovariatesRemoved <- scale(communityCovariatesRemoved)
 
 # Calculate the distance matrix
@@ -69,7 +75,7 @@ ggplot(mds_df, aes(x = x, y = y, label = label)) +
 
 # this is how I found a way to add the arrows to the plot
 ####### the 'vegan' way based on https://andrewirwin.github.io/data-viz-notes/lessons/122-mds.html
-NMDS <- metaMDS(distance_matrix, trace = 0)
+NMDS <- metaMDS(distance_matrix, trymax = 50)
 
 # add arrows showing the direction of the covariates
 ef <- envfit(NMDS, as.data.frame(communityCovariatesRemoved), na.rm = TRUE)
@@ -79,7 +85,7 @@ arrows1 <- ef$vectors$arrows |> as_tibble(rownames = "community")
 as_tibble(NMDS$points, rownames = "community") |>
     ggplot(aes(x = MDS1, y = MDS2, label = community)) +
     #geom_point()
-    xlim(min(NMDS$points[, 1]) * 1.4, max(NMDS$points[, 1]) * 1.4) +
+    xlim(min(NMDS$points[, 1]) * 2, max(NMDS$points[, 1]) * 1.2) +
     geom_tile(
         aes(fill = community, color = "black", alpha = 0.2),
         width = 1,
@@ -101,3 +107,39 @@ ggsave(
 # base plot for comparison
 plot(NMDS, type = "text", cex = 1.5)
 plot(ef)
+
+# make a table of the envfit results
+ef_df <- as.data.frame(ef$vectors$arrows) %>%
+    mutate(
+        r2 = ef$vectors$r,
+        pval = ef$vectors$pvals,
+        Variable = rownames(ef$vectors$arrows)
+    ) %>%
+    select(NMDS1, NMDS2, r2, pval) %>%
+    mutate(
+        sig = case_when(
+            pval <= 0.001 ~ "***",
+            pval <= 0.01 ~ "**",
+            pval <= 0.05 ~ "*",
+            #pval <= 0.1 ~ ".",
+            TRUE ~ ""
+        ),
+        pval_fmt = sprintf("%.3f%s", pval, sig),
+        r2_fmt = sprintf("%.3f", r2)
+    ) %>%
+    select(NMDS1, NMDS2, r2_fmt, pval_fmt)
+
+# make the table
+kbl(
+    ef_df,
+    col.names = c("NMDS1", "NMDS2", expression(r^2), "p-value"),
+    escape = FALSE,
+    format = "html"
+) %>%
+    kable_classic(full_width = TRUE, html_font = "Times New Roman") %>%
+    column_spec(1, bold = TRUE) %>%
+    row_spec(0, bold = TRUE) %>%   # bolds the header row
+    save_kable(
+        "../Figures/MultispeciesModeling/NMDS_envfit_table.png",
+        zoom = 1.5
+    )
