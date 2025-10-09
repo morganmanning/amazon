@@ -189,6 +189,7 @@ communityCovariates$Year <- ifelse(communityCovariates$Community == "Zabalo", "2
 communityCovariates <- communityCovariates %>% distinct()
 communityCovariates$RainfallScaled <- c(scale(communityCovariates$Rainfall))
 communityCovariates$TemperatureScaled <- c(scale(communityCovariates$Temperature))
+communityCovariates$PercentNaturalScaled <- c(scale(communityCovariates$percentNatural))
 
 
 #### added 10/08/24

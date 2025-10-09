@@ -5,7 +5,9 @@ setwd("~/Documents/amazon/Global/Data")
 ################################################################################
 # ------------------------------ START UP -------------------------------------#
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
-
+install.packages(c("lubridate", "tidyverse","camtrapR", "unmarked", "ggplot2", "rphylopic", 
+                     "knitr", "kableExtra", "stringr", "gridExtra", "ggpubr", "reshape2", 
+                     "openxlsx", "vegan", "ggrepel", "terra", "sf", "exactextractr"))
 # load necessary packages
 require(dplyr)
 require(lubridate)

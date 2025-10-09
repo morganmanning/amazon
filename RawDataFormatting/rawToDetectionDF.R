@@ -153,7 +153,11 @@ Data$Species <- gsub("Mazama nemorivaga", "Mazama sp.", Data$Species)
 Data$Species <- gsub("Mazama gouazoubira", "Mazama sp.", Data$Species)
 
 ##### Pick species of interest
-species <- c("Pecari tajacu", "Mazama sp.", "Cuniculus paca", "Psophia crepitans", "Metachirus nudicaudatus", "Dasyprocta fuliginosa", "Dasypus novemcinctus", "Tinamus major", "Didelphis marsupialis", "Leopardus pardalis", "Eira barbara")
+species <- c(
+    "Pecari tajacu", "Mazama sp.", "Cuniculus paca", "Psophia crepitans", "Metachirus nudicaudatus",
+    "Dasyprocta fuliginosa", "Dasypus novemcinctus", "Tinamus major",
+    "Didelphis marsupialis", "Leopardus pardalis", "Eira barbara"
+)
 
 #species <- c("Cuniculus paca", "Mazama americana", "Pecari tajacu", "Psophia crepitans")
 # paca = Cuniculus paca
