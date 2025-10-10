@@ -443,7 +443,7 @@ dfTemplate <- data.frame(
     Community = rep("Sinangoe", N), # picked because it's kind of a middle community
     Rainfall = mean(siteCovs(umf)$Rainfall),
     RainfallScaled = mean(siteCovs(umf)$RainfallScaled),
-    percentNatural = mean(siteCovs(umf)$percentNatural),
+    PercentNaturalScaled = mean(siteCovs(umf)$PercentNaturalScaled),
     DistToWater = mean(siteCovs(umf)$DistToWater),
     Temperature = mean(siteCovs(umf)$Temperature),
     TemperatureScaled = mean(siteCovs(umf)$TemperatureScaled),
@@ -454,7 +454,7 @@ dfTemplate <- data.frame(
 
 # extract the words from the best multispecies model state formulas
 prediction_plots_list <- list() # plots per covariate included in the best models
-covs <- unique(unlist(strsplit(gsub("1", "", gsub("[ ~]", "", best_mod_penalty@stateformulas)), "[ +~]")))
+covs <- unique(unlist(strsplit(gsub("1", "", gsub("[ ~]", "", best_mod_penalty@formlist$state)), "[ +~]")))
 covs <- covs[covs != "Year" & covs != "Community"]
 for (i in 1:length(covs)) {
     # make a prediction dataframe across the gradient of each covariate
@@ -521,7 +521,7 @@ names(prediction_plots_list) <- covs
 
 # extract the words from the best multispecies model state formulas
 natural_prediction_plots_list <- list() # plots per covariate included in the best models
-covs <- unique(unlist(strsplit(gsub("1", "", gsub("[ ~]", "", natural_mod_penalty@stateformulas)), "[ +~]")))
+covs <- unique(unlist(strsplit(gsub("1", "", gsub("[ ~]", "", natural_mod_penalty@formlist$state)), "[ +~]")))
 covs <- covs[covs != "Year" & covs != "Community"]
 for (i in 1:length(covs)) {
     # make a prediction dataframe across the gradient of each covariate
@@ -583,7 +583,7 @@ names(natural_prediction_plots_list) <- covs
 
 # extract the words from the best multispecies model state formulas
 community_prediction_plots_list <- list() # plots per covariate included in the best models
-covs <- unique(unlist(strsplit(gsub("1", "", gsub("[ ~]", "", community_mod_penalty@stateformulas)), "[ +~]")))
+covs <- unique(unlist(strsplit(gsub("1", "", gsub("[ ~]", "", community_mod_penalty@formlist$state)), "[ +~]")))
 for (i in 1:length(covs)) {
     # make a prediction dataframe across the gradient of each covariate
     dfEdited <- dfTemplate
@@ -695,8 +695,14 @@ for (i in 1:length(covs)) {
             axis.title.x = element_blank(),
             panel.grid.major.y = element_line(color = "#cecece", linewidth = 0.2)
         ) +
-        add_phylopic(get(paste0(casualNames[1], "Pic")), alpha = 0.2, x = 1.0, y = 0.05, ysize = 0.1) +
-        add_phylopic(get(paste0(casualNames[2], "Pic")), alpha = 0.2, x = 2.0, y = 0.05, ysize = 0.1)
+        add_phylopic(uuid = ifelse(species[1] == "Dasyprocta fuliginosa",
+            get_uuid(name = "Dasyprocta", n = 1),
+            get_uuid(name = species[1], n = 1)
+        ), alpha = 0.2, x = 1.0, y = 0.05, height = 0.1) +
+        add_phylopic(uuid = ifelse(species[2] == "Dasyprocta fuliginosa",
+            get_uuid(name = "Dasyprocta", n = 1),
+            get_uuid(name = species[2], n = 1)
+        ), alpha = 0.2, x = 2.0, y = 0.05, height = 0.1)
 
     ggsave(
         filename = paste0("../Figures/MultispeciesModeling/", paste0(casualNames, collapse = ""), "CommunityPredictions.png"),

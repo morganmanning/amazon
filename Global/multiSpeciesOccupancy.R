@@ -5,9 +5,7 @@ setwd("~/Documents/amazon/Global/Data")
 ################################################################################
 # ------------------------------ START UP -------------------------------------#
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%#
-install.packages(c("lubridate", "tidyverse","camtrapR", "unmarked", "ggplot2", "rphylopic", 
-                     "knitr", "kableExtra", "stringr", "gridExtra", "ggpubr", "reshape2", 
-                     "openxlsx", "vegan", "ggrepel", "terra", "sf", "exactextractr"))
+
 # load necessary packages
 require(dplyr)
 require(lubridate)
@@ -78,37 +76,22 @@ huntingTally <- ZABhunting |>
 
 # species of interest                       ************* INPUT ***************
 species <- c(
-            "Leopardus pardalis",
-             #"Didelphis marsupialis"
+            #"Leopardus pardalis",
              #"Pecari tajacu", 
-             #"Cuniculus paca",
+             "Cuniculus paca",
              "Dasyprocta fuliginosa" # by FAR the most detected species, but not hunted in ZAB much
-             #"Psophia crepitans",
-             #"Mazama sp."
-             #"Myoprocta pratti" 
-             # "Panthera onca" # for funsies!
              ) 
 commonNames <- c(
-                "Ocelot", 
-                 #"Common opossum"
-                 #"Collared peccary", 
-                 #"Lowland paca",
+                #"Ocelot", 
+                # "Collared peccary", 
+                 "Lowland paca",
                  "Black agouti"
-                 #"Grey-winged trumpeter",
-                 #"Brockets"
-                 #"Green acouchi"
-                 #"Jaguar"
                  ) 
 casualNames <- c(
-                "ocelot",
-                 #"opossum"
+                # "ocelot",
                  #"peccary",
-                 #"paca",
+                 "paca",
                  "agouti"
-                 #"trumpeter",
-                 #"brockets"
-                 #"acouchi"
-                 #"jaguar"
                  )
 
 # only the interactions we're interested in
@@ -356,7 +339,7 @@ str(umf)
 # Distance to a water source (m)
 
 match_detection <- c("Community", "DaysEffortScaled")
-match_occupancy <- c("RainfallScaled", "percentNatural", "DistToWater", "TemperatureScaled", "Year")
+match_occupancy <- c("RainfallScaled", "PercentNaturalScaled", "DistToWater", "TemperatureScaled", "Year")
 forcedDetectionFormula <- "~Community + DaysEffortScaled"
 # excluded "Community" from occupancy covariates bc it correlated with percentNatural (per chisq.test())
 
@@ -611,8 +594,8 @@ if (all(bestCovariates$Species == names(detectionWithoutBlanks))) {
     natural_multispecies_model <- occuMulti(
         detformulas = rep("~ Community", length(species)),
         stateformulas = c(
-            rep("~ percentNatural", length(bestCovariates$BestCovariates)),
-            rep("~ percentNatural", ((length(species)^2 + length(species)) / 2) - length(species))
+            rep("~ PercentNaturalScaled", length(bestCovariates$BestCovariates)),
+            rep("~ PercentNaturalScaled", ((length(species)^2 + length(species)) / 2) - length(species))
         ),
         # (n^2+n)/2 is the addition version of a factorial
         # use null for all animal interactions
@@ -622,8 +605,8 @@ if (all(bestCovariates$Species == names(detectionWithoutBlanks))) {
     natural_multispecies_model <- occuMulti(
         detformulas = rep("~ Community", length(species)),
         stateformulas = c(
-            rep("~ percentNatural", length(bestCovariates$BestCovariates)),
-            rep("~ percentNatural", ((length(species)^2 + length(species)) / 2) - length(species))
+            rep("~ PercentNaturalScaled", length(bestCovariates$BestCovariates)),
+            rep("~ PercentNaturalScaled", ((length(species)^2 + length(species)) / 2) - length(species))
         ),
         # (n^2+n)/2 is the addition version of a factorial
         # use null for all animal interactions
@@ -668,7 +651,7 @@ if (all(bestCovariates$Species == names(detectionWithoutBlanks))) {
     global_multispecies_model <- occuMulti(
         detformulas = rep("~ Community", length(species)),
         stateformulas = c(
-            rep("~ RainfallScaled + percentNatural + DistToWater + TemperatureScaled + Year", length(bestCovariates$BestCovariates)),
+            rep("~ RainfallScaled + PercentNaturalScaled + DistToWater + TemperatureScaled + Year", length(bestCovariates$BestCovariates)),
             rep("~ 1", ((length(species)^2 + length(species)) / 2) - length(species))
         ),
         # (n^2+n)/2 is the addition version of a factorial
@@ -679,7 +662,7 @@ if (all(bestCovariates$Species == names(detectionWithoutBlanks))) {
     global_multispecies_model <- occuMulti(
         detformulas = rep("~ Community", length(species)),
         stateformulas = c(
-            rep("~ RainfallScaled + percentNatural + DistToWater + TemperatureScaled + Year", length(bestCovariates$BestCovariates)),
+            rep("~ RainfallScaled + PercentNaturalScaled + DistToWater + TemperatureScaled + Year", length(bestCovariates$BestCovariates)),
             rep("~ 1", ((length(species)^2 + length(species)) / 2) - length(species))
         ),
         # (n^2+n)/2 is the addition version of a factorial
