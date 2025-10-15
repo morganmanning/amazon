@@ -349,7 +349,7 @@ for (i in 1:length(communities)) {
     match_occupancy <- c("1")
   } else if (communities[i] == "Global") {
     match_detection <- c("Community", "DaysEffortScaled")
-    match_occupancy <- c("Community", "percentNatural", "RainfallScaled",
+    match_occupancy <- c("Community", "PercentNaturalScaled", "RainfallScaled",
                          "DistToWater", "TemperatureScaled", "DistToComm")
   }
   
@@ -568,10 +568,10 @@ for (i in 1:length(communities)) {
 # calculate the global model for each species (minus distToWater since that wasn't in any best model)
 globalModels <- list()
 for (j in 1:length(speciesNames)){ # for each species
-      test <- occu(~Community + DaysEffortScaled ~RainfallScaled + percentNatural + DistToComm + TemperatureScaled + Community, 
+      test <- occu(~Community + DaysEffortScaled ~RainfallScaled + PercentNaturalScaled + DistToComm + TemperatureScaled + Community, 
                     ufoMasterList[[1]][[j]]) # i = 1 when all communities are together
-      
-      globalModels[[j]] <- occu(~Community + DaysEffortScaled ~RainfallScaled + percentNatural + DistToComm +
+
+      globalModels[[j]] <- occu(~Community + DaysEffortScaled ~RainfallScaled + PercentNaturalScaled + DistToComm +
                     TemperatureScaled + Community, 
                     ufoMasterList[[1]][[j]], 
                                    control = 10000, 
@@ -611,291 +611,35 @@ if (useGlobalModels == "YES") {
 
   
 
-#################################################################################
 ################################################################################
 ################################################################################
-# Model averaging
+############################# MODEL AVERAGING ##################################
+################################################################################
+################################################################################
+
+# load the modelAveraging.r function I built
+source("Global/modelAveraging.R")
 
 # model average all the model outputs and get coefficients for all covariates
 # make an empty list with the same length as the number of species
 modelAverages <- list()
 # model average the best models
 for (j in 1:length(speciesNames)) {
-    if (length(masterBestModsOutputs[[1]][[j]]) == 1) {
-        modelAverages[[j]] <- masterBestModsOutputs[[1]][[j]][[1]]@estimates
-    } else {
-        # model average the best models
-        bestModsOutputs <- masterBestModsOutputs[[1]][[j]]
-        # model average the best models
-        avg <- model.avg(bestModsOutputs)
-        summ <- summary(avg)
-
-        # save full model averages to list
-        modelAverages[[j]] <- summ # less biased
-    }
+    avg <- ManualModelAverage(masterBestModsOutputs[[1]][[j]], speciesName = speciesNames[j])
+    modelAverages[[j]] <- avg
 }
 names(modelAverages) <- speciesNames
-
 
 # save model averages to r object
 save(modelAverages, file = "Global/Data/R Objects/modelAverages.RData")
 load("Global/Data/R Objects/modelAverages.RData") # loads 'modelAverages'
 
-# make a dataframe with the model averaged coefficients with each covariate as a column
-modelAveragesDF <- data.frame(
-    Species = names(modelAverages),
-    percentNatural = NA,
-    percentNaturalSE = NA,
-    percentNaturalUpper = NA,
-    percentNaturalLower = NA,
-    RainfallScaled = NA,
-    RainfallScaledSE = NA,
-    RainfallScaledUpper = NA,
-    RainfallScaledLower = NA,
-    DistToWater = NA,
-    DistToWaterSE = NA,
-    DistToWaterUpper = NA,
-    DistToWaterLower = NA,
-    TemperatureScaled = NA,
-    TemperatureScaledSE = NA,
-    TemperatureScaledUpper = NA,
-    TemperatureScaledLower = NA,
-    DistToComm = NA,
-    DistToCommSE = NA,
-    DistToCommUpper = NA,
-    DistToCommLower = NA,
-    CommunityZabalo = NA,
-    CommunityZabaloSE = NA,
-    CommunityZabaloUpper = NA,
-    CommunityZabaloLower = NA,
-    CommunitySinangoe = NA,
-    CommunitySinangoeSE = NA,
-    CommunitySinangoeUpper = NA,
-    CommunitySinangoeLower = NA,
-    CommunitySanPablo = NA,
-    CommunitySanPabloSE = NA,
-    CommunitySanPabloUpper = NA,
-    CommunitySanPabloLower = NA,
-    CommunityRemolino = NA,
-    CommunityRemolinoSE = NA,
-    CommunityRemolinoUpper = NA,
-    CommunityRemolinoLower = NA,
-    CommunitySiona = NA,
-    CommunitySionaSE = NA,
-    CommunitySionaUpper = NA,
-    CommunitySionaLower = NA
-)
-detectionModelAverages <- data.frame(
-    Species = names(modelAverages),
-    DaysEffortScaled = NA,
-    DaysEffortScaledSE = NA,
-    DaysEffortScaledUpper = NA,
-    DaysEffortScaledLower = NA,
-    CommunityZabalo = NA,
-    CommunityZabaloSE = NA,
-    CommunityZabaloUpper = NA,
-    CommunityZabaloLower = NA,
-    CommunitySinangoe = NA,
-    CommunitySinangoeSE = NA,
-    CommunitySinangoeUpper = NA,
-    CommunitySinangoeLower = NA,
-    CommunitySanPablo = NA,
-    CommunitySanPabloSE = NA,
-    CommunitySanPabloUpper = NA,
-    CommunitySanPabloLower = NA,
-    CommunityRemolino = NA,
-    CommunityRemolinoSE = NA,
-    CommunityRemolinoUpper = NA,
-    CommunityRemolinoLower = NA,
-    CommunitySiona = NA,
-    CommunitySionaSE = NA,
-    CommunitySionaUpper = NA,
-    CommunitySionaLower = NA
-)
-for (i in 1:length(modelAverages)) {
-#coefTable(summ, full = TRUE)
-#confint(summ, full = TRUE)
-#modelAverages[[i]]$coefficients["full", ]
+# rbind all the $occupancy and $detection from each list
+occupancyList <- lapply(modelAverages, function(x) x$occupancy)
+detectionList <- lapply(modelAverages, function(x) x$detection)
 
-    if (names(modelAverages)[i] != "Leopardus pardalis") {
-        coefficients <- as.data.frame(gsub(" ", "", rbind(
-            names(modelAverages[[i]]$coefficients["full", ]),
-            modelAverages[[i]]$coefficients["full", ])
-        ))
-        coefficients <- rbind(
-            coefficients,
-            as.data.frame(confint(modelAverages[[i]], full = TRUE))[, "2.5 %"], # lower
-            as.data.frame(confint(modelAverages[[i]], full = TRUE))[, "97.5 %"] # upper
-        ) 
-        
-        for (j in 1:ncol(coefficients)){
-            # if the column is a psi column
-            if (grepl("psi", coefficients[1, j]) == TRUE) {
-                # if Community is a covariate in ANY column, then put the value from "psi(Int)" for Zabalo
-                if (any(grepl("Community", coefficients[1, j]))) {
-                    modelAveragesDF[i, "CommunityZabalo"] <- coefficients[2, "psi(Int)"]
-                    modelAveragesDF[i, "CommunityZabaloLower"] <- coefficients[3, "psi(Int)"]
-                    modelAveragesDF[i, "CommunityZabaloUpper"] <- coefficients[4, "psi(Int)"]
-                    modelAveragesDF[i, "CommunitySinangoe"] <- coefficients[2, "psi(CommunitySinangoe)"]
-                    modelAveragesDF[i, "CommunitySinangoeLower"] <- coefficients[3, "psi(CommunitySinangoe)"]
-                    modelAveragesDF[i, "CommunitySinangoeUpper"] <- coefficients[4, "psi(CommunitySinangoe)"]
-                    modelAveragesDF[i, "CommunitySanPablo"] <- coefficients[2, "psi(CommunitySan Pablo)"]
-                    modelAveragesDF[i, "CommunitySanPabloLower"] <- coefficients[3, "psi(CommunitySan Pablo)"]
-                    modelAveragesDF[i, "CommunitySanPabloUpper"] <- coefficients[4, "psi(CommunitySan Pablo)"]
-                    modelAveragesDF[i, "CommunityRemolino"] <- coefficients[2, "psi(CommunityRemolino)"]
-                    modelAveragesDF[i, "CommunityRemolinoLower"] <- coefficients[3, "psi(CommunityRemolino)"]
-                    modelAveragesDF[i, "CommunityRemolinoUpper"] <- coefficients[4, "psi(CommunityRemolino)"]
-                    modelAveragesDF[i, "CommunitySiona"] <- coefficients[2, "psi(CommunitySiona)"]
-                    modelAveragesDF[i, "CommunitySionaLower"] <- coefficients[3, "psi(CommunitySiona)"]
-                    modelAveragesDF[i, "CommunitySionaUpper"] <- coefficients[4, "psi(CommunitySiona)"]
-                } else if (any(grepl("Rainfall", coefficients[1, j]))) {
-                    modelAveragesDF[i, "RainfallScaled"] <- coefficients[2, "psi(RainfallScaled)"]
-                    modelAveragesDF[i, "RainfallScaledLower"] <- coefficients[3, "psi(RainfallScaled)"]
-                    modelAveragesDF[i, "RainfallScaledUpper"] <- coefficients[4, "psi(RainfallScaled)"]
-                } else if (any(grepl("percentNatural", coefficients[1, j]))) {
-                    modelAveragesDF[i, "percentNatural"] <- coefficients[2, "psi(percentNatural)"]
-                    modelAveragesDF[i, "percentNaturalLower"] <- coefficients[3, "psi(percentNatural)"]
-                    modelAveragesDF[i, "percentNaturalUpper"] <- coefficients[4, "psi(percentNatural)"]
-                } else if (any(grepl("DistToWater", coefficients[1, j]))) {
-                    modelAveragesDF[i, "DistToWater"] <- coefficients[2, "psi(DistToWater)"]
-                    modelAveragesDF[i, "DistToWaterLower"] <- coefficients[3, "psi(DistToWater)"]
-                    modelAveragesDF[i, "DistToWaterUpper"] <- coefficients[4, "psi(DistToWater)"]
-                } else if (any(grepl("TemperatureScaled", coefficients[1, j]))) {
-                    modelAveragesDF[i, "TemperatureScaled"] <- coefficients[2, "psi(TemperatureScaled)"]
-                    modelAveragesDF[i, "TemperatureScaledLower"] <- coefficients[3, "psi(TemperatureScaled)"]
-                    modelAveragesDF[i, "TemperatureScaledUpper"] <- coefficients[4, "psi(TemperatureScaled)"]
-                } else if (any(grepl("DistToComm", coefficients[1, j]))) {
-                    modelAveragesDF[i, "DistToComm"] <- coefficients[2, "psi(DistToComm)"]
-                    modelAveragesDF[i, "DistToCommLower"] <- coefficients[3, "psi(DistToComm)"]
-                    modelAveragesDF[i, "DistToCommUpper"] <- coefficients[4, "psi(DistToComm)"]
-                } else next
-
-            } else if (grepl("p", coefficients[1, j]) == TRUE) {
-
-                # if Community is a covariate, then put the value from "psi(Int)" for Zabalo
-                if (any(grepl("Community", coefficients[1, j]))) {
-                    detectionModelAverages[i, "CommunityZabalo"] <- coefficients[2, "p(Int)"]
-                    detectionModelAverages[i, "CommunityZabaloLower"] <- coefficients[3, "p(Int)"]
-                    detectionModelAverages[i, "CommunityZabaloUpper"] <- coefficients[4, "p(Int)"]
-                    detectionModelAverages[i, "CommunitySinangoe"] <- coefficients[2, "p(CommunitySinangoe)"]
-                    detectionModelAverages[i, "CommunitySinangoeLower"] <- coefficients[3, "p(CommunitySinangoe)"]
-                    detectionModelAverages[i, "CommunitySinangoeUpper"] <- coefficients[4, "p(CommunitySinangoe)"]
-                    detectionModelAverages[i, "CommunitySanPablo"] <- coefficients[2, "p(CommunitySan Pablo)"]
-                    detectionModelAverages[i, "CommunitySanPabloLower"] <- coefficients[3, "p(CommunitySan Pablo)"]
-                    detectionModelAverages[i, "CommunitySanPabloUpper"] <- coefficients[4, "p(CommunitySan Pablo)"]
-                    detectionModelAverages[i, "CommunityRemolino"] <- coefficients[2, "p(CommunityRemolino)"]
-                    detectionModelAverages[i, "CommunityRemolinoLower"] <- coefficients[3, "p(CommunityRemolino)"]
-                    detectionModelAverages[i, "CommunityRemolinoUpper"] <- coefficients[4, "p(CommunityRemolino)"]
-                    detectionModelAverages[i, "CommunitySiona"] <- coefficients[2, "p(CommunitySiona)"]
-                    detectionModelAverages[i, "CommunitySionaLower"] <- coefficients[3, "p(CommunitySiona)"]
-                    detectionModelAverages[i, "CommunitySionaUpper"] <- coefficients[4, "p(CommunitySiona)"]
-                } else if (any(grepl("DaysEffortScaled", coefficients[1, j]))) {
-                    detectionModelAverages[i, "DaysEffortScaled"] <- coefficients[2, "p(DaysEffortScaled)"]
-                    detectionModelAverages[i, "DaysEffortScaledLower"] <- coefficients[3, "p(DaysEffortScaled)"]
-                    detectionModelAverages[i, "DaysEffortScaledUpper"] <- coefficients[4, "p(DaysEffortScaled)"]
-                } else next
-
-            } 
-        }
-
-
-    } else  if (names(modelAverages)[i] == "Leopardus pardalis"){ # if it is the ocelot
-        model <- modelAverages[[i]]
-        coefficients <- c(coef(model@estimates$state), coef(model@estimates$det))
-        lowerState <- as.data.frame(confint(model@estimates$state))[, "0.025"]
-        names(lowerState) <- rownames(as.data.frame(confint(model@estimates$state)))
-        lowerDet <- as.data.frame(confint(model@estimates$det))[, "0.025"]
-        names(lowerDet) <- rownames(as.data.frame(confint(model@estimates$det)))
-        lowers <- c(lowerState, lowerDet)
-        upperState <- as.data.frame(confint(model@estimates$state))[, "0.975"]
-        names(upperState) <- rownames(as.data.frame(confint(model@estimates$state)))
-        upperDet <- as.data.frame(confint(model@estimates$det))[, "0.975"]
-        names(upperDet) <- rownames(as.data.frame(confint(model@estimates$det)))
-        uppers <- c(upperState, upperDet)
-        SEs <- c(SE(model@estimates$state), SE(model@estimates$det))
-        
-        # for every coefficient
-        for (j in 1:length(coefficients)) {
-            # if the column is a psi column
-            if (grepl("psi", names(coefficients)[j]) == TRUE) {
-                # if Community is a covariate in ANY column, then put the value from "psi(Int)" for Zabalo
-                if (any(grepl("Community", names(coefficients)[j]))) {
-                    modelAveragesDF[i, "CommunityZabalo"] <- coefficients["psi(Int)"]
-                    modelAveragesDF[i, "CommunityZabaloUpper"] <- uppers["psi(Int)"]
-                    modelAveragesDF[i, "CommunityZabaloLower"] <- lowers["psi(Int)"]
-                    modelAveragesDF[i, "CommunitySinangoe"] <- coefficients["psi(CommunitySinangoe)"]
-                    modelAveragesDF[i, "CommunitySinangoeUpper"] <- uppers["psi(CommunitySinangoe)"]
-                    modelAveragesDF[i, "CommunitySinangoeLower"] <- lowers["psi(CommunitySinangoe)"]
-                    modelAveragesDF[i, "CommunitySanPablo"] <- coefficients["psi(CommunitySan Pablo)"]
-                    modelAveragesDF[i, "CommunitySanPabloUpper"] <- uppers["psi(CommunitySan Pablo)"]
-                    modelAveragesDF[i, "CommunitySanPabloLower"] <- lowers["psi(CommunitySan Pablo)"]
-                    modelAveragesDF[i, "CommunityRemolino"] <- coefficients["psi(CommunityRemolino)"]
-                    modelAveragesDF[i, "CommunityRemolinoUpper"] <- uppers["psi(CommunityRemolino)"]
-                    modelAveragesDF[i, "CommunityRemolinoLower"] <- lowers["psi(CommunityRemolino)"]
-                    modelAveragesDF[i, "CommunitySiona"] <- coefficients["psi(CommunitySiona)"]
-                    modelAveragesDF[i, "CommunitySionaUpper"] <- uppers["psi(CommunitySiona)"]
-                    modelAveragesDF[i, "CommunitySionaLower"] <- lowers["psi(CommunitySiona)"]
-                } else if (any(grepl("RainfallScaled", names(coefficients)[j]))) {
-                    modelAveragesDF[i, "RainfallScaled"] <- coefficients["psi(RainfallScaled)"]
-                    modelAveragesDF[i, "RainfallScaledUpper"] <- uppers["psi(RainfallScaled)"]
-                    modelAveragesDF[i, "RainfallScaledLower"] <- lowers["psi(RainfallScaled)"]
-                } else if (any(grepl("percentNatural", names(coefficients)[j]))) {
-                    modelAveragesDF[i, "percentNatural"] <- coefficients["psi(percentNatural)"]
-                    modelAveragesDF[i, "percentNaturalUpper"] <- uppers["psi(percentNatural)"]
-                    modelAveragesDF[i, "percentNaturalLower"] <- lowers["psi(percentNatural)"]
-                } else if (any(grepl("DistToWater", names(coefficients)[j]))) {
-                    modelAveragesDF[i, "DistToWater"] <- coefficients["psi(DistToWater)"]
-                    modelAveragesDF[i, "DistToWaterUpper"] <- uppers["psi(DistToWater)"]
-                    modelAveragesDF[i, "DistToWaterLower"] <- lowers["psi(DistToWater)"]
-                } else if (any(grepl("TemperatureScaled", names(coefficients)[j]))) {
-                    modelAveragesDF[i, "TemperatureScaled"] <- coefficients["psi(TemperatureScaled)"]
-                    modelAveragesDF[i, "TemperatureScaledUpper"] <- uppers["psi(TemperatureScaled)"]
-                    modelAveragesDF[i, "TemperatureScaledLower"] <- lowers["psi(TemperatureScaled)"]
-                } else if (any(grepl("DistToComm", names(coefficients)[j]))) {
-                    modelAveragesDF[i, "DistToComm"] <- coefficients["psi(DistToComm)"]
-                    modelAveragesDF[i, "DistToCommUpper"] <- uppers["psi(DistToComm)"]
-                    modelAveragesDF[i, "DistToCommLower"] <- lowers["psi(DistToComm)"]
-                } else next
-
-            } else if (grepl("p", names(coefficients)[j]) == TRUE) {
-
-                # if Community is a covariate, then put the value from "psi(Int)" for Zabalo
-                if (any(grepl("Community", names(coefficients)[j]))) {
-                    detectionModelAverages[i, "CommunityZabalo"] <- coefficients["p(Int)"]
-                    detectionModelAverages[i, "CommunityZabaloUpper"] <- uppers["p(Int)"]
-                    detectionModelAverages[i, "CommunityZabaloLower"] <- lowers["p(Int)"]
-                    detectionModelAverages[i, "CommunityZabaloSE"] <- SEs["p(Int)"]
-                    detectionModelAverages[i, "CommunitySinangoe"] <- coefficients["p(CommunitySinangoe)"]
-                    detectionModelAverages[i, "CommunitySinangoeUpper"] <- uppers["p(CommunitySinangoe)"]
-                    detectionModelAverages[i, "CommunitySinangoeLower"] <- lowers["p(CommunitySinangoe)"]
-                    detectionModelAverages[i, "CommunitySinangoeSE"] <- SEs["p(CommunitySinangoe)"]
-                    detectionModelAverages[i, "CommunitySanPablo"] <- coefficients["p(CommunitySan Pablo)"]
-                    detectionModelAverages[i, "CommunitySanPabloUpper"] <- uppers["p(CommunitySan Pablo)"]
-                    detectionModelAverages[i, "CommunitySanPabloLower"] <- lowers["p(CommunitySan Pablo)"]
-                    detectionModelAverages[i, "CommunitySanPabloSE"] <- SEs["p(CommunitySan Pablo)"]
-                    detectionModelAverages[i, "CommunityRemolino"] <- coefficients["p(CommunityRemolino)"]
-                    detectionModelAverages[i, "CommunityRemolinoUpper"] <- uppers["p(CommunityRemolino)"]
-                    detectionModelAverages[i, "CommunityRemolinoLower"] <- lowers["p(CommunityRemolino)"]
-                    detectionModelAverages[i, "CommunityRemolinoSE"] <- SEs["p(CommunityRemolino)"]
-                    detectionModelAverages[i, "CommunitySiona"] <- coefficients["p(CommunitySiona)"]
-                    detectionModelAverages[i, "CommunitySionaUpper"] <- uppers["p(CommunitySiona)"]
-                    detectionModelAverages[i, "CommunitySionaLower"] <- lowers["p(CommunitySiona)"]
-                    detectionModelAverages[i, "CommunitySionaSE"] <- SEs["p(CommunitySiona)"]
-                } else if (any(grepl("DaysEffortScaled", names(coefficients)[j]))) {
-                    detectionModelAverages[i, "DaysEffortScaled"] <- coefficients["p(DaysEffortScaled)"]
-                    detectionModelAverages[i, "DaysEffortScaledUpper"] <- uppers["p(DaysEffortScaled)"]
-                    detectionModelAverages[i, "DaysEffortScaledLower"] <- lowers["p(DaysEffortScaled)"]
-                    detectionModelAverages[i, "DaysEffortScaledSE"] <- SEs["p(DaysEffortScaled)"]
-                } else next
-
-    }
-
-}
-
-}
-}
-
-head(modelAveragesDF)
+modelAveragesDF <- do.call(rbind, occupancyList)
+detectionModelAverages <- do.call(rbind, detectionList)
 
 # pivot the data frame to long format
 # convert all non-Species columns to numeric (forcing "<NA>" strings to real NAs)
@@ -1177,7 +921,7 @@ for (i in 1:length(communities)) {
         }
     } else if (communities[i] == "Global") {
         covariates <- c(
-            "Community", "percentNatural", "RainfallScaled",
+            "Community", "PercentNaturalScaled", "RainfallScaled",
             "DistToWater", "TemperatureScaled", "DistToComm"
         )
         siteCovariate <- read.csv("Global/Data/AllCommunityCovariates.csv")
@@ -1187,7 +931,7 @@ for (i in 1:length(communities)) {
         dfTemplate <- data.frame(
             Community = rep(allCommunities, each = N), 
             RainfallScaled = mean(siteCovariate$RainfallScaled),
-            percentNatural = mean(siteCovariate$percentNatural),
+            PercentNaturalScaled = mean(siteCovariate$PercentNaturalScaled),
             DistToWater = mean(siteCovariate$DistToWater),
             TemperatureScaled = mean(siteCovariate$TemperatureScaled),
             DistToComm = mean(siteCovariate$DistToComm),
@@ -1385,7 +1129,7 @@ plottingDF$Species <- factor(plottingDF$Species, levels = speciesNames) # so plo
 # order the communities by percent of natural cover
 orderedCommunities <- c(siteCovariate %>% 
                           group_by(Community) %>% 
-                          summarize(perc = mean(percentNatural)) %>% 
+                          summarize(perc = mean(PercentNaturalScaled)) %>% 
                           arrange(desc(perc)) %>% 
                           select(Community))$Community
 orderedCommunities <- gsub("Zabalo", "Zábalo", x = orderedCommunities)
@@ -1416,7 +1160,7 @@ opossum <- ~ atop(paste("Common opossum"), paste("(", italic("Didelphis marsupia
 ocelot <- ~ atop(paste("Ocelot"), paste("(", italic("Leopardus pardalis"), ")"))
 
 # rphylopic per species
-peccPic <- get_phylopic(uuid = get_uuid(name = "Pecari tajacu", n = 1))
+peccPic <- get_uuid(name = "Pecari tajacu", n = 1)
 brockPic <- get_phylopic(uuid = get_uuid(name = "Mazama americana", n = 1))
 pacaPic <- get_phylopic(uuid = get_uuid(name = "Cuniculus paca", n = 1))
 trumpPic <- get_phylopic(uuid = get_uuid(name = "Psophia crepitans", n = 1))
@@ -1450,16 +1194,16 @@ p <- ggplot(estimates, aes(x = Species,
         axis.title.x = element_blank(), 
         legend.position = "none",
         panel.grid.major.y = element_line(color = "#cecece", linewidth = 0.2)) + 
-  add_phylopic(peccPic, alpha = 0.2, x = 1.0, y = 0.05, ysize = 0.1) +
-  add_phylopic(brockPic, alpha = 0.2, x = 2.0, y = 0.05, ysize = 0.125) +
-  add_phylopic(pacaPic, alpha = 0.2, x = 3.0, y = 0.05, ysize = 0.1) +
-  add_phylopic(trumpPic, alpha = 0.2, x = 4.0, y = 0.05, ysize = 0.13) +
+  add_phylopic(uuid = peccPic, alpha = 0.2, x = 1.0, y = 0.05, height = 0.1) +
+  add_phylopic(brockPic, alpha = 0.2, x = 2.0, y = 0.05, height = 0.125) +
+  add_phylopic(pacaPic, alpha = 0.2, x = 3.0, y = 0.05, height = 0.1) +
+  add_phylopic(trumpPic, alpha = 0.2, x = 4.0, y = 0.05, height = 0.13) +
   #add_phylopic(fourEyedPic, alpha = 0.2, x = 5.0, y = 0.05, ysize = 0.1) +
-    add_phylopic(agoutiPic, alpha = 0.2, x = 5.0, y = 0.05, ysize = 0.1) +
-    add_phylopic(armadilloPic, alpha = 0.2, x = 6.0, y = 0.05, ysize = 0.1) +
-    add_phylopic(tinamouPic, alpha = 0.2, x = 7.0, y = 0.05, ysize = 0.125) +
+    add_phylopic(agoutiPic, alpha = 0.2, x = 5.0, y = 0.05, height = 0.1) +
+    add_phylopic(armadilloPic, alpha = 0.2, x = 6.0, y = 0.05, height = 0.1) +
+    add_phylopic(tinamouPic, alpha = 0.2, x = 7.0, y = 0.05, height = 0.125) +
     #add_phylopic(opossumPic, alpha = 0.2, x = 9.0, y = 0.05, ysize = 0.1) +
-    add_phylopic(ocelotPic, alpha = 0.2, x = 8.0, y = 0.05, ysize = 0.1)
+    add_phylopic(ocelotPic, alpha = 0.2, x = 8.0, y = 0.05, height = 0.1)
 
 # plot with the animal silhouettes
 p
@@ -1601,8 +1345,8 @@ for (i in 1:length(covariatesMinusCommunity)){
     xlabel <- "Temperature (°C, scaled)"
   } else if (covariatesMinusCommunity[i] == "DistToWater") {
     xlabel <- "Distance to water source (m)"
-  } else if (covariatesMinusCommunity[i] == "percentNatural"){
-    xlabel <- "Percent natural area within 25 km"
+  } else if (covariatesMinusCommunity[i] == "PercentNaturalScaled"){
+    xlabel <- "Percent natural area within 25 km (scaled)"
   } else if (covariatesMinusCommunity[i] == "DistToComm") {
     xlabel <- "Distance to a community (km)"
   } else if (covariatesMinusCommunity[i] == "DaysEffortScaled") {
@@ -1899,28 +1643,28 @@ wholeDiversitySGE <- noUnknownsSGE %>%
   group_by(Species) %>%
   summarise(abundance = n()) %>%
   mutate(Community = "Sinangoe", 
-         PercentNaturalArea = mean(siteCovariate$percentNatural[siteCovariate$Community == "Sinangoe"]),
+         PercentNaturalAreaScaled = mean(siteCovariate$PercentNaturalAreaScaled[siteCovariate$Community == "Sinangoe"]),
          OperatingDays = round(as.numeric(max(noUnknownsSGE$DateTimeOriginal)-
                                             min(noUnknownsSGE$DateTimeOriginal))))
 wholeDiversityZAB <- noUnknownsZAB %>%
   group_by(Species) %>%
   summarise(abundance = n()) %>%
   mutate(Community = "Zábalo", 
-         PercentNaturalArea = round(mean(siteCovariate$percentNatural[siteCovariate$Community == "Zabalo"]), 3), 
+         PercentNaturalAreaScaled = round(mean(siteCovariate$PercentNaturalAreaScaled[siteCovariate$Community == "Zabalo"]), 3), 
          OperatingDays = round(as.numeric(max(noUnknownsZAB$DateTimeOriginal)-
                                             min(noUnknownsZAB$DateTimeOriginal))))
 wholeDiversitySNA <- noUnknownsSNA %>%
   group_by(Species) %>%
   summarise(abundance = n()) %>%
   mutate(Community = "Siona", 
-         PercentNaturalArea = round(mean(siteCovariate$percentNatural[siteCovariate$Community == "Siona"]), 3),  
+         PercentNaturalAreaScaled = round(mean(siteCovariate$PercentNaturalAreaScaled[siteCovariate$Community == "Siona"]), 3),  
          OperatingDays = round(as.numeric(max(noUnknownsSNA$DateTimeOriginal)-
                                             min(noUnknownsSNA$DateTimeOriginal))))
 wholeDiversitySPA <- noUnknownsSPA %>%
   group_by(Species) %>%
   summarise(abundance = n()) %>%
   mutate(Community = "San Pablo", 
-         PercentNaturalArea = round(mean(siteCovariate$percentNatural[siteCovariate$Community == "San Pablo"]), 3),  
+         PercentNaturalAreaScaled = round(mean(siteCovariate$PercentNaturalAreaScaled[siteCovariate$Community == "San Pablo"]), 3),  
          OperatingDays = round(as.numeric(max(noUnknownsSPA$DateTimeOriginal)-
                                             min(noUnknownsSPA$DateTimeOriginal))))
 
@@ -1928,7 +1672,7 @@ wholeDiversityREM <- noUnknownsREM %>%
   group_by(Species) %>%
   summarise(abundance = n()) %>%
   mutate(Community = "Remolino", 
-         PercentNaturalArea = round(mean(siteCovariate$percentNatural[siteCovariate$Community == "Remolino"]), 3),  
+         PercentNaturalAreaScaled = round(mean(siteCovariate$PercentNaturalAreaScaled[siteCovariate$Community == "Remolino"]), 3),  
          OperatingDays = round(as.numeric(max(noUnknownsREM$DateTimeOriginal)-
                                             min(noUnknownsREM$DateTimeOriginal))))
 
@@ -1937,14 +1681,14 @@ communityAbundance <- rbind(wholeDiversityZAB, wholeDiversitySPA, wholeDiversity
                             wholeDiversitySGE, wholeDiversitySNA)
 
 communityDiversity <- communityAbundance %>%
-  group_by(Community, PercentNaturalArea) %>%
+  group_by(Community, PercentNaturalAreaScaled) %>%
   summarise(nIndiv=sum(abundance),
             nSpecies = length(unique(Species)),
             OperatingDays = mean(OperatingDays),
             shannonIndex = round(-sum((abundance/sum(abundance))*log(abundance/sum(abundance))), 3),
             simpsonIndex = round(1-sum((abundance/sum(abundance))^2), 3)) 
-communityDiversity$PercentNaturalArea <- round(communityDiversity$PercentNaturalArea, 3)
-communityDiversity <- arrange(communityDiversity, desc(PercentNaturalArea))
+communityDiversity$PercentNaturalAreaScaled <- round(communityDiversity$PercentNaturalAreaScaled, 3)
+communityDiversity <- arrange(communityDiversity, desc(PercentNaturalAreaScaled))
 communityDiversity$Community <- factor(communityDiversity$Community, 
                                        levels = communityDiversity$Community)
 communityDiversity
@@ -1994,7 +1738,7 @@ if (savePlots == "YES") {
     kableExtra::save_kable(file = "Global/Figures/communityDiversityAbundance.png", zoom = 1.5)
   
   # table with just diversity information
-  kbl(communityDiversity[,c("Community", "PercentNaturalArea", "OperatingDays", 
+  kbl(communityDiversity[,c("Community", "PercentNaturalAreaScaled", "OperatingDays", 
                             "shannonIndex", "simpsonIndex")], 
       col.names = c("Community", "Proportion of Natural Area", "Number of Sampling Days", 
                     "Shannon Diversity Index", "Simpson Diversity Index")) %>%

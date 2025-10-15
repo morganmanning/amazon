@@ -22,8 +22,8 @@ require(reshape2)
 rm(list = ls())
 
 # load the data
-load("R Objects/peccary_agouti_MSM.RData")
-#load("R Objects/paca_agouti_MSM.RData")
+# load("R Objects/peccary_agouti_MSM.RData")
+load("R Objects/paca_agouti_MSM.RData")
 #load("R Objects/ocelot_agouti_MSM.RData")
 
 # magnitude of difference
