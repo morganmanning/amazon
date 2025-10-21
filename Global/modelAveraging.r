@@ -1,5 +1,10 @@
+
+# https://www.mm218.dev/posts/2021/01/model-averaging/
+# https://esajournals.onlinelibrary.wiley.com/doi/10.1002/ecm.1309
+# https://cran.r-project.org/web/packages/rTPC/vignettes/model_averaging_selection.html
+
 ManualModelAverage <- function(modelList, speciesName = "IDK") {
-    # check if single model
+    # check if only one model
     if (length(modelList) == 1) {
         singleModel <- TRUE
     } else {

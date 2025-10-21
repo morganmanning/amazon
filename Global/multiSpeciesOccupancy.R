@@ -83,12 +83,12 @@ species <- c(
              ) 
 commonNames <- c(
                 #"Ocelot", 
-                # "Collared peccary", 
+                #"Collared peccary", 
                  "Lowland paca",
                  "Black agouti"
                  ) 
 casualNames <- c(
-                # "ocelot",
+                #"ocelot",
                  #"peccary",
                  "paca",
                  "agouti"
