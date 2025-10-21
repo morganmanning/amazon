@@ -67,20 +67,20 @@ south_america_sf <- ne_countries(
 south_america_sf$Ecu <- ifelse(south_america_sf$name_en == "Ecuador", "A", "B")
 
 # import .kml community points
-remSP <- sf::st_read("../One Drive Copy and Covariates/Secoya.kml")
+remSP <- sf::st_read("Global/Data/Community-level Covariates/Community Points/Secoya.kml")
 remSP <- remSP %>%
     # dplyr::filter(Name == "Remolino" | Name == "San Pablo") %>%
     dplyr::mutate(Community = Name)
 
-siona <- sf::st_read("../One Drive Copy and Covariates/Siona.kml")
+siona <- sf::st_read("Global/Data/Community-level Covariates/Community Points/Siona.kml")
 siona <- siona %>%
     dplyr::mutate(Community = "Siona")
 
-sinangoe <- sf::st_read("../One Drive Copy and Covariates/Sinangoe.kml")
+sinangoe <- sf::st_read("Global/Data/Community-level Covariates/Community Points/Sinangoe.kml")
 sinangoe <- sinangoe %>%
     dplyr::mutate(Community = Name)
 
-zabalo <- sf::st_read("../One Drive Copy and Covariates/Zabalo.kml")
+zabalo <- sf::st_read("Global/Data/Community-level Covariates/Community Points/Zabalo.kml")
 zabalo <- zabalo %>%
     dplyr::mutate(Community = Name) %>%
     dplyr::mutate(Community = ifelse(Community == "Cofan Zabalo", "Zábalo", Community))
@@ -89,21 +89,21 @@ zabalo <- zabalo %>%
 communities_sf <- rbind(remSP, siona, sinangoe, zabalo)
 
 # load in territory .shp files
-sanPabloTerritory <- st_read("../One Drive Copy and Covariates/Territories/SanPablo/SanPablo.shp") %>%
+sanPabloTerritory <- st_read("Global/Data/Community-level Covariates/Territories/SanPablo/SanPablo.shp") %>%
     dplyr::select(c(Name, Shape_Leng, Shape_Area, geometry)) %>%
     dplyr::mutate(Community = "San Pablo")
-remolinoTerritory <- st_read("../One Drive Copy and Covariates/Territories/Remolino/Remolino.shp") %>%
+remolinoTerritory <- st_read("Global/Data/Community-level Covariates/Territories/Remolino/Remolino.shp") %>%
     dplyr::select(c(Name, Shape_Leng, Shape_Area, geometry)) %>%
     dplyr::mutate(Community = "Remolino")
-siekopaiTerritory <- st_read("../One Drive Copy and Covariates/Territories/Siekopai/Siekopai.shp") %>%
+siekopaiTerritory <- st_read("Global/Data/Community-level Covariates/Territories/Siekopai/Siekopai.shp") %>%
     dplyr::select(c(Name, Shape_Leng, Shape_Area, geometry))
-sionaTerritory <- st_read("../One Drive Copy and Covariates/Territories/Siona/Siona.shp") %>%
+sionaTerritory <- st_read("Global/Data/Community-level Covariates/Territories/Siona/Siona.shp") %>%
     dplyr::select(c(Name, Shape_Leng, Shape_Area, geometry)) %>%
     dplyr::mutate(Community = "Siona")
-sinangoeTerritory <- st_read("../One Drive Copy and Covariates/Territories/Sinangoe/Sinangoe.shp") %>%
+sinangoeTerritory <- st_read("Global/Data/Community-level Covariates/Territories/Sinangoe/Sinangoe.shp") %>%
     dplyr::select(c(Name, Shape_Leng, Shape_Area, geometry)) %>%
     dplyr::mutate(Community = "Sinangoe")
-zabaloTerritory <- st_read("../One Drive Copy and Covariates/Territories/Zabalo/Zabalo.shp") %>%
+zabaloTerritory <- st_read("Global/Data/Community-level Covariates/Territories/Zabalo/Zabalo.shp") %>%
     dplyr::select(c(Name, Shape_Leng, Shape_Area, geometry)) %>%
     dplyr::mutate(Community = "Zábalo")
 # combine territories
