@@ -285,7 +285,7 @@ left_panel <- plot_grid(
     label_fontfamily = "Times"
 )
 
-# Combine left panel with Ecuador overview
+# combine left panel with S Am. overview
 final_plot <- plot_grid(
     left_panel,
     SA,
