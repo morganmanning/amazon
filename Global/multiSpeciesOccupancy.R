@@ -77,20 +77,20 @@ huntingTally <- ZABhunting |>
 # species of interest                       ************* INPUT ***************
 species <- c(
             #"Leopardus pardalis",
-             #"Pecari tajacu", 
-             "Cuniculus paca",
+             "Pecari tajacu", 
+             #"Cuniculus paca",
              "Dasyprocta fuliginosa" # by FAR the most detected species, but not hunted in ZAB much
              ) 
 commonNames <- c(
                 #"Ocelot", 
-                #"Collared peccary", 
-                 "Lowland paca",
+                "Collared peccary", 
+                 #"Lowland paca",
                  "Black agouti"
                  ) 
 casualNames <- c(
                 #"ocelot",
-                 #"peccary",
-                 "paca",
+                 "peccary",
+                 #"paca",
                  "agouti"
                  )
 
@@ -226,18 +226,6 @@ for (i in 1:length(commonNames)) {
 }
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -438,7 +426,7 @@ for (j in 1:length(topModels)) {
 # save the table
 kbl(topModels_df) %>%
   kable_classic(font_size = 22, html_font = "TimesNewRoman") %>%
-  save_kable(file = "../Figures/MultispeciesModeling/speciesBestModels.png", zoom = 2)
+  save_kable(file = paste0("../Figures/MultispeciesModeling/speciesBestModels.png"), zoom = 2)
 
 
 # plot raw detection
@@ -590,33 +578,33 @@ if (all(bestCovariates$Species == names(detectionWithoutBlanks))) {
     )
     print("Finished null model :)")
 
-    # just percent natural as a covariate since it was in all the best models
-    natural_multispecies_model <- occuMulti(
-        detformulas = rep("~ Community", length(species)),
-        stateformulas = c(
-            rep("~ PercentNaturalScaled", length(bestCovariates$BestCovariates)),
-            rep("~ PercentNaturalScaled", ((length(species)^2 + length(species)) / 2) - length(species))
-        ),
-        # (n^2+n)/2 is the addition version of a factorial
-        # use null for all animal interactions
-        data = umf,
-        maxOrder = 2
-    )
-    natural_multispecies_model <- occuMulti(
-        detformulas = rep("~ Community", length(species)),
-        stateformulas = c(
-            rep("~ PercentNaturalScaled", length(bestCovariates$BestCovariates)),
-            rep("~ PercentNaturalScaled", ((length(species)^2 + length(species)) / 2) - length(species))
-        ),
-        # (n^2+n)/2 is the addition version of a factorial
-        # use null for all animal interactions
-        data = umf,
-        maxOrder = 2,
-        control = list(maxit = 20000),
-        #method = "Nelder-Mead",
-        starts = rep(0, length(natural_multispecies_model@opt$par))
-    )
-    print("Finished percent natural area-only model :)")
+    # # just percent natural as a covariate since it was in all the best models
+    # natural_multispecies_model <- occuMulti(
+    #     detformulas = rep("~ Community", length(species)),
+    #     stateformulas = c(
+    #         rep("~ PercentNaturalScaled", length(bestCovariates$BestCovariates)),
+    #         rep("~ PercentNaturalScaled", ((length(species)^2 + length(species)) / 2) - length(species))
+    #     ),
+    #     # (n^2+n)/2 is the addition version of a factorial
+    #     # use null for all animal interactions
+    #     data = umf,
+    #     maxOrder = 2
+    # )
+    # natural_multispecies_model <- occuMulti(
+    #     detformulas = rep("~ Community", length(species)),
+    #     stateformulas = c(
+    #         rep("~ PercentNaturalScaled", length(bestCovariates$BestCovariates)),
+    #         rep("~ PercentNaturalScaled", ((length(species)^2 + length(species)) / 2) - length(species))
+    #     ),
+    #     # (n^2+n)/2 is the addition version of a factorial
+    #     # use null for all animal interactions
+    #     data = umf,
+    #     maxOrder = 2,
+    #     control = list(maxit = 20000),
+    #     #method = "Nelder-Mead",
+    #     starts = rep(0, length(natural_multispecies_model@opt$par))
+    # )
+    # print("Finished percent natural area-only model :)")
 
     # just community as a covariate since it was in all the best models
     community_multispecies_model <- occuMulti(
@@ -647,33 +635,33 @@ if (all(bestCovariates$Species == names(detectionWithoutBlanks))) {
     print("Finished community-only model :)")
 
 
-    # global model
-    global_multispecies_model <- occuMulti(
-        detformulas = rep("~ Community", length(species)),
-        stateformulas = c(
-            rep("~ RainfallScaled + PercentNaturalScaled + DistToWater + TemperatureScaled + Year", length(bestCovariates$BestCovariates)),
-            rep("~ 1", ((length(species)^2 + length(species)) / 2) - length(species))
-        ),
-        # (n^2+n)/2 is the addition version of a factorial
-        # use null for all animal interactions
-        data = umf,
-        maxOrder = 2
-    )
-    global_multispecies_model <- occuMulti(
-        detformulas = rep("~ Community", length(species)),
-        stateformulas = c(
-            rep("~ RainfallScaled + PercentNaturalScaled + DistToWater + TemperatureScaled + Year", length(bestCovariates$BestCovariates)),
-            rep("~ 1", ((length(species)^2 + length(species)) / 2) - length(species))
-        ),
-        # (n^2+n)/2 is the addition version of a factorial
-        # use null for all animal interactions
-        data = umf,
-        maxOrder = 2,
-        control = list(maxit = 20000),
-        #method = "Nelder-Mead",
-        starts = rep(0, length(global_multispecies_model@opt$par))
-    )
-    print("Finished global model :)")
+    # # global model
+    # global_multispecies_model <- occuMulti(
+    #     detformulas = rep("~ Community", length(species)),
+    #     stateformulas = c(
+    #         rep("~ RainfallScaled + PercentNaturalScaled + DistToWater + TemperatureScaled + Year", length(bestCovariates$BestCovariates)),
+    #         rep("~ 1", ((length(species)^2 + length(species)) / 2) - length(species))
+    #     ),
+    #     # (n^2+n)/2 is the addition version of a factorial
+    #     # use null for all animal interactions
+    #     data = umf,
+    #     maxOrder = 2
+    # )
+    # global_multispecies_model <- occuMulti(
+    #     detformulas = rep("~ Community", length(species)),
+    #     stateformulas = c(
+    #         rep("~ RainfallScaled + PercentNaturalScaled + DistToWater + TemperatureScaled + Year", length(bestCovariates$BestCovariates)),
+    #         rep("~ 1", ((length(species)^2 + length(species)) / 2) - length(species))
+    #     ),
+    #     # (n^2+n)/2 is the addition version of a factorial
+    #     # use null for all animal interactions
+    #     data = umf,
+    #     maxOrder = 2,
+    #     control = list(maxit = 20000),
+    #     #method = "Nelder-Mead",
+    #     starts = rep(0, length(global_multispecies_model@opt$par))
+    # )
+    # print("Finished global model :)")
 
 }
 # at this point, the best covariates were used for each species' occupancy with "Community" as the detection covariate 
@@ -681,25 +669,25 @@ if (all(bestCovariates$Species == names(detectionWithoutBlanks))) {
 
 summary(null_multispecies_model)
 summary(best_multispecies_model)
-summary(global_multispecies_model)
-summary(natural_multispecies_model)
+#summary(global_multispecies_model)
+#summary(natural_multispecies_model)
 summary(community_multispecies_model)
 # it's not looking good, girl...
 
 
 # add penalty to model: Penalized likelihood estimation
 set.seed(123)
-best_mod_penalty <- optimizePenalty(best_multispecies_model, penalties = c(0.5, 1))
-summary(best_mod_penalty)
-natural_mod_penalty <- optimizePenalty(natural_multispecies_model, penalties = c(0.5, 1))
-summary(natural_mod_penalty)
+# best_mod_penalty <- optimizePenalty(best_multispecies_model, penalties = c(0.5, 1))
+# summary(best_mod_penalty)
+# natural_mod_penalty <- optimizePenalty(natural_multispecies_model, penalties = c(0.5, 1))
+# summary(natural_mod_penalty)
 community_mod_penalty <- optimizePenalty(community_multispecies_model, penalties = c(0.5, 1))
 summary(community_mod_penalty)
 
 
-save(null_multispecies_model, best_multispecies_model, global_multispecies_model,
-    natural_multispecies_model, community_multispecies_model, 
-    best_mod_penalty, natural_mod_penalty, community_mod_penalty, 
+save(null_multispecies_model, best_multispecies_model,
+    community_multispecies_model, 
+    community_mod_penalty, 
     casualNames, commonNames, species, umf,
     file = paste0("R Objects/", gsub(" ", "", casualNames[1]), "_", gsub(" ", "", casualNames[2]), "_MSM.RData")
 )
