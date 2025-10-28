@@ -153,12 +153,12 @@ studyArea <- south_america_sf %>%
     ggplot() +
     geom_sf(aes(fill = Ecu), lwd = 0.5) +
     geom_sf(data = territories_sf, aes(fill = Community), alpha = 0.4, lwd = 0.5) +
-    geom_point(data = stations, aes(gps_x, gps_y, fill = Community), pch = 21, size = 1) +
-    geom_sf(data = communities_sf, aes(fill = Community), size = 4, pch = 24) +
+    geom_point(data = stations, aes(gps_x, gps_y, fill = Community), alpha = 0.5, pch = 21, size = 1) +
+    geom_sf(data = communities_sf, aes(fill = Community), size = 3, pch = 24) +
     geom_text_repel(
         data = communities_sf,
         aes(label = Name, geometry = geometry),
-        box.padding = 1.5,          
+        box.padding = 1.25,          
         force = 2,                 
         force_pull = 0.3,
         min.segment.length = 0,   
@@ -186,16 +186,14 @@ studyArea <- south_america_sf %>%
     ) +
     annotation_scale(
         location = "bl", width_hint = 0.3,
-        line_width = 0.5, text_size = 3,
-        text_family = "Times"
+        line_width = 0.5
     ) +
     annotation_north_arrow(
         location = "tr",
         which_north = "true",
         height = unit(1, "cm"),
         width = unit(1, "cm"),
-        style = north_arrow_fancy_orienteering,
-        text_family = "Times"
+        style = north_arrow_fancy_orienteering
     ) +
     theme_bw() +
     theme(
@@ -234,7 +232,7 @@ natArea <- ggplot(natStats, aes(x = Community, y = avgNat, fill = Community)) +
     geom_text(aes(label = paste0("N = ", n), y = 0.025), # avgNat + seNat + 0.033
         size = 3, family = "Times", fontface = "bold"
     ) +
-    ylab("Percent natural area within 25 km (SD)") +
+    ylab("Percent natural area within 25 km (±SD)") +
     scale_fill_manual(values = colors) +
     ylim(c(0, 1.08)) +
     scale_y_continuous(breaks = seq(0, 1, by = 0.25)) +
@@ -269,14 +267,14 @@ p_violin <- ggplot(siteCovariate, aes(x = Community, y = percentNatural, fill = 
         panel.grid.minor = element_blank()
     ) +
     ylim(0, 1.05)
-
+p_violin
 
 
 # combine plots 
 # create left panel with site map and bar chart
 left_panel <- plot_grid(
     studyArea,
-    natArea,
+    SA,
     ncol = 1,
     rel_heights = c(1.2, 0.8),
     labels = c("A", "B"),
@@ -288,7 +286,7 @@ left_panel <- plot_grid(
 # combine left panel with S Am. overview
 final_plot <- plot_grid(
     left_panel,
-    SA,
+    natArea,
     ncol = 2,
     rel_widths = c(1.1, 0.9),
     label_size = 12,
@@ -313,7 +311,7 @@ ggsave("Global/Figures/mapPlot.pdf",
     height = 8.5,
     bg = "white"
 )
-
+ 
 
 
 
