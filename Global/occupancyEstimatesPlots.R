@@ -1397,94 +1397,94 @@ nDaysGroupedPerSpecies
 
 
 
-################################################################################
-########################### PLOT MAP OF STATIONS ###############################
-################################################################################
+# ################################################################################
+# ########################### PLOT MAP OF STATIONS ###############################
+# ################################################################################
 
-# load data
-data("world")
-stations <- read.csv("Global/Data/AllStationsFormatted.csv")
-stations <- stations %>%
-  select(c(Station, gps_x, gps_y, CommunityName)) %>%
-  distinct()
-stations$CommunityName <- gsub("Zabalo", "Zábalo", x = stations$CommunityName)
+# # load data
+# data("world")
+# stations <- read.csv("Global/Data/AllStationsFormatted.csv")
+# stations <- stations %>%
+#   select(c(Station, gps_x, gps_y, CommunityName)) %>%
+#   distinct()
+# stations$CommunityName <- gsub("Zabalo", "Zábalo", x = stations$CommunityName)
 
-# order the communities by percent of natural cover
-stations <- stations %>% dplyr::filter(CommunityName %in% orderedCommunities)
-stations$Community <- factor(stations$CommunityName, levels=orderedCommunities)
-stations$CommunityName <- NULL
+# # order the communities by percent of natural cover
+# stations <- stations %>% dplyr::filter(CommunityName %in% orderedCommunities)
+# stations$Community <- factor(stations$CommunityName, levels=orderedCommunities)
+# stations$CommunityName <- NULL
 
-# only highlight Ecuador
-SA <- c("ecuador", "bolivia", "brazil", "chile", "colombia", "argentina", "guyana", "paraguay", "peru", "suriname", "uruguay", "venezuela")
-mapColors <- rep("white", length(SA))
-mapColors[2] <- "lightyellow"
-colors <- c(
-    "Zábalo" = "darkgreen", "Remolino" = "forestgreen",
-    "Sinangoe" = "yellowgreen", "San Pablo" = "gold1", "Siona" = "darkgoldenrod3"
-)
+# # only highlight Ecuador
+# SA <- c("ecuador", "bolivia", "brazil", "chile", "colombia", "argentina", "guyana", "paraguay", "peru", "suriname", "uruguay", "venezuela")
+# mapColors <- rep("white", length(SA))
+# mapColors[2] <- "lightyellow"
+# colors <- c(
+#     "Zábalo" = "darkgreen", "Remolino" = "forestgreen",
+#     "Sinangoe" = "yellowgreen", "San Pablo" = "gold1", "Siona" = "darkgoldenrod3"
+# )
 
-# option A with data("world")
-worldEdited <- world
-worldEdited$Ecu <- ifelse(worldEdited$name_long == "Ecuador", "A", "B")
+# # option A with data("world")
+# worldEdited <- world
+# worldEdited$Ecu <- ifelse(worldEdited$name_long == "Ecuador", "A", "B")
 
-# option B with 'maps' package
-mappy <- maps::map("worldHires", SA)
-mappy_sf <- st_as_sf(mappy, crs = st_crs(worldEdited), fill = FALSE)
-mappy_sf$Ecu <- ifelse(mappy_sf$ID == "Ecuador", "A", "B")
+# # option B with 'maps' package
+# mappy <- maps::map("worldHires", SA)
+# mappy_sf <- st_as_sf(mappy, crs = st_crs(worldEdited), fill = FALSE)
+# mappy_sf$Ecu <- ifelse(mappy_sf$ID == "Ecuador", "A", "B")
 
-# option A: less detail in Ecuador border
-ecuadorMap <- worldEdited %>%
-  dplyr::filter(continent == "South America") %>%
-  ggplot() +
-  geom_sf(aes(fill=Ecu)) +
-  geom_point(data = stations, aes(gps_x, gps_y, fill = Community), pch = 21) +
-  #scale_fill_manual(values = c("lightyellow", "white")) +
-  scale_fill_manual(name = "Community",
-                    values = c(colors, "A" = "lightyellow", "B" = "white"), 
-                    breaks = c("Zábalo", "Remolino", "Sinangoe", "San Pablo", "Siona")) +
-  coord_sf(default_crs = sf::st_crs(4326), xlim = c(-150, -37)) + 
-  #guides(fill = "none") +
-  theme_classic() +
-  theme(axis.title.x=element_blank(),
-        axis.title.y=element_blank(),
-        text = element_text(family = "Times", colour = "black"),
-        axis.text = element_text(colour = "black"))
+# # option A: less detail in Ecuador border
+# ecuadorMap <- worldEdited %>%
+#   dplyr::filter(continent == "South America") %>%
+#   ggplot() +
+#   geom_sf(aes(fill=Ecu)) +
+#   geom_point(data = stations, aes(gps_x, gps_y, fill = Community), pch = 21) +
+#   #scale_fill_manual(values = c("lightyellow", "white")) +
+#   scale_fill_manual(name = "Community",
+#                     values = c(colors, "A" = "lightyellow", "B" = "white"), 
+#                     breaks = c("Zábalo", "Remolino", "Sinangoe", "San Pablo", "Siona")) +
+#   coord_sf(default_crs = sf::st_crs(4326), xlim = c(-150, -37)) + 
+#   #guides(fill = "none") +
+#   theme_classic() +
+#   theme(axis.title.x=element_blank(),
+#         axis.title.y=element_blank(),
+#         text = element_text(family = "Times", colour = "black"),
+#         axis.text = element_text(colour = "black"))
 
-# option B: more detail in Ecuador border but can't get Ecuador to highlight yellow?
-ecuadorMap <- mappy_sf %>%
-  ggplot() +
-  geom_sf(aes(fill=Ecu), lwd = 0.5) +
-  geom_point(data = stations, aes(gps_x, gps_y, fill = Community), pch = 21) +
-  #scale_fill_manual(values = c("lightyellow", "white")) +
-  scale_fill_manual(name = "Community",
-                    values = c(colors, "A" = "lightyellow", "B" = "white"), 
-                    breaks = c("Zábalo", "Remolino", "Sinangoe", "San Pablo", "Siona"),
-                    guide = guide_legend(override.aes = list(shape = 21, size = 6.5, fill = colors) )) +
-  coord_sf(default_crs = sf::st_crs(4326), xlim = c(-150, -37)) + 
-  #guides(fill = "none") +
-  theme_classic() +
-  theme(axis.title.x=element_blank(),
-        axis.title.y=element_blank(),
-        text = element_text(family = "Times", colour = "black"),
-        axis.text = element_text(colour = "black"))
+# # option B: more detail in Ecuador border but can't get Ecuador to highlight yellow?
+# ecuadorMap <- mappy_sf %>%
+#   ggplot() +
+#   geom_sf(aes(fill=Ecu), lwd = 0.5) +
+#   geom_point(data = stations, aes(gps_x, gps_y, fill = Community), pch = 21) +
+#   #scale_fill_manual(values = c("lightyellow", "white")) +
+#   scale_fill_manual(name = "Community",
+#                     values = c(colors, "A" = "lightyellow", "B" = "white"), 
+#                     breaks = c("Zábalo", "Remolino", "Sinangoe", "San Pablo", "Siona"),
+#                     guide = guide_legend(override.aes = list(shape = 21, size = 6.5, fill = colors) )) +
+#   coord_sf(default_crs = sf::st_crs(4326), xlim = c(-150, -37)) + 
+#   #guides(fill = "none") +
+#   theme_classic() +
+#   theme(axis.title.x=element_blank(),
+#         axis.title.y=element_blank(),
+#         text = element_text(family = "Times", colour = "black"),
+#         axis.text = element_text(colour = "black"))
 
-# set bounding box to magnify
-coords <- as.matrix(stations[,c("gps_x","gps_y")])
-e <- as.vector(ext(coords)) 
-e["xmin"] <- e["xmin"] - 0.1
-e["ymin"] <- e["ymin"] - 0.5
-e["xmax"] <- e["xmax"] + 0.1
-e["ymax"] <- e["ymax"] + 0.5
+# # set bounding box to magnify
+# coords <- as.matrix(stations[,c("gps_x","gps_y")])
+# e <- as.vector(ext(coords)) 
+# e["xmin"] <- e["xmin"] - 0.1
+# e["ymin"] <- e["ymin"] - 0.5
+# e["xmax"] <- e["xmax"] + 0.1
+# e["ymax"] <- e["ymax"] + 0.5
 
-# plot map inlay
-together <- ecuadorMap + geom_magnify(from = e, 
-                          to = c(xmin = -150, xmax = -85, ymin = -45, ymax = 3))
-together
+# # plot map inlay
+# together <- ecuadorMap + geom_magnify(from = e, 
+#                           to = c(xmin = -150, xmax = -85, ymin = -45, ymax = 3))
+# together
 
-if (savePlots == "YES") {
-  ggsave(plot = together, filename = paste0(communities, "/Figures/mapInlayWithSites.png"), 
-         width = 7, height = 5)
-}
+# if (savePlots == "YES") {
+#   ggsave(plot = together, filename = paste0(communities, "/Figures/mapInlayWithSites.png"), 
+#          width = 7, height = 5)
+# }
 
 
 
@@ -1493,48 +1493,48 @@ if (savePlots == "YES") {
 ######################### PLOT PERCENT NATURAL AREA ############################
 ################################################################################
 
-# plot percent natural area within 25 km with SD
-siteCovariate <- read.csv("Global/Data/AllCommunityCovariates.csv")
-natStats <- siteCovariate %>% 
-  group_by(Community) %>%
-  summarize(avgNat = mean(percentNatural), sdNat = sd(percentNatural))
-natStats$Community <- gsub("Zabalo", "Zábalo", x = natStats$Community)
+# # plot percent natural area within 25 km with SD
+# siteCovariate <- read.csv("Global/Data/AllCommunityCovariates.csv")
+# natStats <- siteCovariate %>% 
+#   group_by(Community) %>%
+#   summarize(avgNat = mean(percentNatural), sdNat = sd(percentNatural))
+# natStats$Community <- gsub("Zabalo", "Zábalo", x = natStats$Community)
 
-# order the communities by percent of natural cover
-natStats <- natStats %>% dplyr::filter(Community %in% orderedCommunities)
-natStats$Community <- factor(natStats$Community, levels=orderedCommunities)
+# # order the communities by percent of natural cover
+# natStats <- natStats %>% dplyr::filter(Community %in% orderedCommunities)
+# natStats$Community <- factor(natStats$Community, levels=orderedCommunities)
 
-# plot it
-ggplot(natStats, aes(x = Community, y = avgNat, fill = Community)) +
-  geom_bar(stat="identity") +
-  geom_errorbar(aes(ymin = avgNat - sdNat, ymax = avgNat + sdNat), width = 0.2) +
-  ylab("Percent natural area within 25 km") +
-  scale_fill_manual(values = colors) +
-  ylim(c(0,1)) +
-  theme_bw()+
-  theme(text = element_text(family = "Times", colour = "black"),
-        axis.text = element_text(colour = "black"))
-# save it
-if (savePlots == "YES") {
-  ggsave(filename = paste0(communities, "/Figures/percentNatArea25km.png"), 
-         width = 7, height = 5)
-}
+# # plot it
+# ggplot(natStats, aes(x = Community, y = avgNat, fill = Community)) +
+#   geom_bar(stat="identity") +
+#   geom_errorbar(aes(ymin = avgNat - sdNat, ymax = avgNat + sdNat), width = 0.2) +
+#   ylab("Percent natural area within 25 km") +
+#   scale_fill_manual(values = colors) +
+#   ylim(c(0,1)) +
+#   theme_bw()+
+#   theme(text = element_text(family = "Times", colour = "black"),
+#         axis.text = element_text(colour = "black"))
+# # save it
+# if (savePlots == "YES") {
+#   ggsave(filename = paste0(communities, "/Figures/percentNatArea25km.png"), 
+#          width = 7, height = 5)
+# }
 
-# zoomed
-ggplot(natStats, aes(x = Community, y = avgNat, fill = Community)) +
-  geom_bar(stat="identity") +
-  geom_errorbar(aes(ymin = avgNat - sdNat, ymax = avgNat + sdNat), width = 0.2) +
-  ylab("Percent natural area within 25 km") +
-  scale_fill_manual(values = colors) +
-  coord_cartesian(ylim = c(0.825,1)) +
-  theme_bw() +
-  theme(text = element_text(family = "Times", colour = "black"),
-        axis.text = element_text(colour = "black"))
-# save it
-if (savePlots == "YES") {
-  ggsave(filename = paste0(communities, "/Figures/percentNatArea25kmZoomed.png"), 
-         width = 7, height = 5)
-}
+# # zoomed
+# ggplot(natStats, aes(x = Community, y = avgNat, fill = Community)) +
+#   geom_bar(stat="identity") +
+#   geom_errorbar(aes(ymin = avgNat - sdNat, ymax = avgNat + sdNat), width = 0.2) +
+#   ylab("Percent natural area within 25 km") +
+#   scale_fill_manual(values = colors) +
+#   coord_cartesian(ylim = c(0.825,1)) +
+#   theme_bw() +
+#   theme(text = element_text(family = "Times", colour = "black"),
+#         axis.text = element_text(colour = "black"))
+# # save it
+# if (savePlots == "YES") {
+#   ggsave(filename = paste0(communities, "/Figures/percentNatArea25kmZoomed.png"), 
+#          width = 7, height = 5)
+# }
 
 
 
