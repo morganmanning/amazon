@@ -331,52 +331,52 @@ for (i in 1:length(casualNames)) {
 }
 
 
-#### NATURAL PENALIZED MODEL
-# make a ggplot panel figure for each species with the conditional occupancy with each other species
-for (i in 1:length(casualNames)) {
-    # get the species
-    speciesInQuestion <- casualNames[i]
+# #### NATURAL PENALIZED MODEL
+# # make a ggplot panel figure for each species with the conditional occupancy with each other species
+# for (i in 1:length(casualNames)) {
+#     # get the species
+#     speciesInQuestion <- casualNames[i]
 
-    # get the conditional occupancy for that species
-    species_conditional_occupancy <- natural_conditional_occupancy[natural_conditional_occupancy$Species1 == speciesInQuestion, ]
+#     # get the conditional occupancy for that species
+#     species_conditional_occupancy <- natural_conditional_occupancy[natural_conditional_occupancy$Species1 == speciesInQuestion, ]
 
-    # plot each interaction
-    species_plot_list <- list()
-    for (j in 1:nrow(species_conditional_occupancy)) {
-        plot_df <- data.frame(
-            Status = c("Present", "Absent"),
-            Predicted = c(species_conditional_occupancy$Present1_Present2[j], species_conditional_occupancy$Present1_Absent2[j]),
-            SE = c(species_conditional_occupancy$PresentSE[j], species_conditional_occupancy$AbsentSE[j]),
-            lower = c(species_conditional_occupancy$PresentLower[j], species_conditional_occupancy$AbsentLower[j]),
-            upper = c(species_conditional_occupancy$PresentUpper[j], species_conditional_occupancy$AbsentUpper[j])
-        )
-        # plot plot_df
-        species_plot_list[[j]] <- ggplot(plot_df, aes(x = Status, y = Predicted)) +
-            geom_point() +
-            geom_errorbar(aes(ymin = lower, ymax = upper), width = 0.2) +
-            ylim(0, 1) +
-            labs(
-                x = paste0(str_to_title(species_conditional_occupancy$Species2[j]), " status"),
-                y = paste0(str_to_title(speciesInQuestion), " occupancy and 95% CI")
-            ) +
-            theme_bw()
-    }
+#     # plot each interaction
+#     species_plot_list <- list()
+#     for (j in 1:nrow(species_conditional_occupancy)) {
+#         plot_df <- data.frame(
+#             Status = c("Present", "Absent"),
+#             Predicted = c(species_conditional_occupancy$Present1_Present2[j], species_conditional_occupancy$Present1_Absent2[j]),
+#             SE = c(species_conditional_occupancy$PresentSE[j], species_conditional_occupancy$AbsentSE[j]),
+#             lower = c(species_conditional_occupancy$PresentLower[j], species_conditional_occupancy$AbsentLower[j]),
+#             upper = c(species_conditional_occupancy$PresentUpper[j], species_conditional_occupancy$AbsentUpper[j])
+#         )
+#         # plot plot_df
+#         species_plot_list[[j]] <- ggplot(plot_df, aes(x = Status, y = Predicted)) +
+#             geom_point() +
+#             geom_errorbar(aes(ymin = lower, ymax = upper), width = 0.2) +
+#             ylim(0, 1) +
+#             labs(
+#                 x = paste0(str_to_title(species_conditional_occupancy$Species2[j]), " status"),
+#                 y = paste0(str_to_title(speciesInQuestion), " occupancy and 95% CI")
+#             ) +
+#             theme_bw()
+#     }
 
-    # make the plot
-    n <- length(species_plot_list)
-    nCol <- floor(sqrt(n))
-    p <- do.call("grid.arrange", c(species_plot_list, ncol = nCol))
-    annotate_figure(p, top = text_grob(paste0(commonNames[i], " Interactions (Penalized natural area model)"),
-        face = "bold", size = 14
-    ))
-    otherSpecies <- casualNames[casualNames != casualNames[i]]
-    if (length(casualNames) == 2) {
-        ggsave(paste0("../Figures/MultispeciesModeling/", casualNames[i], otherSpecies, "_PenalizedNaturalInteractions.png"),
-            width = 10, height = 8
-        )
-    }
+#     # make the plot
+#     n <- length(species_plot_list)
+#     nCol <- floor(sqrt(n))
+#     p <- do.call("grid.arrange", c(species_plot_list, ncol = nCol))
+#     annotate_figure(p, top = text_grob(paste0(commonNames[i], " Interactions (Penalized natural area model)"),
+#         face = "bold", size = 14
+#     ))
+#     otherSpecies <- casualNames[casualNames != casualNames[i]]
+#     if (length(casualNames) == 2) {
+#         ggsave(paste0("../Figures/MultispeciesModeling/", casualNames[i], otherSpecies, "_PenalizedNaturalInteractions.png"),
+#             width = 10, height = 8
+#         )
+#     }
     
-}
+# }
 
 
 #### PENALIZED BEST MODEL
@@ -640,27 +640,15 @@ for (i in 1:length(covs)) {
 
     # make axis titles per potential species
     peccary <- ~ atop(paste("Collared peccary"), paste("(", italic("Pecari tajacu"), ")"))
-    brockets <- ~ atop(paste("Brocket"), paste("(", italic("Mazama sp."), ")"))
     paca <- ~ atop(paste("Lowland paca"), paste("(", italic("Cuniculus paca"), ")"))
-    trumpeter <- ~ atop(paste("Grey-winged trumpeter"), paste("(", italic("Psophia crepitans"), ")"))
-    fourEyed <- ~ atop(paste("Brown four-eyed opossum"), paste("(", italic("Metachirus nudicaudatus"), ")"))
     agouti <- ~ atop(paste("Black agouti"), paste("(", italic("Dasyprocta fuliginosa"), ")"))
-    armadillo <- ~ atop(paste("Nine-banded armadillo"), paste("(", italic("Dasypus novemcinctus"), ")"))
-    tinamou <- ~ atop(paste("Great tinamou"), paste("(", italic("Tinamus major"), ")"))
-    opossum <- ~ atop(paste("Common opossum"), paste("(", italic("Didelphis marsupialis"), ")"))
     ocelot <- ~ atop(paste("Ocelot"), paste("(", italic("Leopardus pardalis"), ")"))
 
     # rphylopic per species
-    peccaryPic <- get_phylopic(uuid = get_uuid(name = "Pecari tajacu", n = 1))
-    brocketsPic <- get_phylopic(uuid = get_uuid(name = "Mazama americana", n = 1))
-    pacaPic <- get_phylopic(uuid = get_uuid(name = "Cuniculus paca", n = 1))
-    trumpPic <- get_phylopic(uuid = get_uuid(name = "Psophia crepitans", n = 1))
-    fourEyedPic <- get_phylopic(uuid = get_uuid(name = "Metachirus nudicaudatus", n = 1))
-    agoutiPic <- get_phylopic(uuid = get_uuid(name = "Dasyprocta", n = 1))
-    armadilloPic <- get_phylopic(uuid = get_uuid(name = "Dasypus novemcinctus", n = 1))
-    tinamouPic <- get_phylopic(uuid = get_uuid(name = "Tinamus major", n = 1))
-    opossumPic <- get_phylopic(uuid = get_uuid(name = "Didelphis", n = 1))
-    ocelotPic <- get_phylopic(uuid = get_uuid(name = "Leopardus pardalis", n = 1))
+    peccaryPic <- get_uuid(name = "Pecari tajacu", n = 1)
+    pacaPic <- get_uuid(name = "Cuniculus paca", n = 1)
+    agoutiPic <- get_uuid(name = "Dasyprocta", n = 1)
+    ocelotPic <- get_uuid(name = "Leopardus pardalis", n = 1)
 
     # plot it
     dodge <- position_dodge(width = 0.3)
