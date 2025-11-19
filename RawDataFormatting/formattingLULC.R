@@ -51,6 +51,7 @@ writeRaster(merged2020, "Data/mergedCroppedLULC.tif", overwrite = TRUE)
 # writeRaster(merged2020, "Data/mergedCroppedLULC.tif", overwrite = TRUE)
 
 
+
 ################ EXTRACT LULC FROM BUFFERED SITES ##################
 merged2020 <- rast("Data/mergedCroppedLULC.tif")
 agg2020 <- aggregate(merged2020, fact = 3, fun = "modal") # becomes a raster of 3x3
@@ -159,6 +160,8 @@ naturalArea <- read.csv("Data/naturalAreaPerSite.csv")
 rainfall <- read.csv("Data/avgRainfallJuly_November.csv")
 distToWater <- read.csv("Data/distanceFromStationsToWater.csv")
 temperature <- read.csv("Data/avgTempKJuly_Nov2020.csv")
+naturalAreaNew <- read.csv("Data/Community-level Covariates/Buffers/naturalAreaBuffers.csv")
+agricultureArea <- read.csv("Data/Community-level Covariates/Buffers/agricultureBuffers.csv")
 
 # standardize the station column name
 rainfall$Station <- rainfall$cameras.St
@@ -172,11 +175,13 @@ temperature$Temperature <- (temperature$SAMPLE_1) - 273.15 # convert to Celsius
 communityCovariates <- merge(rainfall, naturalArea, by = "Station", all.x = TRUE)
 communityCovariates <- merge(communityCovariates, distToWater, by = "Station", all.x = TRUE)
 communityCovariates <- merge(communityCovariates, temperature, by = "Station", all.x = TRUE)
+communityCovariates <- merge(communityCovariates, naturalAreaNew, by = "Station", all.x = TRUE)
+communityCovariates <- merge(communityCovariates, agricultureArea, by = "Station", all.x = TRUE)
 
 # format the covariate data frame
-communityCovariates <- communityCovariates[c("Station", "Rainfall", "Temperature", "DistToWater", "percentNatural")]
+communityCovariates <- communityCovariates[c("Station", "Rainfall", "Temperature", "DistToWater", "percentNatural", "ag20KM", "natArea20KM")]
 communityCovariates <- communityCovariates %>%
-  select(Station, Rainfall, Temperature, DistToWater, percentNatural) %>%
+  select(Station, Rainfall, Temperature, DistToWater, percentNatural, ag20KM, natArea20KM) %>%
   distinct()
 
 # add community name as a covariate based on Station
@@ -190,7 +195,8 @@ communityCovariates <- communityCovariates %>% distinct()
 communityCovariates$RainfallScaled <- c(scale(communityCovariates$Rainfall))
 communityCovariates$TemperatureScaled <- c(scale(communityCovariates$Temperature))
 communityCovariates$PercentNaturalScaled <- c(scale(communityCovariates$percentNatural))
-
+communityCovariates$Ag20KMScaled <- c(scale(communityCovariates$ag20KM))
+communityCovariates$NatArea20KMScaled <- c(scale(communityCovariates$natArea20KM))
 
 #### added 10/08/24
 #communityCovariates <- read.csv("Data/AllCommunityCovariates.csv")

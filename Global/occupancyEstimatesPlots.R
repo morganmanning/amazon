@@ -349,7 +349,7 @@ for (i in 1:length(communities)) {
     match_occupancy <- c("1")
   } else if (communities[i] == "Global") {
     match_detection <- c("Community", "DaysEffortScaled")
-    match_occupancy <- c("Community", "PercentNaturalScaled", "RainfallScaled",
+    match_occupancy <- c("Community", "RainfallScaled", "Ag20KM", "NatArea20KM",
                          "DistToWater", "TemperatureScaled", "DistToComm")
   }
   
@@ -390,6 +390,10 @@ for (i in 1:length(communities)) {
     # select the model with the lowest AIC
     bestDetectionModels$bestDetectionModel[j] <- detectionFormulas[which(temp$AIC == min(temp$AIC))]
     
+    # over ride and use null if species is ocelot
+    if (commonNames[j] == "Ocelot") {
+      bestDetectionModels$bestDetectionModel[j] <- "~ 1"
+    }
     # output is dataframe for community i with the best detection formulas for each species
       
   }
@@ -424,6 +428,10 @@ for (i in 1:length(communities)) {
   modelAICs <- list() # all models and their AICs
   topModels <- list() # only models within 2 AIC of lowest AIC
   for (j in 1:length(speciesNames)) { # for all the species
+    # if ocelot, force null model
+    if (commonNames[j] == "Ocelot") {
+      occupancyModelsList[[j]] <- paste("~ 1", "~ 1")
+    }
     occupancyMods <- list()
     for(m in 1:length(occupancyModelsList[[j]])) {
       test <- occu(formula(occupancyModelsList[[j]][m]), ufoMasterList[[i]][[j]])
@@ -568,10 +576,10 @@ for (i in 1:length(communities)) {
 # calculate the global model for each species (minus distToWater since that wasn't in any best model)
 globalModels <- list()
 for (j in 1:length(speciesNames)){ # for each species
-      test <- occu(~Community + DaysEffortScaled ~RainfallScaled + PercentNaturalScaled + DistToComm + TemperatureScaled + Community, 
+      test <- occu(~Community + DaysEffortScaled ~RainfallScaled + Ag20KMScaled + NatArea20KMScaled + DistToComm + TemperatureScaled + Community, 
                     ufoMasterList[[1]][[j]]) # i = 1 when all communities are together
 
-      globalModels[[j]] <- occu(~Community + DaysEffortScaled ~RainfallScaled + PercentNaturalScaled + DistToComm +
+      globalModels[[j]] <- occu(~Community + DaysEffortScaled ~RainfallScaled + Ag20KMScaled + NatArea20KMScaled + DistToComm +
                     TemperatureScaled + Community, 
                     ufoMasterList[[1]][[j]], 
                                    control = 10000, 
@@ -618,11 +626,12 @@ if (useGlobalModels == "YES") {
 ################################################################################
 
 # load the modelAveraging.r function I built
-source("Global/modelAveraging.R")
+source("Global/modelAveraging.r")
 
 # model average all the model outputs and get coefficients for all covariates
 # make an empty list with the same length as the number of species
 modelAverages <- list()
+
 # model average the best models
 for (j in 1:length(speciesNames)) {
     avg <- ManualModelAverage(masterBestModsOutputs[[1]][[j]], speciesName = speciesNames[j])
@@ -635,11 +644,12 @@ save(modelAverages, file = "Global/Data/R Objects/modelAverages.RData")
 load("Global/Data/R Objects/modelAverages.RData") # loads 'modelAverages'
 
 # rbind all the $occupancy and $detection from each list
+# bind_rows automatically fills missing columns with NA
 occupancyList <- lapply(modelAverages, function(x) x$occupancy)
 detectionList <- lapply(modelAverages, function(x) x$detection)
 
-modelAveragesDF <- do.call(rbind, occupancyList)
-detectionModelAverages <- do.call(rbind, detectionList)
+modelAveragesDF <- bind_rows(occupancyList)
+detectionModelAverages <- bind_rows(detectionList)
 
 # pivot the data frame to long format
 # convert all non-Species columns to numeric (forcing "<NA>" strings to real NAs)
@@ -921,7 +931,7 @@ for (i in 1:length(communities)) {
         }
     } else if (communities[i] == "Global") {
         covariates <- c(
-            "Community", "PercentNaturalScaled", "RainfallScaled",
+            "Community", "Ag20KM", "NatArea20KM", "Rainfall",
             "DistToWater", "TemperatureScaled", "DistToComm"
         )
         siteCovariate <- read.csv("Global/Data/AllCommunityCovariates.csv")
@@ -931,7 +941,8 @@ for (i in 1:length(communities)) {
         dfTemplate <- data.frame(
             Community = rep(allCommunities, each = N), 
             RainfallScaled = mean(siteCovariate$RainfallScaled),
-            PercentNaturalScaled = mean(siteCovariate$PercentNaturalScaled),
+            Ag20KMScaled = mean(siteCovariate$Ag20KM),
+            NatArea20KMScaled = mean(siteCovariate$NatArea20KM),
             DistToWater = mean(siteCovariate$DistToWater),
             TemperatureScaled = mean(siteCovariate$TemperatureScaled),
             DistToComm = mean(siteCovariate$DistToComm),
@@ -1129,7 +1140,7 @@ plottingDF$Species <- factor(plottingDF$Species, levels = speciesNames) # so plo
 # order the communities by percent of natural cover
 orderedCommunities <- c(siteCovariate %>% 
                           group_by(Community) %>% 
-                          summarize(perc = mean(PercentNaturalScaled)) %>% 
+                          summarize(perc = mean(NatArea20KM)) %>% 
                           arrange(desc(perc)) %>% 
                           select(Community))$Community
 orderedCommunities <- gsub("Zabalo", "Zábalo", x = orderedCommunities)
@@ -1345,12 +1356,14 @@ for (i in 1:length(covariatesMinusCommunity)){
     xlabel <- "Temperature (°C, scaled)"
   } else if (covariatesMinusCommunity[i] == "DistToWater") {
     xlabel <- "Distance to water source (m)"
-  } else if (covariatesMinusCommunity[i] == "PercentNaturalScaled"){
-    xlabel <- "Percent natural area within 25 km (scaled)"
+  } else if (covariatesMinusCommunity[i] == "NatArea20KMScaled"){
+    xlabel <- "Percent natural area within 20 km (scaled)"
   } else if (covariatesMinusCommunity[i] == "DistToComm") {
     xlabel <- "Distance to a community (km)"
   } else if (covariatesMinusCommunity[i] == "DaysEffortScaled") {
     xlabel <- "Camera trap effort (days, scaled)"
+  } else if (covariatesMinusCommunity[i] == "Ag20KMScaled") {
+    xlabel <- "Percent agricultural area within 20 km (scaled)"
   }
   
   # xlab:
@@ -1643,28 +1656,28 @@ wholeDiversitySGE <- noUnknownsSGE %>%
   group_by(Species) %>%
   summarise(abundance = n()) %>%
   mutate(Community = "Sinangoe", 
-         PercentNaturalAreaScaled = mean(siteCovariate$PercentNaturalAreaScaled[siteCovariate$Community == "Sinangoe"]),
+         NatArea20KM = mean(siteCovariate$NatArea20KM[siteCovariate$Community == "Sinangoe"]),
          OperatingDays = round(as.numeric(max(noUnknownsSGE$DateTimeOriginal)-
                                             min(noUnknownsSGE$DateTimeOriginal))))
 wholeDiversityZAB <- noUnknownsZAB %>%
   group_by(Species) %>%
   summarise(abundance = n()) %>%
   mutate(Community = "Zábalo", 
-         PercentNaturalAreaScaled = round(mean(siteCovariate$PercentNaturalAreaScaled[siteCovariate$Community == "Zabalo"]), 3), 
+         NatArea20KM = round(mean(siteCovariate$NatArea20KM[siteCovariate$Community == "Zabalo"]), 3), 
          OperatingDays = round(as.numeric(max(noUnknownsZAB$DateTimeOriginal)-
                                             min(noUnknownsZAB$DateTimeOriginal))))
 wholeDiversitySNA <- noUnknownsSNA %>%
   group_by(Species) %>%
   summarise(abundance = n()) %>%
   mutate(Community = "Siona", 
-         PercentNaturalAreaScaled = round(mean(siteCovariate$PercentNaturalAreaScaled[siteCovariate$Community == "Siona"]), 3),  
+         NatArea20KM = round(mean(siteCovariate$NatArea20KM[siteCovariate$Community == "Siona"]), 3),  
          OperatingDays = round(as.numeric(max(noUnknownsSNA$DateTimeOriginal)-
                                             min(noUnknownsSNA$DateTimeOriginal))))
 wholeDiversitySPA <- noUnknownsSPA %>%
   group_by(Species) %>%
   summarise(abundance = n()) %>%
   mutate(Community = "San Pablo", 
-         PercentNaturalAreaScaled = round(mean(siteCovariate$PercentNaturalAreaScaled[siteCovariate$Community == "San Pablo"]), 3),  
+         NatArea20KM = round(mean(siteCovariate$NatArea20KM[siteCovariate$Community == "San Pablo"]), 3),  
          OperatingDays = round(as.numeric(max(noUnknownsSPA$DateTimeOriginal)-
                                             min(noUnknownsSPA$DateTimeOriginal))))
 
@@ -1672,7 +1685,7 @@ wholeDiversityREM <- noUnknownsREM %>%
   group_by(Species) %>%
   summarise(abundance = n()) %>%
   mutate(Community = "Remolino", 
-         PercentNaturalAreaScaled = round(mean(siteCovariate$PercentNaturalAreaScaled[siteCovariate$Community == "Remolino"]), 3),  
+         NatArea20KM = round(mean(siteCovariate$NatArea20KM[siteCovariate$Community == "Remolino"]), 3),  
          OperatingDays = round(as.numeric(max(noUnknownsREM$DateTimeOriginal)-
                                             min(noUnknownsREM$DateTimeOriginal))))
 
@@ -1681,14 +1694,14 @@ communityAbundance <- rbind(wholeDiversityZAB, wholeDiversitySPA, wholeDiversity
                             wholeDiversitySGE, wholeDiversitySNA)
 
 communityDiversity <- communityAbundance %>%
-  group_by(Community, PercentNaturalAreaScaled) %>%
+  group_by(Community, NatArea20KM) %>%
   summarise(nIndiv=sum(abundance),
             nSpecies = length(unique(Species)),
             OperatingDays = mean(OperatingDays),
             shannonIndex = round(-sum((abundance/sum(abundance))*log(abundance/sum(abundance))), 3),
             simpsonIndex = round(1-sum((abundance/sum(abundance))^2), 3)) 
-communityDiversity$PercentNaturalAreaScaled <- round(communityDiversity$PercentNaturalAreaScaled, 3)
-communityDiversity <- arrange(communityDiversity, desc(PercentNaturalAreaScaled))
+communityDiversity$NatArea20KM <- round(communityDiversity$NatArea20KM, 3)
+communityDiversity <- arrange(communityDiversity, desc(NatArea20KM))
 communityDiversity$Community <- factor(communityDiversity$Community, 
                                        levels = communityDiversity$Community)
 communityDiversity
@@ -1730,7 +1743,7 @@ head(cameraInfo)
 # save it
 if (savePlots == "YES") {
   # table with diversity and abundance information
-  kbl(communityDiversity, col.names = c("Community", "Proportion of Natural Area", 
+  kbl(communityDiversity, col.names = c("Community", "Proportion of Natural Area (within 20 km)", 
                                         "Number of Detections", "Number of Species",
                                         "Number of Sampling Days",
                                         "Shannon Diversity Index", "Simpson Diversity Index")) %>%
@@ -1738,9 +1751,9 @@ if (savePlots == "YES") {
     kableExtra::save_kable(file = "Global/Figures/communityDiversityAbundance.png", zoom = 1.5)
   
   # table with just diversity information
-  kbl(communityDiversity[,c("Community", "PercentNaturalAreaScaled", "OperatingDays", 
+  kbl(communityDiversity[,c("Community", "NatArea20KM", "OperatingDays", 
                             "shannonIndex", "simpsonIndex")], 
-      col.names = c("Community", "Proportion of Natural Area", "Number of Sampling Days", 
+      col.names = c("Community", "Proportion of Natural Area (within 20 km)", "Number of Sampling Days", 
                     "Shannon Diversity Index", "Simpson Diversity Index")) %>%
     kable_classic(font_size = 22, html_font = "TimesNewRoman") %>%
     save_kable(file = "Global/Figures/communityDiversitySummary.png", zoom = 2)
