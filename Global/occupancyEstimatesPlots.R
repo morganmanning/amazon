@@ -70,10 +70,19 @@ useGlobalModels <- "NO"
 ################################################################################
 
 
+################################################################################
+## Check correlation between covariates ##
 
+# load site covariates for all communities
+siteCovariate <- read.csv("Global/Data/AllCommunityCovariates.csv")
+siteCovariate$Rainfall <- siteCovariate$Rainfall*1000 # convert to grams/m^2/s  
 
-
-
+# plot correlation matrix
+correlation <- siteCovariate %>%
+  select(RainfallScaled, ag20KM, natArea20KM, DistToWater, TemperatureScaled, DistToComm)
+correlationMatrix <- cor(correlation, use = "complete.obs")
+correlationMatrix
+# nat area and ag are highly negatively correlated (-0.96)
 
 
 
@@ -349,7 +358,7 @@ for (i in 1:length(communities)) {
     match_occupancy <- c("1")
   } else if (communities[i] == "Global") {
     match_detection <- c("Community", "DaysEffortScaled")
-    match_occupancy <- c("Community", "RainfallScaled", "Ag20KM", "NatArea20KM",
+    match_occupancy <- c("Community", "RainfallScaled", "NatArea20KMScaled",
                          "DistToWater", "TemperatureScaled", "DistToComm")
   }
   
@@ -617,7 +626,7 @@ if (useGlobalModels == "YES") {
     names(masterBestModsFitLists) <- communities
 } 
 
-  
+
 
 ################################################################################
 ################################################################################
@@ -685,6 +694,15 @@ head(longDF)
 longDF <- longDF %>%
     mutate(significant = ifelse(lower > 0 | upper < 0, "Significant", "Not Significant")) 
 longDF$significant <- factor(longDF$significant, levels = c("Significant", "Not Significant"))
+
+
+save(
+    list = c(
+        "masterBestModsFitLists", "speciesNames", "commonNames", "masterBestModsOutputs",
+        "siteCovariate", "stations", "modelAveragesDF_clean"
+    ),
+    file = "Global/Data/R Objects/masterBestModsFitLists.RData"
+)
 
 
 
@@ -931,7 +949,7 @@ for (i in 1:length(communities)) {
         }
     } else if (communities[i] == "Global") {
         covariates <- c(
-            "Community", "Ag20KM", "NatArea20KM", "Rainfall",
+            "Community", "NatArea20KMScaled", "RainfallScaled",
             "DistToWater", "TemperatureScaled", "DistToComm"
         )
         siteCovariate <- read.csv("Global/Data/AllCommunityCovariates.csv")
@@ -941,8 +959,7 @@ for (i in 1:length(communities)) {
         dfTemplate <- data.frame(
             Community = rep(allCommunities, each = N), 
             RainfallScaled = mean(siteCovariate$RainfallScaled),
-            Ag20KMScaled = mean(siteCovariate$Ag20KM),
-            NatArea20KMScaled = mean(siteCovariate$NatArea20KM),
+            NatArea20KMScaled = mean(siteCovariate$NatArea20KMScaled),
             DistToWater = mean(siteCovariate$DistToWater),
             TemperatureScaled = mean(siteCovariate$TemperatureScaled),
             DistToComm = mean(siteCovariate$DistToComm),
@@ -1140,7 +1157,7 @@ plottingDF$Species <- factor(plottingDF$Species, levels = speciesNames) # so plo
 # order the communities by percent of natural cover
 orderedCommunities <- c(siteCovariate %>% 
                           group_by(Community) %>% 
-                          summarize(perc = mean(NatArea20KM)) %>% 
+                          summarize(perc = mean(natArea20KM)) %>% 
                           arrange(desc(perc)) %>% 
                           select(Community))$Community
 orderedCommunities <- gsub("Zabalo", "Zábalo", x = orderedCommunities)
