@@ -15,7 +15,7 @@ require(dplyr)
 require(ggplot2)
 require(reshape2)
 require(rphylopic)
-
+require(ggimage)
 
 # input
 communities <- c("Sinangoe", "Zabalo", "Remolino", "San Pablo", "Siona")
@@ -529,17 +529,17 @@ tinamou <- ~ atop(paste("Great tinamou"), paste("(", italic("Tinamus major"), ")
 #opossum <- ~ atop(paste("Common opossum"), paste("(", italic("Didelphis marsupialis"), ")"))
 ocelot <- ~ atop(paste("Ocelot"), paste("(", italic("Leopardus pardalis"), ")"))
 
-# rphylopic per species
-peccPic <- get_phylopic(uuid = get_uuid(name = "Pecari tajacu", n = 1))
-brockPic <- get_phylopic(uuid = get_uuid(name = "Mazama americana", n = 1))
-pacaPic <- get_phylopic(uuid = get_uuid(name = "Cuniculus paca", n = 1))
-trumpPic <- get_phylopic(uuid = get_uuid(name = "Psophia crepitans", n = 1))
-#fourEyedPic <- get_phylopic(uuid = get_uuid(name = "Metachirus nudicaudatus", n = 1))
-agoutiPic <- get_phylopic(uuid = get_uuid(name = "Dasyprocta", n = 1))
-armadilloPic <- get_phylopic(uuid = get_uuid(name = "Dasypus novemcinctus", n = 1))
-tinamouPic <- get_phylopic(uuid = get_uuid(name = "Tinamus major", n = 1))
-#opossumPic <- get_phylopic(uuid = get_uuid(name = "Didelphis", n = 1))
-ocelotPic <- get_phylopic(uuid = get_uuid(name = "Leopardus pardalis", n = 1))
+# # rphylopic per species
+# peccPic <- get_phylopic(uuid = get_uuid(name = "Pecari tajacu", n = 1))
+# brockPic <- get_phylopic(uuid = get_uuid(name = "Mazama americana", n = 1))
+# pacaPic <- get_phylopic(uuid = get_uuid(name = "Cuniculus paca", n = 1))
+# trumpPic <- get_phylopic(uuid = get_uuid(name = "Psophia crepitans", n = 1))
+# #fourEyedPic <- get_phylopic(uuid = get_uuid(name = "Metachirus nudicaudatus", n = 1))
+# agoutiPic <- get_phylopic(uuid = get_uuid(name = "Dasyprocta", n = 1))
+# armadilloPic <- get_phylopic(uuid = get_uuid(name = "Dasypus novemcinctus", n = 1))
+# tinamouPic <- get_phylopic(uuid = get_uuid(name = "Tinamus major", n = 1))
+# #opossumPic <- get_phylopic(uuid = get_uuid(name = "Didelphis", n = 1))
+# ocelotPic <- get_phylopic(uuid = get_uuid(name = "Leopardus pardalis", n = 1))
 
 #### in the correct order???
 commonNames
@@ -552,42 +552,74 @@ colors <- c("Zábalo" = "darkgreen", "Remolino" = "forestgreen",
             "Sinangoe" = "yellowgreen", "San Pablo" = "gold1", "Siona" = "darkgoldenrod3")
 estimates
 
-dodge <- position_dodge(width = 0.3)
-plot <- ggplot(estimates, aes(x = Species,
-                           y = avgOccupancy,
-                           color = Community)) +
-  geom_point(aes(color = Community), position = dodge, size = 2.5) +
-  ylim(c(0,1.05)) +
-  geom_errorbar(aes(ymin = avgOccupancyLower,
-                    ymax = avgOccupancyUpper,
-                    color = Community), 
-                position = dodge, width = 0.2, linewidth = 1) +
-  scale_color_manual(values = colors) +
-  scale_x_discrete(labels = c(peccary, brocket, paca, trumpeter, agouti, armadillo, tinamou, ocelot)) +
-  labs(x = "Species", y = "Null occupancy probability (95% CI)") +
-  theme_classic() +
-  theme(text = element_text(family = "Times", colour = "black"),
+# URLs
+peccaryURL <- "https://images.phylopic.org/images/44fb7d4f-6d59-432b-9583-a87490259789/raster/1024x610.png?v=183ff0ad631"
+brocketURL <- "https://images.phylopic.org/images/b5f40112-0cb8-4994-aa70-28ac97ccb83f/raster/901x1024.png?v=186bb13accc"
+pacaURL <- "https://images.phylopic.org/images/414b0720-a160-4bce-b060-2eb9675fc1c8/raster/1024x559.png?v=17d5f8f529f"
+trumpeterURL <- "https://images.phylopic.org/images/feb8e7c3-483d-4f78-8d9e-5618e96102e7/raster/565x1024.png?v=1985dfa2256"
+agoutiURL <- "https://images.phylopic.org/images/30fe5e82-8127-4cbb-9c3f-c64a379376a8/raster/1024x642.png?v=178d877cf4e"
+armadilloURL <- "https://images.phylopic.org/images/5d59b5ce-c1dd-40f6-b295-8d2629b9775e/raster/1024x493.png?v=13571ec0b6a"
+tinamouURL <- "https://images.phylopic.org/images/446debec-ca63-4882-801f-beaf479887d5/raster/1024x773.png?v=1464c44f011"
+ocelotURL <- "https://images.phylopic.org/images/2fc7bbbf-8ca7-48fb-8495-d351cd3b1f99/raster/1024x409.png?v=176942952dd"
+
+# URLs and desired heights
+sil_urls <- c(
+    peccaryURL, brocketURL, pacaURL, trumpeterURL,
+    agoutiURL, armadilloURL, tinamouURL, ocelotURL
+)
+sil_heights <- c(0.10, 0.125, 0.10, 0.13, 0.10, 0.10, 0.125, 0.10)
+
+# fade helper: multiply existing alpha by `alpha` and write to a temp PNG
+fade_images <- function(urls, alpha = 0.2) {
+    vapply(urls, function(u) {
+        img <- image_read(u)
+        img <- image_fx(img, expression = paste0("u*", alpha), channel = "alpha")
+        f <- tempfile(fileext = ".png")
+        image_write(img, path = f, format = "png")
+        f
+    }, FUN.VALUE = character(1))
+}
+
+faded_pngs <- fade_images(sil_urls, alpha = 0.2)
+
+sil_df <- data.frame(
+    Species = speciesNames,
+    y = 0.05,
+    image = faded_pngs,
+    height = sil_heights
+)
+
+# plot it
+plot <- ggplot(estimates, aes(x = Species, y = avgOccupancy)) +
+    geom_point(aes(color = Community), position = dodge, size = 2.5) +
+    geom_errorbar(
+        aes(
+            ymin = avgOccupancyLower,
+            ymax = avgOccupancyUpper,
+            color = Community
+        ),
+        position = dodge, width = 0.2, linewidth = 1
+    ) +
+    scale_color_manual(values = colors) +
+    scale_x_discrete(labels = c(peccary, brocket, paca, trumpeter, agouti, armadillo, tinamou, ocelot)) +
+    ylim(c(0, 1.05)) +
+    labs(x = "Species", y = "Null occupancy probability (95% CI)") +
+    theme_classic() +
+    theme(
+        text = element_text(family = "Times", colour = "black"),
         axis.text = element_text(colour = "black"),
         axis.text.x = element_text(angle = 45, vjust = 0.60),
         legend.title = element_blank(),
-        axis.title.x = element_blank(), 
-        legend.position="top")
+        axis.title.x = element_blank(),
+        legend.position = "top"
+    ) +
+    geom_image(
+        data = sil_df,
+        aes(x = Species, y = y, image = image, size = height),
+        inherit.aes = FALSE, # prevents inheriting color=Community
+        by = "height") +
+    scale_size_identity()
 plot
-
-commonNames
-# plot the animal silhouettes
-plot +
-    add_phylopic(peccPic, alpha = 0.2, x = 1.0, y = 0.05, ysize = 0.1) +
-    add_phylopic(brockPic, alpha = 0.2, x = 2.0, y = 0.05, ysize = 0.125) +
-    add_phylopic(pacaPic, alpha = 0.2, x = 3.0, y = 0.05, ysize = 0.1) +
-    add_phylopic(trumpPic, alpha = 0.2, x = 4.0, y = 0.05, ysize = 0.13) +
-    #add_phylopic(fourEyedPic, alpha = 0.2, x = 5.0, y = 0.05, ysize = 0.1) +
-    add_phylopic(agoutiPic, alpha = 0.2, x = 5.0, y = 0.05, ysize = 0.1) +
-    add_phylopic(armadilloPic, alpha = 0.2, x = 6.0, y = 0.05, ysize = 0.1) +
-    add_phylopic(tinamouPic, alpha = 0.2, x = 7.0, y = 0.05, ysize = 0.125) +
-    #add_phylopic(opossumPic, alpha = 0.2, x = 9.0, y = 0.05, ysize = 0.1) +
-    add_phylopic(ocelotPic, alpha = 0.2, x = 8.0, y = 0.05, ysize = 0.1)
-
 # save it
 ggsave(filename = "Global/Figures/SingleSpeciesModeling/AllCommunitiesOccupancyEstimatesNullModels.png", width = 8, height = 4)
 
