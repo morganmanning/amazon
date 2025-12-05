@@ -52,7 +52,7 @@ ag_table <- reduce(ag_list, full_join, by = c(names(ag_list[[1]])[1], "Station")
 
 # save
 write_csv(ag_table, "agricultureBuffers.csv")
-
+ag_table <- read.csv("agricultureBuffers.csv")
 
 ################################################################################
 ########################## PROCESS NATURAL AREA ################################
@@ -88,7 +88,7 @@ for (file in nat_files) {
 
 nat_table <- reduce(nat_list, full_join, by = c(names(nat_list[[1]])[1], "Station"))
 write_csv(nat_table, "naturalAreaBuffers.csv")
-
+nat_table <- read.csv("naturalAreaBuffers.csv")
 
 
 ################################################################################

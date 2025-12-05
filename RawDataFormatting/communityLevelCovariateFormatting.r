@@ -182,3 +182,34 @@ communityCovariates <- merge(communityCovariates, meanPhysical, by = "Community"
 
 # save as a csv
 write.csv(communityCovariates, "CommunityLevelCovariates.csv", row.names = FALSE)
+
+# post-hoc adding new natural area and ag bc dont have those DEM files readily available
+communityCovariates <- read.csv("CommunityLevelCovariates.csv")
+covariates <- read.csv("AllCommunityCovariates.csv")
+
+# add percent natural area (20 km buffer)
+newVariables <- covariates %>%
+    group_by(Community) %>%
+    summarize(
+        natArea20KMSD = sd(natArea20KM),
+        natArea20KM = mean(natArea20KM),
+        natArea10KMSD = sd(natArea10KM),
+        natArea10KM = mean(natArea10KM),
+        agArea10KMSD = sd(ag10KM),
+        agArea10KM = mean(ag10KM),
+        agArea20KM = mean(ag20KM),
+        agArea20KMSD = sd(ag20KM)   
+        )
+
+
+# find shared columns
+shared_cols <- intersect(names(communityCovariates), names(newVariables))
+shared_cols <- shared_cols[shared_cols != "Community"]
+
+# overwrite them
+communityCovariates[shared_cols] <- NULL # remove originals
+
+# now merge safely
+communityCovariates <- merge(communityCovariates, newVariables, by = "Community")
+
+write.csv(communityCovariates, "CommunityLevelCovariates.csv", row.names = FALSE)

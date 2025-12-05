@@ -1,6 +1,6 @@
 # Goal: do the multidimensional scaling
 
-setwd("~/amazon/Global/Data")
+setwd("~/Documents/amazon")
 
 # source of elevation data: https://www.sciencebase.gov/catalog/item/5920dd83e4b0ac16dbdf3a4d
 # source for rainfall, temperature, humidity, root moisture: https://disc.gsfc.nasa.gov/datasets/GLDAS_NOAH025_M_2.1/summary
@@ -18,7 +18,7 @@ library(knitr)
 library(kableExtra)
 
 # load in necessary data
-communityCovariates <- read.csv("CommunityLevelCovariates.csv")
+communityCovariates <- read.csv("Global/Data/CommunityLevelCovariates.csv")
 rownames(communityCovariates) <- gsub("Zabalo", "Zábalo", communityCovariates$Community)
 communityCovariates$Community <- NULL
 
@@ -33,7 +33,8 @@ communityCovariates$Community <- NULL
 # Columns to exclude
 keepColumns <- c(
     "TerritoryArea", "distanceToNearestCommunity",
-    "airTemp", "airTempSD", "rainfall", "rainfallSD", "MeanElevation", "MeanDistToWater"
+    "airTemp", "airTempSD", "rainfall", "rainfallSD", "MeanElevation", "MeanDistToWater",
+    "agArea10KM"
 )
 excludeColumns <- c(
     "X", "Y", "OperatingDays", "MeanTemperature", "MeanDistToWater",
@@ -45,6 +46,25 @@ excludeColumns <- c(
 )
 communityCovariatesRemoved <- communityCovariates[, (names(communityCovariates) %in% keepColumns)]
 communityCovariatesRemoved <- scale(communityCovariatesRemoved)
+
+# make nice labels for the covariates
+unique(colnames(communityCovariatesRemoved))
+# [1] "distanceToNearestCommunity" "TerritoryArea"             
+# [3] "rainfall"                   "rainfallSD"                
+# [5] "airTemp"                    "airTempSD"                 
+# [7] "MeanDistToWater"            "MeanElevation"             
+# [9] "agArea20KM"              
+colnames(communityCovariatesRemoved) <- c(
+    "Distance to Nearest Community (km, scaled)",
+    "Territory Area (km², scaled)",
+    "Average Rainfall (kg/m²/s, scaled)",
+    "Average Rainfall SD (kg/m²/s, scaled)",
+    "Average Temperature (°C, scaled)",
+    "Average Temperature SD (°C, scaled)",
+    "Mean Distance to Water Bodies (m, scaled)",
+    "Mean Elevation (m, scaled)",
+    "Percent Agricultural Area (10 km buffer, scaled)"
+)
 
 # Calculate the distance matrix
 distance_matrix <- dist(communityCovariatesRemoved)
@@ -88,7 +108,7 @@ as_tibble(NMDS$points, rownames = "community") |>
     xlim(min(NMDS$points[, 1]) * 2, max(NMDS$points[, 1]) * 1.2) +
     geom_tile(
         aes(fill = community, color = "black", alpha = 0.2),
-        width = 1,
+        width = 1.3,
         height = 0.2,
         col = "black"
     ) +
@@ -100,7 +120,7 @@ as_tibble(NMDS$points, rownames = "community") |>
     theme(aspect.ratio = 1,
         legend.position = "none")
 ggsave(
-    filename = paste0("../Figures/MultispeciesModeling/multiDimensionalScaling.png"),
+    filename = paste0("Global/Figures/MultispeciesModeling/multiDimensionalScaling.png"),
     width = 12, height = 12
 )
 
@@ -140,6 +160,6 @@ kbl(
     column_spec(1, bold = TRUE) %>%
     row_spec(0, bold = TRUE) %>%   # bolds the header row
     save_kable(
-        "../Figures/MultispeciesModeling/NMDS_envfit_table.png",
+        "Global/Figures/MultispeciesModeling/NMDS_envfit_table.png",
         zoom = 1.5
     )

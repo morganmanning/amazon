@@ -630,6 +630,45 @@ for (i in 1:length(covs)) {
         levels = c("Zábalo", "Remolino", "Sinangoe", "San Pablo", "Siona")
     )
 
+    # ensure order matches speciesNames vector
+    estimates$Species <- factor(estimates$Species, levels = speciesNames)
+
+    # URLs
+    peccaryURL <- "https://images.phylopic.org/images/44fb7d4f-6d59-432b-9583-a87490259789/raster/1024x610.png?v=183ff0ad631"
+    brocketURL <- "https://images.phylopic.org/images/b5f40112-0cb8-4994-aa70-28ac97ccb83f/raster/901x1024.png?v=186bb13accc"
+    pacaURL <- "https://images.phylopic.org/images/414b0720-a160-4bce-b060-2eb9675fc1c8/raster/1024x559.png?v=17d5f8f529f"
+    trumpeterURL <- "https://images.phylopic.org/images/feb8e7c3-483d-4f78-8d9e-5618e96102e7/raster/565x1024.png?v=1985dfa2256"
+    agoutiURL <- "https://images.phylopic.org/images/30fe5e82-8127-4cbb-9c3f-c64a379376a8/raster/1024x642.png?v=178d877cf4e"
+    armadilloURL <- "https://images.phylopic.org/images/5d59b5ce-c1dd-40f6-b295-8d2629b9775e/raster/1024x493.png?v=13571ec0b6a"
+    tinamouURL <- "https://images.phylopic.org/images/446debec-ca63-4882-801f-beaf479887d5/raster/1024x773.png?v=1464c44f011"
+    ocelotURL <- "https://images.phylopic.org/images/2fc7bbbf-8ca7-48fb-8495-d351cd3b1f99/raster/1024x409.png?v=176942952dd"
+
+    # URLs and desired heights
+    sil_urls <- c(
+        peccaryURL, brocketURL, pacaURL, trumpeterURL,
+        agoutiURL, armadilloURL, tinamouURL, ocelotURL
+    )
+    sil_heights <- c(0.10, 0.125, 0.10, 0.13, 0.10, 0.10, 0.125, 0.10)
+
+    # fade helper: multiply existing alpha by `alpha` and write to a temp PNG
+    fade_images <- function(urls, alpha = 0.2) {
+        vapply(urls, function(u) {
+            img <- image_read(u)
+            img <- image_fx(img, expression = paste0("u*", alpha), channel = "alpha")
+            f <- tempfile(fileext = ".png")
+            image_write(img, path = f, format = "png")
+            f
+        }, FUN.VALUE = character(1))
+    }
+
+    faded_pngs <- fade_images(sil_urls, alpha = 0.2)
+
+    sil_df <- data.frame(
+        Species = casualNames,
+        y = 0.05,
+        image = faded_pngs,
+        height = sil_heights
+    )
 
     # plot predictions with ggplot with a line for each species
     # make labels per covariate
@@ -644,33 +683,27 @@ for (i in 1:length(covs)) {
     agouti <- ~ atop(paste("Black agouti"), paste("(", italic("Dasyprocta fuliginosa"), ")"))
     ocelot <- ~ atop(paste("Ocelot"), paste("(", italic("Leopardus pardalis"), ")"))
 
-    # rphylopic per species
-    peccaryPic <- get_uuid(name = "Pecari tajacu", n = 1)
-    pacaPic <- get_uuid(name = "Cuniculus paca", n = 1)
-    agoutiPic <- get_uuid(name = "Dasyprocta", n = 1)
-    ocelotPic <- get_uuid(name = "Leopardus pardalis", n = 1)
+    # # rphylopic per species
+    # peccaryPic <- get_uuid(name = "Pecari tajacu", n = 1)
+    # pacaPic <- get_uuid(name = "Cuniculus paca", n = 1)
+    # agoutiPic <- get_uuid(name = "Dasyprocta", n = 1)
+    # ocelotPic <- get_uuid(name = "Leopardus pardalis", n = 1)
 
-    # plot it
     dodge <- position_dodge(width = 0.3)
-    big_plotting_df$Species <- factor(big_plotting_df$Species, levels = casualNames) # so plotting doesn't alphabetize species
+    big_plotting_df$Species <- factor(big_plotting_df$Species, levels = casualNames)
     p <- ggplot(big_plotting_df, aes(
         x = Species,
         y = Predicted,
         color = Community
     )) +
-        geom_point(aes(color = Community), position = dodge, size = 1.5) +
+        geom_point(position = dodge, size = 1.5) +
         geom_errorbar(
-            aes(
-                ymin = Lower,
-                ymax = Upper,
-                color = Community
-            ),
-            position = dodge, width = 0.15, linewidth = .5
+            aes(ymin = Lower, ymax = Upper),
+            position = dodge, width = 0.15, linewidth = 0.5
         ) +
-        # scale_color_manual(values = c("darkorange", "royalblue", "green3", "yellow3")) +
         scale_color_manual(values = colors) +
         scale_fill_manual(values = colors) +
-        scale_x_discrete(labels = c(get(casualNames[1]), get(casualNames[2]))) +
+        scale_x_discrete(labels = c(peccary, paca, agouti, ocelot)) +
         labs(x = "Species", y = "Occupancy probability estimate (and 95% CI)") +
         ylim(c(0, 1)) +
         theme_classic() +
@@ -683,14 +716,14 @@ for (i in 1:length(covs)) {
             axis.title.x = element_blank(),
             panel.grid.major.y = element_line(color = "#cecece", linewidth = 0.2)
         ) +
-        add_phylopic(uuid = ifelse(species[1] == "Dasyprocta fuliginosa",
-            get_uuid(name = "Dasyprocta", n = 1),
-            get_uuid(name = species[1], n = 1)
-        ), alpha = 0.2, x = 1.0, y = 0.05, height = 0.1) +
-        add_phylopic(uuid = ifelse(species[2] == "Dasyprocta fuliginosa",
-            get_uuid(name = "Dasyprocta", n = 1),
-            get_uuid(name = species[2], n = 1)
-        ), alpha = 0.2, x = 2.0, y = 0.05, height = 0.1)
+        geom_image(
+            data = sil_df_big,
+            aes(x = Species, y = y, image = image, size = height),
+            alpha = 0.7,
+            inherit.aes = FALSE,
+            by = "height"
+        ) +
+        scale_size_identity()
 
     ggsave(
         filename = paste0("../Figures/MultispeciesModeling/", paste0(casualNames, collapse = ""), "CommunityPredictions.png"),

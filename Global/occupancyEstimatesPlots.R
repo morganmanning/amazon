@@ -24,7 +24,8 @@ require(lubridate)
 require(tictoc)
 require(MuMIn)
 require(tidyverse)
-library(ggimage)
+require(ggimage)
+require(magick)
 
 #tic() # time it
 
@@ -711,23 +712,51 @@ save(
 ########################## PLOTTING EFFECT SIZES ################################
 ################################################################################
 
+# parameters:
+# "CommunityZabalo"    "RainfallScaled"     "NatArea20KMScaled" 
+# [4] "TemperatureScaled"  "DistToComm"         "CommunityRemolino" 
+# [7] "CommunitySinangoe"  "CommunitySan.Pablo" "CommunitySiona"    
+
+unique(longDF$param) # verify order
+paramLabels <- data.frame(
+    paramLabels = c(
+        "Community: Zábalo",
+        "Average monthly rainfall (kg/m²/s, scaled)",
+        "Percentage natural area (20 km buffer, scaled)",
+        "Average temperature (°C, scaled)",
+        "Distance to community (km)",
+        "Community: Remolino",
+        "Community: Sinangoe",
+        "Community: San Pablo",
+        "Community: Siona"
+    ),
+    param = c(
+        "CommunityZabalo", "RainfallScaled", "NatArea20KMScaled",
+        "TemperatureScaled", "DistToComm", "CommunityRemolino",
+        "CommunitySinangoe", "CommunitySan.Pablo", "CommunitySiona"
+    )
+)
+
+longDF <- merge(longDF, paramLabels, by = "param")
+
+
 
 ggplot(longDF, aes(x = estimate, y = Species, color = significant)) +
     geom_point() +
     geom_errorbarh(aes(xmin = lower, xmax = upper), height = 0.2) +
     geom_vline(xintercept = 0, linetype = "dashed", color = "gray50") +
     #geom_text(aes(x = upper + 3, label = significant), size = 8, hjust = 0, color = "red") + # nudge asterisk to the right
-    facet_wrap(~param, scales = "free_x") +
+    facet_wrap(~paramLabels, scales = "free_x") +
     labs(x = "Effect size (95% CI)", y = NULL) +
-    scale_color_manual(values = c("Significant" = "darkred", "Not Significant" = "gray40")) +
+    scale_color_manual(breaks = c("Significant", "Not Significant"), values = c("Significant" = "darkred", "Not Significant" = "gray40")) +
     theme_minimal() +
     theme( 
         text = element_text(family = "Times", colour = "black"),
         legend.title = element_blank(),
-        strip.text = element_text(size = 10),
-        axis.text.y = element_text(size = 8),
+        strip.text = element_text(size = 10, face = "bold"),
+        axis.text.y = element_text(size = 8, face = "italic"),
         axis.title.x = element_text(size = 12),
-        panel.border = element_rect(color = "black", size = 0.5, fill = "transparent")
+        panel.border = element_rect(color = "black", size = 0.5)
     )
 
 # save model averaged effect sizes 
@@ -1311,7 +1340,6 @@ TukeyHSD(test)
 
 
 
-
 # plot it
 dodge <- position_dodge(width = 0.3)
 p <- ggplot(communityPlottingDF, aes(
@@ -1348,6 +1376,7 @@ p <- ggplot(communityPlottingDF, aes(
         data = sil_df,
         aes(x = Species, y = y, image = image, size = height),
         alpha = 0.7,
+        inherit.aes = FALSE, # prevents inheriting color=Community
         by = "height" ) +
     scale_size_identity()
 
@@ -1763,6 +1792,27 @@ write.csv(communityDiversity, "Global/Data/CommunityDiversityAbundance.csv")
 
 
 
+######### TABLE OF THE NUMBER OF DETECTIONS PER SPECIES IN DATA
+nDetectionsPerSpecies <- Data %>%
+  filter(Species != "N/D N/D" & Species != "NAN NAN" & Species != "NA NA") %>%
+  group_by(Species) %>%
+  summarise(nDetections = n()) %>%
+  arrange(desc(nDetections))
+nDetectionsPerSpecies %>% 
+    kbl(col.names = c("Species", "Number of Detections")) %>%
+    kable_classic(full_width = FALSE, html_font = "TimesNewRoman") %>%
+    row_spec(c(1, 2, 3, 5, 6, 7, 8, 13,18,21, 32), bold = TRUE) %>%
+    kableExtra::save_kable(file = "Global/Figures/numberOfDetectionsPerSpecies.png", zoom = 10)
+
+
+
+
+
+
+
+
+
+
 ################################################################################
 ################################################################################
 ######################## REQUIRES MANUAL INPUT!!! ##############################
@@ -1832,7 +1882,7 @@ if (communities == "Global" & savePlots == "YES"){
     estimatesCut <- estimatesWithDays |> 
       dplyr::select(CommonNames, DaysGrouped, avgOccupancy, avgOccupancySE, avgDetection, avgDetectionSE) |>
       arrange(desc(avgOccupancy)) |>
-      mutate(across(where(is.numeric), round, 3))
+      dplyr::mutate(across(where(is.numeric), round, 3))
     kbl(estimatesCut, col.names = c("Species", "Days per Detection Occasion",
                                  "Average Occupancy Estimate", "Occupancy SE", 
                                  "Average Detection Estimate", "Detection SE")) %>%
@@ -1842,7 +1892,7 @@ if (communities == "Global" & savePlots == "YES"){
     estimatesCutNull <- estimatesWithDays |>
         dplyr::select(CommonNames, DaysGrouped, nullOccupancy, nullOccupancySE, nullDetection, nullDetectionSE) |>
         arrange(desc(nullOccupancy)) |>
-        mutate(across(where(is.numeric), round, 3))
+        dplyr::mutate(across(where(is.numeric), round, 3))
     kbl(estimatesCutNull, col.names = c(
         "Species", "Days per Detection Occasion",
         "Null Occupancy Estimate", "Null Occupancy SE",
@@ -1850,6 +1900,21 @@ if (communities == "Global" & savePlots == "YES"){
     )) %>%
         kable_classic(full_width = FALSE, html_font = "TimesNewRoman") %>%
         kableExtra::save_kable(file = "Global/Figures/SingleSpeciesModeling/nullOccupancyDetectionEstimates.png", zoom = 10)
+
+    estimatesCutBoth <- estimatesWithDays |>
+        dplyr::select(CommonNames, DaysGrouped, avgOccupancy, avgOccupancySE, nullOccupancy, nullOccupancySE,
+                      avgDetection, avgDetectionSE, nullDetection, nullDetectionSE) |>
+        arrange(desc(avgOccupancy)) |>
+        dplyr::mutate(across(where(is.numeric), round, 3))
+    kbl(estimatesCutBoth, col.names = c(
+        "Species", "Days per Detection Occasion",
+        "Average Modeled Occupancy Estimate", "Average Modeled Occupancy SE",
+        "Null Occupancy Estimate", "Null Occupancy SE",
+        "Average Modeled Detection Estimate", "Average Modeled Detection SE",
+        "Null Detection Estimate", "Null Detection SE"
+    )) %>%
+        kable_classic(full_width = FALSE, html_font = "TimesNewRoman") %>%
+        kableExtra::save_kable(file = "Global/Figures/SingleSpeciesModeling/occupancyDetectionEstimates_Both.png", zoom = 10)
 
 }
 

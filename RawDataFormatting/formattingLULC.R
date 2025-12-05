@@ -179,9 +179,13 @@ communityCovariates <- merge(communityCovariates, naturalAreaNew, by = "Station"
 communityCovariates <- merge(communityCovariates, agricultureArea, by = "Station", all.x = TRUE)
 
 # format the covariate data frame
-communityCovariates <- communityCovariates[c("Station", "Rainfall", "Temperature", "DistToWater", "percentNatural", "ag20KM", "natArea20KM")]
+communityCovariates <- communityCovariates[c(
+    "Station", "Rainfall", "Temperature",
+    "DistToWater", "percentNatural", "ag20KM",
+    "natArea20KM", "ag10KM", "natArea10KM"
+)]
 communityCovariates <- communityCovariates %>%
-  select(Station, Rainfall, Temperature, DistToWater, percentNatural, ag20KM, natArea20KM) %>%
+  select(Station, Rainfall, Temperature, DistToWater, percentNatural, ag20KM, natArea20KM, ag10KM, natArea10KM) %>%
   distinct()
 
 # add community name as a covariate based on Station
@@ -197,6 +201,8 @@ communityCovariates$TemperatureScaled <- c(scale(communityCovariates$Temperature
 communityCovariates$PercentNaturalScaled <- c(scale(communityCovariates$percentNatural))
 communityCovariates$Ag20KMScaled <- c(scale(communityCovariates$ag20KM))
 communityCovariates$NatArea20KMScaled <- c(scale(communityCovariates$natArea20KM))
+communityCovariates$Ag10KMScaled <- c(scale(communityCovariates$ag10KM))
+communityCovariates$NatArea10KMScaled <- c(scale(communityCovariates$natArea10KM))
 
 #### added 10/08/24
 #communityCovariates <- read.csv("Data/AllCommunityCovariates.csv")

@@ -16,6 +16,7 @@ require(ggplot2)
 require(reshape2)
 require(rphylopic)
 require(ggimage)
+require(magick)
 
 # input
 communities <- c("Sinangoe", "Zabalo", "Remolino", "San Pablo", "Siona")
@@ -590,6 +591,7 @@ sil_df <- data.frame(
 )
 
 # plot it
+dodge <- position_dodge(width = 0.3)
 plot <- ggplot(estimates, aes(x = Species, y = avgOccupancy)) +
     geom_point(aes(color = Community), position = dodge, size = 2.5) +
     geom_errorbar(
@@ -630,5 +632,12 @@ model <- lm(avgOccupancy ~ Species + Community, data = estimates)
 # model <- lm(occupancy ~ treatment + other_variable, data = your_data)
 summary(model)
 test <- aov(avgOccupancy ~ Species + Community, data = estimates)
+test <- aov(avgOccupancy ~ Community, data = estimates)
+test <- aov(avgOccupancy ~ Species, data = estimates)
+
+
 summary(test)
 TukeyHSD(test)
+
+
+############################# MAKE A TABLE SUMMARIZING SPECIES DETECTIONS #####################
