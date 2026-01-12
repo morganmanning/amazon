@@ -1,6 +1,6 @@
-"","Community","NatArea20KM","nIndiv","nSpecies","OperatingDays","shannonIndex","simpsonIndex"
-"1","Zábalo",0.974,681,29,98,2.857,0.928
-"2","Sinangoe",0.347,2127,38,121,2.773,0.914
-"3","Remolino",0.234,2885,43,130,2.2,0.76
-"4","San Pablo",-1.024,316,26,117,2.173,0.81
-"5","Siona",-1.748,762,35,120,2.53,0.848
+"","Community","NatArea10KM","nIndiv","nSpecies","OperatingDays","shannonIndex","simpsonIndex"
+"1","Zábalo",0.735,681,29,98,2.857,0.928
+"2","Sinangoe",0.385,2127,38,121,2.773,0.914
+"3","Remolino",0.287,2885,43,130,2.2,0.76
+"4","San Pablo",-1.221,316,26,117,2.173,0.81
+"5","Siona",-1.475,762,35,120,2.53,0.848
