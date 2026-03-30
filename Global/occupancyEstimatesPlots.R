@@ -84,7 +84,7 @@ correlation <- siteCovariate %>%
   select(RainfallScaled, ag10KM, natArea10KM, DistToWater, TemperatureScaled, DistToComm)
 correlationMatrix <- cor(correlation, use = "complete.obs")
 correlationMatrix
-# nat area and ag are highly negatively correlated (-0.96)
+# nat area and ag are highly negatively correlated (-0.96), so proceeded with just nat area
 
 
 
@@ -756,7 +756,7 @@ ggplot(longDF, aes(x = estimate, y = Species, color = significant)) +
         strip.text = element_text(size = 10, face = "bold"),
         axis.text.y = element_text(size = 8, face = "italic"),
         axis.title.x = element_text(size = 12),
-        panel.border = element_rect(color = "black", size = 0.5)
+        panel.border = element_rect(color = "black", size = 0.5, fill = NA)
     )
 
 # save model averaged effect sizes 

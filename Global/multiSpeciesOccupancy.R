@@ -1,6 +1,8 @@
 ##### PAIRWISE CONDITIONAL PROBABILITY COMPARISON #####
 setwd("/Users/morganmanning/Documents/amazon/Global/Data")
 setwd("~/Documents/amazon/Global/Data")
+rm(list = ls())
+
 
 ################################################################################
 # ------------------------------ START UP -------------------------------------#
@@ -77,20 +79,20 @@ huntingTally <- ZABhunting |>
 # species of interest                       ************* INPUT ***************
 species <- c(
             #"Leopardus pardalis",
-             "Pecari tajacu", 
-             #"Cuniculus paca",
+             #"Pecari tajacu", 
+             "Cuniculus paca",
              "Dasyprocta fuliginosa" # by FAR the most detected species, but not hunted in ZAB much
              ) 
 commonNames <- c(
                 #"Ocelot", 
-                "Collared peccary", 
-                 #"Lowland paca",
+                #"Collared peccary", 
+                 "Lowland paca",
                  "Black agouti"
                  ) 
 casualNames <- c(
                 #"ocelot",
-                 "peccary",
-                 #"paca",
+                # "peccary", #done
+                 "paca",
                  "agouti"
                  )
 
@@ -327,7 +329,7 @@ str(umf)
 # Distance to a water source (m)
 
 match_detection <- c("Community", "DaysEffortScaled")
-match_occupancy <- c("RainfallScaled", "PercentNaturalScaled", "DistToWater", "TemperatureScaled", "Year")
+match_occupancy <- c("RainfallScaled", "NatArea10KMScaled", "DistToWater", "TemperatureScaled", "Year")
 forcedDetectionFormula <- "~Community + DaysEffortScaled"
 # excluded "Community" from occupancy covariates bc it correlated with percentNatural (per chisq.test())
 
@@ -347,9 +349,11 @@ occupancyFormulas <- forms
 ############### COMBINE DETECTION WITH ALL POSSIBLE OCCUPANCY PREDICTORS AND MODEL
 occupancyModelsList <- list()
 for (j in 1:length(species)) {
-df <- data.frame(detection = forcedDetectionFormula,
-                occupancy = occupancyFormulas)
-occupancyModelsList[[j]] <- c(paste(df$detection, df$occupancy, sep = " "))
+    df <- data.frame(
+        detection = forcedDetectionFormula,
+        occupancy = occupancyFormulas
+    )
+    occupancyModelsList[[j]] <- c(paste(df$detection, df$occupancy, sep = " "))
 }
 
 # run occupancy unmarked model for all models

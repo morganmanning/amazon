@@ -227,7 +227,7 @@ studyArea
 siteCovariate <- read.csv("Global/Data/AllCommunityCovariates.csv")
 natStats <- siteCovariate %>%
     group_by(Community) %>%
-    summarize(avgNat = mean(natArea20KM), sdNat = sd(natArea20KM), n = n()) %>%
+    summarize(avgNat = mean(natArea10KM), sdNat = sd(natArea10KM), n = n()) %>%
     mutate(seNat = sdNat / sqrt(n))
 natStats$Community <- gsub("Zabalo", "Zábalo", x = natStats$Community)
 siteCovariate$Community <- gsub("Zabalo", "Zábalo", x = siteCovariate$Community)
@@ -241,7 +241,7 @@ natStats
 natArea <- ggplot(natStats, aes(x = Community, y = avgNat, fill = Community)) +
     geom_bar(stat = "identity") +
     geom_point(
-        data = siteCovariate, aes(x = Community, y = natArea20KM),
+        data = siteCovariate, aes(x = Community, y = natArea10KM),
         position = position_jitter(width = 0.1),
         size = 2, alpha = 0.5, pch = 21
     ) +
@@ -251,7 +251,7 @@ natArea <- ggplot(natStats, aes(x = Community, y = avgNat, fill = Community)) +
     geom_text(aes(label = paste0("N = ", n), y = 0.025), # avgNat + seNat + 0.033
         size = 3, family = "Times", fontface = "bold"
     ) +
-    ylab("Percent natural area within 20 km (±SD)") +
+    ylab("Percent natural area within 10 km (±SD)") +
     scale_fill_manual(values = colors) +
     ylim(c(0, 1.08)) +
     scale_y_continuous(breaks = seq(0, 1, by = 0.25)) +
@@ -264,7 +264,7 @@ natArea <- ggplot(natStats, aes(x = Community, y = avgNat, fill = Community)) +
 natArea
 
 # violin plot
-p_violin <- ggplot(siteCovariate, aes(x = Community, y = natArea20KM, fill = Community)) +
+p_violin <- ggplot(siteCovariate, aes(x = Community, y = natArea10KM, fill = Community)) +
     geom_violin(alpha = 0.5, scale = "width", adjust = 1.2) +
     geom_point(aes(color = Community),
         position = position_jitter(width = 0.1),

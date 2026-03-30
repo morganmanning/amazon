@@ -632,10 +632,12 @@ model <- lm(avgOccupancy ~ Species + Community, data = estimates)
 # model <- lm(occupancy ~ treatment + other_variable, data = your_data)
 summary(model)
 test <- aov(avgOccupancy ~ Species + Community, data = estimates)
+summary(test)
+TukeyHSD(test)
 test <- aov(avgOccupancy ~ Community, data = estimates)
+summary(test)
+TukeyHSD(test)
 test <- aov(avgOccupancy ~ Species, data = estimates)
-
-
 summary(test)
 TukeyHSD(test)
 

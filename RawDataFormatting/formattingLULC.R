@@ -63,7 +63,7 @@ camCoordMatrix <- as.matrix(cameras[,c("gps_x", "gps_y")])
 camSV <- vect(camCoordMatrix, type = "points", crs = cameraCRS, atts = as.data.frame(cameras$Station))
 
 # buffer the points 
-bufferKM <- 25
+bufferKM <- 10
 bufferedPoints <- buffer(camSV, width = bufferKM*1000)
 plot(bufferedPoints)
 
