@@ -138,8 +138,13 @@ writeRaster(lulc_2022, "lulc_2022.tif", overwrite = TRUE)
 # aggregate
 agg_2018 <- aggregate(lulc_2018, fact = 3, fun = "modal")
 writeRaster(agg_2018, "agg_lulc_2018.tif", overwrite = TRUE)
+
 agg_2022 <- aggregate(lulc_2022, fact = 3, fun = "modal")
 writeRaster(agg_2022, "agg_lulc_2022.tif", overwrite = TRUE)
+
+# load it
+agg_2022 <- rast("Community-level Covariates/DEM/agg_lulc_2022.tif")
+agg_2018 <- rast("Community-level Covariates/DEM/agg_lulc_2018.tif")
 
 # buffer
 sitesBuffered <- st_buffer(
@@ -199,6 +204,10 @@ nat_compare <- merge(nat2018, nat2022, by = "Station",
 nat_compare$change <- nat_compare$percentNatural_2022 - nat_compare$percentNatural_2018
 
 print(nat_compare)
+mean(nat_compare$change)
+# subset Stations that begin with ZAB 
+nat_compare_zab <- nat_compare[grepl("^ZAB", nat_compare$Station), ]
+mean(nat_compare_zab$change)
 
 # paired t-test
 t_nat <- t.test(nat_compare$percentNatural_2018,

@@ -1987,6 +1987,459 @@ if (communities == "Global" & savePlots == "YES" & all(speciesNames == names(mas
 
 
 
+
+################################################################################
+######################## YEAR AS A COVARIATE ANALYSIS ##########################
+################################################################################
+# Goal: Test whether sampling year (2018 vs. 2022) influences occupancy or
+# detection probability, to justify treating both periods as a single season
+
+yearModels <- list()
+yearAICResults <- list()
+
+for (j in 1:length(speciesNames)) {
+    ufo <- ufoMasterList[[1]][[j]] # [[1]] = Global (the only community here)
+
+    # cast Year as a factor so it is treated as categorical (2018 vs. 2022)
+    ufo@siteCovs$Year <- as.factor(ufo@siteCovs$Year)
+
+    # four candidate models: null, year on detection only,
+    # year on occupancy only, year on both
+    yearModelFormulas <- list(
+        "Null"               = "~ 1 ~ 1",
+        "Year (detection)"   = "~ Year ~ 1",
+        "Year (occupancy)"   = "~ 1 ~ Year",
+        "Year (both)"        = "~ Year ~ Year"
+    )
+
+    speciesYearMods <- list()
+    for (m in 1:length(yearModelFormulas)) {
+        test <- occu(formula(yearModelFormulas[[m]]), ufo)
+        speciesYearMods[[m]] <- occu(
+            formula(yearModelFormulas[[m]]), ufo,
+            control = 10000,
+            starts = rep(0, length(test@opt$par))
+        )
+    }
+    names(speciesYearMods) <- names(yearModelFormulas)
+    yearModels[[j]] <- speciesYearMods
+
+    # AIC table for this species
+    aicDF <- data.frame(
+        Species = commonNames[j],
+        Model = names(yearModelFormulas),
+        AIC = round(sapply(speciesYearMods, function(m) m@AIC), 3),
+        stringsAsFactors = FALSE
+    )
+    aicDF$DeltaAIC <- round(aicDF$AIC - min(aicDF$AIC), 3)
+    yearAICResults[[j]] <- aicDF
+
+    print(paste("Year model done for", commonNames[j]))
+}
+names(yearModels) <- speciesNames
+
+# combine all species into dataframe
+yearAICTable <- do.call(rbind, yearAICResults)
+rownames(yearAICTable) <- NULL
+
+# sort by species and then AIC
+yearAICTable <- yearAICTable %>%
+    arrange(Species, AIC)
+
+# save it
+if (savePlots == "YES") {
+    n <- length(yearModelFormulas) # number of models per species (always 4)
+    cumN <- cumsum(rep(n, length(commonNames)))
+
+    kbl(yearAICTable[, c("Model", "AIC", "DeltaAIC")],
+        col.names = c("Model", "AIC", "\u0394AIC")
+    ) %>%
+        kable_classic(full_width = TRUE, html_font = "TimesNewRoman") %>%
+        pack_rows(commonNames[1], 1, cumN[1]) %>%
+        pack_rows(commonNames[2], cumN[1] + 1, cumN[2]) %>%
+        pack_rows(commonNames[3], cumN[2] + 1, cumN[3]) %>%
+        pack_rows(commonNames[4], cumN[3] + 1, cumN[4]) %>%
+        pack_rows(commonNames[5], cumN[4] + 1, cumN[5]) %>%
+        pack_rows(commonNames[6], cumN[5] + 1, cumN[6]) %>%
+        pack_rows(commonNames[7], cumN[6] + 1, cumN[7]) %>%
+        pack_rows(commonNames[8], cumN[7] + 1, cumN[8]) %>%
+        kableExtra::save_kable(
+            file = "Global/Figures/SingleSpeciesModeling/yearModelAICComparison.png",
+            zoom = 2
+        )
+}
+
+
+################################################################################
+#################### FULL MODEL SELECTION WITH YEAR ###########################
+################################################################################
+# Year added as a candidate covariate on occ
+
+# Year as a factor in every species' UFO (Global community = index 1)
+ufoListYear <- ufoMasterList[[1]]
+for (j in 1:length(ufoListYear)) {
+    ufoListYear[[j]]@siteCovs$Year <- as.factor(ufoListYear[[j]]@siteCovs$Year)
+}
+
+# candidate covariate sets; same as original Global section, plus Year
+match_detection_year <- c("Community", "DaysEffortScaled", "Year")
+match_occupancy_year <- c(
+    "Community", "RainfallScaled", "NatArea10KMScaled",
+    "DistToWater", "TemperatureScaled", "DistToComm", "Year"
+)
+
+
+################################################################################
+###################### STAGE 1: BEST DETECTION MODEL ##########################
+################################################################################
+
+# every combination of detection covariates
+combos <- sapply(seq(length(match_detection_year)), function(k) {
+    as.list(as.data.frame(combn(x = match_detection_year, m = k)))
+})
+combos <- unlist(combos, recursive = FALSE)
+
+forms <- sapply(combos, function(x) paste("~", paste(x, collapse = "+")))
+detectionFormulas_year <- as.vector(c(forms, "~ 1"))
+
+tempDF <- data.frame(detection = detectionFormulas_year, occupancy = "~ 1")
+allDetectionFormulas_year <- paste(tempDF$detection, tempDF$occupancy, sep = " ")
+
+bestDetectionModels_year <- data.frame(species = commonNames, bestDetectionModel = NA)
+
+for (j in 1:length(speciesNames)) {
+    temp <- data.frame(Model = allDetectionFormulas_year, AIC = NA)
+
+    for (m in 1:length(allDetectionFormulas_year)) {
+        test <- occu(formula(allDetectionFormulas_year[[m]]), ufoListYear[[j]])
+        mod <- occu(formula(allDetectionFormulas_year[[m]]), ufoListYear[[j]],
+            control = 10000,
+            starts  = rep(0, length(test@opt$par))
+        )
+        temp$AIC[m] <- mod@AIC
+    }
+
+    bestDetectionModels_year$bestDetectionModel[j] <-
+        detectionFormulas_year[which(temp$AIC == min(temp$AIC))]
+
+    # override: keep ocelot on null detection
+    if (commonNames[j] == "Ocelot") {
+        bestDetectionModels_year$bestDetectionModel[j] <- "~ 1"
+    }
+
+    print(paste("Year detection stage done for", commonNames[j]))
+}
+
+
+################################################################################
+###################### STAGE 2: BEST OCCUPANCY MODEL ##########################
+################################################################################
+
+# every combination of occupancy covariates
+combos <- sapply(seq(length(match_occupancy_year)), function(k) {
+    as.list(as.data.frame(combn(x = match_occupancy_year, m = k)))
+})
+combos <- unlist(combos, recursive = FALSE)
+
+forms <- sapply(combos, function(x) paste("~", paste(x, collapse = "+")))
+occupancyFormulas_year <- as.vector(c(forms, "~ 1"))
+
+# pair best detection formula with every occupancy formula
+occupancyModelsList_year <- list()
+for (j in 1:length(speciesNames)) {
+    df <- data.frame(
+        detection = bestDetectionModels_year$bestDetectionModel[j],
+        occupancy = occupancyFormulas_year
+    )
+    occupancyModelsList_year[[j]] <- paste(df$detection, df$occupancy, sep = " ")
+}
+
+# all occupancy models
+allModels_year <- list()
+for (j in 1:length(speciesNames)) {
+    # override: keep ocelot on null
+    if (commonNames[j] == "Ocelot") {
+        occupancyModelsList_year[[j]] <- "~ 1 ~ 1"
+    }
+
+    occupancyMods <- list()
+    for (m in 1:length(occupancyModelsList_year[[j]])) {
+        test <- occu(formula(occupancyModelsList_year[[j]][m]), ufoListYear[[j]])
+        occupancyMods[[m]] <- occu(formula(occupancyModelsList_year[[j]][m]), ufoListYear[[j]],
+            control = 10000,
+            starts  = rep(0, length(test@opt$par))
+        )
+    }
+    names(occupancyMods) <- 1:length(occupancyMods)
+    allModels_year[[j]] <- occupancyMods
+
+    print(paste("Year occupancy stage done for", j, "out of", length(speciesNames), "species :)"))
+}
+
+
+################################################################################
+########################## TOP MODEL SELECTION #################################
+################################################################################
+
+modelAICs_year <- list()
+topModels_year <- list()
+
+for (j in 1:length(allModels_year)) {
+    df <- data.frame(ModelName = NA, AIC = NA, diffFromBest = NA)
+
+    for (m in 1:length(allModels_year[[j]])) {
+        result <- tryCatch(summary(allModels_year[[j]][[m]]), error = function(e) e)
+
+        if (inherits(result, "error")) {
+            df[m, 1:2] <- NA
+        } else {
+            if (is.na(summary(allModels_year[[j]][[m]])$state$SE[1])) {
+                df[m, 1:2] <- NA
+            } else {
+                df[m, 1] <- as.character(c(allModels_year[[j]][[m]]@formula))
+                df[m, 2] <- allModels_year[[j]][[m]]@AIC
+            }
+        }
+    }
+
+    df <- df[order(df$AIC), ]
+    df <- df[!is.na(df$ModelName), ]
+    df$diffFromBest <- df$AIC - min(df$AIC)
+    modelAICs_year[[j]] <- df
+
+    ANTM <- subset(df, diffFromBest <= 2)
+    topModels_year[[j]] <- ANTM
+}
+names(topModels_year) <- speciesNames
+
+
+################################################################################
+####################### DID YEAR MAKE IT INTO TOP MODELS? #####################
+################################################################################
+
+yearInTopModels <- data.frame(
+    Species = commonNames,
+    YearInTopModel = sapply(topModels_year, function(df) {
+        any(grepl("Year", df$ModelName))
+    }),
+    ModelsWithYear = sapply(topModels_year, function(df) {
+        matched <- df$ModelName[grepl("Year", df$ModelName)]
+        if (length(matched) == 0) "None" else paste(matched, collapse = "; ")
+    }),
+    stringsAsFactors = FALSE
+)
+
+print(yearInTopModels)
+
+
+################################################################################
+################################## TABLE #######################################
+################################################################################
+
+if (savePlots == "YES") {
+    # full top-model AIC table (same style as AllBestModelsTable)
+    for (j in 1:length(speciesNames)) {
+        topModels_year[[j]]$Species <- commonNames[j]
+        topModels_year[[j]]$nModels <- nrow(topModels_year[[j]])
+    }
+
+    bestModelsDF_year <- do.call(rbind.data.frame, topModels_year)
+    rownames(bestModelsDF_year) <- NULL
+    bestModelsDF_year$AIC <- round(bestModelsDF_year$AIC, 3)
+    bestModelsDF_year$diffFromBest <- round(bestModelsDF_year$diffFromBest, 3)
+
+    nModelsPerSpecies_year <- c(bestModelsDF_year %>%
+        distinct(Species, nModels) %>%
+        select(nModels))$nModels
+    cumN <- cumsum(nModelsPerSpecies_year)
+
+    kbl(bestModelsDF_year[, c("ModelName", "AIC", "diffFromBest")],
+        col.names = c("Model", "AIC", "\u0394AIC")
+    ) %>%
+        kable_classic(full_width = TRUE, html_font = "TimesNewRoman") %>%
+        pack_rows(speciesNames[1], 1, cumN[1]) %>%
+        pack_rows(speciesNames[2], cumN[1] + 1, cumN[2]) %>%
+        pack_rows(speciesNames[3], cumN[2] + 1, cumN[3]) %>%
+        pack_rows(speciesNames[4], cumN[3] + 1, cumN[4]) %>%
+        pack_rows(speciesNames[5], cumN[4] + 1, cumN[5]) %>%
+        pack_rows(speciesNames[6], cumN[5] + 1, cumN[6]) %>%
+        pack_rows(speciesNames[7], cumN[6] + 1, cumN[7]) %>%
+        pack_rows(speciesNames[8], cumN[7] + 1, cumN[8]) %>%
+        kableExtra::save_kable(
+            file = "Global/Figures/SingleSpeciesModeling/AllBestModelsTable_withYear.png",
+            zoom = 2
+        )
+
+    # compact summary table: which species had Year in a top model
+    kbl(yearInTopModels,
+        col.names = c("Species", "Year in Top Model?", "Model(s) Containing Year")
+    ) %>%
+        kable_classic(full_width = FALSE, html_font = "TimesNewRoman") %>%
+        kableExtra::save_kable(
+            file = "Global/Figures/SingleSpeciesModeling/yearInTopModelsSummary.png",
+            zoom = 2
+        )
+}
+
+
+# chi-squared test: correlation between community and sampling year
+year_community_table <- table(siteCovariate$Community, siteCovariate$Year)
+print(year_community_table)
+chisq.test(year_community_table)
+
+################################################################################
+################################# PERMANOVA ####################################
+################################################################################
+# GOAL: test whether animal community composition at camera stations differs
+# between sampling years (zabalo 2018 vs. all other communities 2022) 
+
+require(vegan)
+
+ufoGlobal <- ufoMasterList[[1]]
+
+detRateMatrix <- sapply(seq_along(ufoGlobal), function(j) {
+    y <- ufoGlobal[[j]]@y
+    rowSums(y, na.rm = TRUE) / rowSums(!is.na(y))
+})
+colnames(detRateMatrix) <- commonNames
+rownames(detRateMatrix) <- rownames(ufoGlobal[[1]]@y)
+
+# pull year and community from the site covariates already attached to the ufos
+siteMeta <- ufoGlobal[[1]]@siteCovs[, c("Community", "Year")]
+siteMeta$Year <- as.factor(siteMeta$Year)
+siteMeta$Community <- as.factor(siteMeta$Community)
+
+# remove stations with NA or all-zero detection rates
+badRows <- which(rowSums(is.na(detRateMatrix)) > 0 | rowSums(detRateMatrix) == 0)
+detRateMatrix <- detRateMatrix[-badRows, ]
+siteMeta <- siteMeta[-badRows, ]
+
+# confirm row alignment
+stopifnot(nrow(detRateMatrix) == nrow(siteMeta))
+
+# model 1: year alone
+set.seed(123)
+permanova_year <- adonis2(detRateMatrix ~ Year,
+    data = siteMeta,
+    method = "bray",
+    permutations = 999
+)
+print(permanova_year)
+
+# model 2: year after conditioning on community
+# asks whether year explains residual variation beyond community identity
+set.seed(123)
+permanova_year_conditioned <- adonis2(detRateMatrix ~ Community + Year,
+    data = siteMeta,
+    method = "bray",
+    permutations = 999
+)
+print(permanova_year_conditioned)
+
+# homogeneity of dispersions check (assumption of adonis2)
+# if groups differ in spread rather than location, results need caveating
+bray_dist <- vegdist(detRateMatrix, method = "bray")
+dispersion_year <- betadisper(bray_dist, siteMeta$Year)
+permutest(dispersion_year, permutations = 999)
+
+# nmds
+set.seed(704)
+nmds <- metaMDS(detRateMatrix, distance = "bray", k = 2, trymax = 100)
+cat("NMDS stress:", nmds$stress, "\n")
+# stress < 0.10 = good; < 0.20 = acceptable for ecological data
+
+# build a data frame for ggplot
+nmdsScores <- as.data.frame(scores(nmds, display = "sites"))
+nmdsScores$Year <- siteMeta$Year
+nmdsScores$Community <- siteMeta$Community
+
+# compute group centroids per year
+yearCentroids <- nmdsScores %>%
+    group_by(Year) %>%
+    summarise(NMDS1 = mean(NMDS1), NMDS2 = mean(NMDS2))
+
+nmdsPlot <- ggplot(nmdsScores, aes(x = NMDS1, y = NMDS2, colour = Year, fill = Year)) +
+    stat_ellipse(geom = "polygon", alpha = 0.15, level = 0.95, linetype = "dashed") +
+    geom_point(size = 3, alpha = 0.8) +
+    geom_point(
+        data = yearCentroids, aes(x = NMDS1, y = NMDS2),
+        shape = 23, size = 5, colour = "black", stroke = 1
+    ) +
+    scale_colour_manual(
+        values = c("2018" = "#E69F00", "2022" = "#56B4E9"),
+        name = "Sampling year"
+    ) +
+    scale_fill_manual(
+        values = c("2018" = "#E69F00", "2022" = "#56B4E9"),
+        name = "Sampling year"
+    ) +
+    annotate("text",
+        x = min(nmdsScores$NMDS1),
+        y = max(nmdsScores$NMDS2),
+        label = paste0("Stress = ", round(nmds$stress, 3)),
+        hjust = 0, size = 4
+    ) +
+    theme_bw() +
+    theme(
+        legend.position = "bottom",
+        panel.grid = element_blank(),
+        axis.text = element_text(size = 11),
+        axis.title = element_text(size = 12),
+        legend.text = element_text(size = 11),
+        legend.title = element_text(size = 12)
+    )
+
+print(nmdsPlot)
+
+if (savePlots == "YES") {
+    ggsave("Global/Figures/SingleSpeciesModeling/nmdsByYear.png",
+        plot = nmdsPlot,
+        width = 6,
+        height = 5,
+        dpi = 300
+    )
+}
+
+# format the adonis2 output into a supplementary table
+if (savePlots == "YES") {
+    permanovaDF <- data.frame(
+        Term = c(
+            "Year", "Residual", "Total",
+            "Community", "Year (conditioned)", "Residual", "Total"
+        ),
+        Model = c(rep("Year only", 3), rep("Community + Year", 4)),
+        Df = c(permanova_year$Df, permanova_year_conditioned$Df),
+        SumOfSqs = round(c(permanova_year$SumOfSqs, permanova_year_conditioned$SumOfSqs), 4),
+        R2 = round(c(permanova_year$R2, permanova_year_conditioned$R2), 4),
+        F = round(c(permanova_year$F, permanova_year_conditioned$F), 3),
+        p.value = c(permanova_year$`Pr(>F)`, permanova_year_conditioned$`Pr(>F)`)
+    )
+
+    # replace NA in non-test rows with em-dashes
+    permanovaDF[is.na(permanovaDF)] <- "\u2014"
+
+    kbl(permanovaDF[, c("Term", "Df", "SumOfSqs", "R2", "F", "p.value")],
+        col.names = c("Term", "df", "Sum of squares", "R\u00B2", "F", "p"),
+        row.names = FALSE
+    ) %>%
+        kable_classic(full_width = FALSE, html_font = "TimesNewRoman") %>%
+        pack_rows("Model 1: Year only", 1, 3) %>%
+        pack_rows("Model 2: Community + Year", 4, 7) %>%
+        kableExtra::save_kable(
+            file = "Global/Figures/SingleSpeciesModeling/permanovaResultsTable.png",
+            zoom = 2
+        )
+}
+
+
+
+
+
+
+
+
+
+
 # TIME!
 #toc() 
 
