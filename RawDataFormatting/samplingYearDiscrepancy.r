@@ -126,17 +126,20 @@ r18N2022_p <- project(r18N2022, cameraCRS, method = "near")
 
 # merge tiles per year
 # 2018
-lulc_2018 <- mosaic(r17M2018, r17N2018, r18M2018, r18N2018)
-#plot(merged_proj_2018)
+lulc_2018 <- mosaic(r17M2018_p, r17N2018_p, r18M2018_p, r18N2018_p)
+writeRaster(lulc_2018, "lulc_2018.tif", overwrite = TRUE)
+#plot(lulc_2018)
 
 # 2022
-lulc_2022 <- mosaic(r17M2022, r17N2022, r18M2022, r18N2022)
-merged_proj_2022 <- project(lulc_2022, cameraCRS)
-#plot(merged_proj_2022)
+lulc_2022 <- mosaic(r17M2022_p, r17N2022_p, r18M2022_p, r18N2022_p)
+writeRaster(lulc_2022, "lulc_2022.tif", overwrite = TRUE)
+#plot(lulc_2022)
 
 # aggregate
 agg_2018 <- aggregate(lulc_2018, fact = 3, fun = "modal")
+writeRaster(agg_2018, "agg_lulc_2018.tif", overwrite = TRUE)
 agg_2022 <- aggregate(lulc_2022, fact = 3, fun = "modal")
+writeRaster(agg_2022, "agg_lulc_2022.tif", overwrite = TRUE)
 
 # buffer
 sitesBuffered <- st_buffer(
