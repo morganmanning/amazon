@@ -1641,9 +1641,14 @@ nDaysGroupedPerSpecies
 ################################################################################
 
 # load data
-Data <- read.csv("Global/Data/AllIndependentRecordsFormatted.csv") 
-Traps <- read.csv("Global/Data/AllStationsFormatted.csv")
+Data <- read.csv("AllIndependentRecordsFormatted.csv") 
+Traps <- read.csv("AllStationsFormatted.csv")
 Data$DateTimeOriginal <- parse_date_time(Data$DateTimeOriginal, c("%Y-%m-%d", "%Y-%m-%d %H:%M:%S"))
+# load site covariates for all communities
+siteCovariate <- read.csv("AllCommunityCovariates.csv")
+siteCovariate$Rainfall <- siteCovariate$Rainfall*1000 # convert to grams/m^2/s  
+
+
 # replace all Mazama species with Mazama sp.
 
 
@@ -1861,9 +1866,8 @@ if (savePlots == "YES") {
     save_kable(file = "Global/Figures/communityDiversitySummary.png", zoom = 2)
   
   # table with camera trap information
-  kbl(cameraInfo, col.names = c("Community", "Number of Sampling Days", 
-                                "Sampling Start Date", "Sampling End Date",
-                                "Number of Sites")) %>%
+  kbl(cameraInfo[,1:4], col.names = c("Community", "Number of Sampling Days", 
+                                "Sampling Start Date", "Sampling End Date")) %>%
     kable_classic(full_width = FALSE, html_font = "TimesNewRoman") %>%
     save_kable(file = "Global/Figures/siteInfo.png",
                zoom = 10)

@@ -351,7 +351,7 @@ raster2020 <- rast("Data/cropped2020raster.tif")
 ################ EXTRACT LULC FROM BUFFERED SITES ##################
 
 # buffer the points 
-bufferKM <- 25
+bufferKM <- 10
 bufferedPoints <- buffer(vect(camCoordMatrix, type = "points", crs = cameraCRS), width = bufferKM*1000)
 plot(bufferedPoints)
 
