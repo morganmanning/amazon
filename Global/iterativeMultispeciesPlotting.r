@@ -560,12 +560,12 @@ combined_plot_labelled <- ggdraw() +
         fontfamily = "Times",
         angle = 90
     )
-
+combined_plot_labelled
 # save it
 ggsave(
     "../Figures/MultispeciesModeling/allSpeciesInteractionsByCommunity.png",
     plot = combined_plot_labelled,
-    width = 14,
-    height = 16,
+    width = 8,
+    height = 10,
     dpi = 300
 )

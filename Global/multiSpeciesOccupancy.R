@@ -1,6 +1,7 @@
 ##### PAIRWISE CONDITIONAL PROBABILITY COMPARISON #####
 setwd("/Users/morganmanning/Documents/amazon/Global/Data")
 setwd("~/Documents/amazon/Global/Data")
+setwd("Global/Data")
 rm(list = ls())
 
 
@@ -78,21 +79,21 @@ huntingTally <- ZABhunting |>
 
 # species of interest                       ************* INPUT ***************
 species <- c(
-            #"Leopardus pardalis",
+            "Leopardus pardalis",
              #"Pecari tajacu", 
-             "Cuniculus paca",
+             #"Cuniculus paca",
              "Dasyprocta fuliginosa" # by FAR the most detected species, but not hunted in ZAB much
              ) 
 commonNames <- c(
-                #"Ocelot", 
+                "Ocelot", 
                 #"Collared peccary", 
-                 "Lowland paca",
+                 #"Lowland paca",
                  "Black agouti"
                  ) 
 casualNames <- c(
-                #"ocelot",
-                # "peccary", #done
-                 "paca",
+                "ocelot",
+                #"peccary", #done
+                 #"paca",
                  "agouti"
                  )
 

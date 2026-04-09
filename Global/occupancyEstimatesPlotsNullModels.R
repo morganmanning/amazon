@@ -519,16 +519,16 @@ estimates$Species <- factor(estimates$Species, levels = speciesNames) # so plott
 
 ########## MANUALLY MAKE X-AXIS LABELS FOR EACH SPECIES: ENSURE IN CORRECT ORDER 
 # make axis titles per species
-peccary <- ~ atop(paste("Collared peccary"), paste("(", italic("Pecari tajacu"), ")"))
-brocket <- ~ atop(paste("Brocket"), paste("(", italic("Mazama sp."), ")"))
-paca <- ~ atop(paste("Lowland paca"), paste("(", italic("Cuniculus paca"), ")"))
-trumpeter <- ~ atop(paste("Grey-winged trumpeter"), paste("(", italic("Psophia crepitans"), ")"))
-#fourEyed <- ~ atop(paste("Brown four-eyed opossum"), paste("(", italic("Metachirus nudicaudatus"), ")"))
-agouti <- ~ atop(paste("Black agouti"), paste("(", italic("Dasyprocta fuliginosa"), ")"))
-armadillo <- ~ atop(paste("Nine-banded armadillo"), paste("(", italic("Dasypus novemcinctus"), ")"))
-tinamou <- ~ atop(paste("Great tinamou"), paste("(", italic("Tinamus major"), ")"))
-#opossum <- ~ atop(paste("Common opossum"), paste("(", italic("Didelphis marsupialis"), ")"))
-ocelot <- ~ atop(paste("Ocelot"), paste("(", italic("Leopardus pardalis"), ")"))
+peccary <- ~ atop(paste(bold("Collared peccary")), paste("(", italic("Pecari tajacu"), ")"))
+brocket <- ~ atop(paste(bold("Brocket")), paste("(", italic("Mazama sp."), ")"))
+paca <- ~ atop(paste(bold("Lowland paca")), paste("(", italic("Cuniculus paca"), ")"))
+trumpeter <- ~ atop(paste(bold("Grey-winged trumpeter")), paste("(", italic("Psophia crepitans"), ")"))
+#fourEyed <- ~ atop(paste(bold("Brown four-eyed opossum")), paste("(", italic("Metachirus nudicaudatus"), ")"))
+agouti <- ~ atop(paste(bold("Black agouti")), paste("(", italic("Dasyprocta fuliginosa"), ")"))
+armadillo <- ~ atop(paste(bold("Nine-banded armadillo")), paste("(", italic("Dasypus novemcinctus"), ")"))
+tinamou <- ~ atop(paste(bold("Great tinamou")), paste("(", italic("Tinamus major"), ")"))
+#opossum <- ~ atop(paste(bold("Common opossum")), paste("(", italic("Didelphis marsupialis"), ")"))
+ocelot <- ~ atop(paste(bold("Ocelot")), paste("(", italic("Leopardus pardalis"), ")"))
 
 # # rphylopic per species
 # peccPic <- get_phylopic(uuid = get_uuid(name = "Pecari tajacu", n = 1))
@@ -608,9 +608,9 @@ plot <- ggplot(estimates, aes(x = Species, y = avgOccupancy)) +
     labs(x = "Species", y = "Null occupancy probability (95% CI)") +
     theme_classic() +
     theme(
-        text = element_text(family = "Times", colour = "black"),
+        text = element_text(family = "Times", colour = "black", size = 16),
         axis.text = element_text(colour = "black"),
-        axis.text.x = element_text(angle = 45, vjust = 0.60),
+        axis.text.x = element_text(angle = 45, vjust = 0.50),
         legend.title = element_blank(),
         axis.title.x = element_blank(),
         legend.position = "top"
@@ -623,7 +623,8 @@ plot <- ggplot(estimates, aes(x = Species, y = avgOccupancy)) +
     scale_size_identity()
 plot
 # save it
-ggsave(filename = "Global/Figures/SingleSpeciesModeling/AllCommunitiesOccupancyEstimatesNullModels.png", width = 8, height = 4)
+ggsave(filename = "Global/Figures/SingleSpeciesModeling/AllCommunitiesOccupancyEstimatesNullModels.png",
+ width = 10, height = 8)
 
 
 ## See what is statistically significant

@@ -218,7 +218,7 @@ studyArea <- south_america_sf %>%
         panel.grid.minor = element_line(color = "gray95", linewidth = 0.2),
         axis.title = element_blank(),
         plot.title = element_text(size = 11, face = "bold", hjust = 0.5),
-        text = element_text(family = "Times", colour = "black"),
+        text = element_text(family = "Times", colour = "black", size = 16),
         panel.border = element_rect(color = "#b71212", linewidth = 2)
     )
 studyArea
@@ -249,7 +249,7 @@ natArea <- ggplot(natStats, aes(x = Community, y = avgNat, fill = Community)) +
 
     # put N over each of the bars
     geom_text(aes(label = paste0("N = ", n), y = 0.025), # avgNat + seNat + 0.033
-        size = 3, family = "Times", fontface = "bold"
+        size = 4, family = "Times", fontface = "bold"
     ) +
     ylab("Percent natural area within 10 km (±SD)") +
     scale_fill_manual(values = colors) +
@@ -257,37 +257,37 @@ natArea <- ggplot(natStats, aes(x = Community, y = avgNat, fill = Community)) +
     scale_y_continuous(breaks = seq(0, 1, by = 0.25)) +
     theme_bw() +
     theme(
-        text = element_text(family = "Times", colour = "black"),
+        text = element_text(family = "Times", colour = "black", size = 16),
         axis.text = element_text(colour = "black"),
         axis.title.x = element_blank()
     )
 natArea
 
 # violin plot
-p_violin <- ggplot(siteCovariate, aes(x = Community, y = natArea10KM, fill = Community)) +
-    geom_violin(alpha = 0.5, scale = "width", adjust = 1.2) +
-    geom_point(aes(color = Community),
-        position = position_jitter(width = 0.1),
-        size = 0.8, alpha = 1, pch = 21
-    ) +
-    geom_boxplot(
-        width = 0.08, alpha = 0.8,
-        linewidth = 0.3
-    ) +
-    scale_fill_manual(values = colors) +
-    scale_color_manual(values = colors) +
-    labs(x = "Community", y = "Proportion of natural area within 25km") +
-    theme_bw() +
-    theme(
-        legend.position = "none",
-        axis.text.x = element_text(angle = 45, hjust = 1, size = 8, family = "Times"),
-        axis.title = element_text(size = 10, family = "Times", face = "bold"),
-        panel.grid.major.x = element_blank(),
-        panel.grid.minor = element_blank()
-    ) +
-    ylim(0, 1.05)
-p_violin
-
+# 
+# p_violin <- ggplot(siteCovariate, aes(x = Community, y = natArea10KM, fill = Community)) +
+#     geom_violin(alpha = 0.5, scale = "width", adjust = 1.2) +
+#     geom_point(aes(color = Community),
+#         position = position_jitter(width = 0.1),
+#         size = 0.8, alpha = 1, pch = 21
+#     ) +
+#     geom_boxplot(
+#         width = 0.08, alpha = 0.8,
+#         linewidth = 0.3
+#     ) +
+#     scale_fill_manual(values = colors) +
+#     scale_color_manual(values = colors) +
+#     labs(x = "Community", y = "Proportion of natural area within 25km") +
+#     theme_bw() +
+#     theme(
+#         legend.position = "none",
+#         axis.text.x = element_text(angle = 45, hjust = 1, size = 8, family = "Times"),
+#         axis.title = element_text(size = 10, family = "Times", face = "bold"),
+#         panel.grid.major.x = element_blank(),
+#         panel.grid.minor = element_blank()
+#     ) +
+#     ylim(0, 1.05)
+# p_violin
 # combine plots
 # create top panel with SA as inset in top left of studyArea
 top_panel <- ggdraw() +
@@ -300,9 +300,9 @@ final_plot <- plot_grid(
     top_panel,
     natArea,
     ncol = 1,
-    rel_heights = c(1, 0.7),
+    rel_heights = c(0.7, 0.6),
     labels = c("A", "B"),
-    label_size = 12,
+    label_size = 18,
     label_fontface = "bold",
     label_fontfamily = "Times"
 )
@@ -311,15 +311,15 @@ final_plot
 # save it
 ggsave("Global/Figures/mapPlot.png",
     plot = final_plot,
-    width = 9,
-    height = 14,
+    width = 8,
+    height = 12,
     dpi = 300,
     bg = "white"
 )
 # pdf
 ggsave("Global/Figures/mapPlot.pdf",
     plot = final_plot,
-    width = 9,
-    height = 14,
+    width = 8,
+    height = 12,
     bg = "white"
 )

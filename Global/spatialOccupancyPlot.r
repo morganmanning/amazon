@@ -126,7 +126,7 @@ species_list <- speciesNames
 # prepare newdata for prediction
 newdata <- siteCovariate %>%
     dplyr::select(
-        Station, Community, RainfallScaled, NatArea20KMScaled,
+        Station, Community, RainfallScaled, NatArea10KMScaled,
         TemperatureScaled, DistToComm
     ) %>%
     distinct()
@@ -339,9 +339,9 @@ for (i in 1:length(unique(occupancy_spatial$species))) {
             panel.grid.major = element_line(color = "gray90", linewidth = 0.3),
             panel.grid.minor = element_line(color = "gray95", linewidth = 0.2),
             axis.title = element_blank(),
-            plot.title = element_text(size = 11, face = "bold", hjust = 0.5),
-            plot.subtitle = element_text(size = 9, hjust = 0.5),
-            plot.caption = element_text(size = 8, hjust = 0, face = "italic"),
+            plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
+            plot.subtitle = element_text(size = 14, hjust = 0.5),
+            plot.caption = element_text(size = 12, hjust = 0, face = "italic"),
             text = element_text(family = "Times", colour = "black"),
             legend.position = "right"
         )

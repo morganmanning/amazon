@@ -121,7 +121,7 @@ as_tibble(NMDS$points, rownames = "community") |>
         legend.position = "none")
 ggsave(
     filename = paste0("Global/Figures/MultispeciesModeling/multiDimensionalScaling.png"),
-    width = 12, height = 12
+    width = 11, height = 11
 )
 
 # base plot for comparison

@@ -21,7 +21,7 @@ require(mapdata)
 require(kableExtra)
 require(knitr)
 require(lubridate)
-require(tictoc)
+#require(tictoc)
 #require(MuMIn)
 require(tidyverse)
 require(ggimage)
@@ -721,9 +721,9 @@ unique(longDF$param) # verify order
 paramLabels <- data.frame(
     paramLabels = c(
         "Community: Zábalo",
-        "Avg. monthly rainfall (kg/m²/s, scaled)",
-        "Percent natural area (10 km buffer, scaled)",
-        "Avg. temperature (°C, scaled)",
+        "Avg. rainfall (kg/m²/s, scaled)",
+        "% nat. area (10 km, scaled)",
+        "Avg. temp. (°C, scaled)",
         "Distance to community (km)",
         "Community: Remolino",
         "Community: Sinangoe",
@@ -753,14 +753,15 @@ ggplot(longDF, aes(x = estimate, y = Species, color = significant)) +
     theme( 
         text = element_text(family = "Times", colour = "black"),
         legend.title = element_blank(),
-        strip.text = element_text(size = 10, face = "bold"),
-        axis.text.y = element_text(size = 8, face = "italic"),
-        axis.title.x = element_text(size = 12),
+        strip.text = element_text(size = 12, face = "bold"),
+        axis.text.y = element_text(size = 10, face = "italic"),
+        axis.title.x = element_text(size = 14),
         panel.border = element_rect(color = "black", size = 0.5, fill = NA)
     )
 
 # save model averaged effect sizes 
-ggsave("Global/Figures/SingleSpeciesModeling/ModelAveragedEffectSizes.png", width = 10, height = 6)
+ggsave("Global/Figures/SingleSpeciesModeling/ModelAveragedEffectSizes.png", 
+width = 10, height = 8)
 
 
 # extract covariate base names
@@ -1206,16 +1207,16 @@ colors <- c("Zábalo" = "darkgreen", "Remolino" = "forestgreen",
             "Sinangoe" = "yellowgreen", "San Pablo" = "gold1", "Siona" = "darkgoldenrod3")
 
 # make axis titles per species
-peccary <- ~ atop(paste("Collared peccary"), paste("(", italic("Pecari tajacu"), ")"))
-brocket <- ~ atop(paste("Brocket"), paste("(", italic("Mazama sp."), ")"))
-paca <- ~ atop(paste("Lowland paca"), paste("(", italic("Cuniculus paca"), ")"))
-trumpeter <- ~ atop(paste("Grey-winged trumpeter"), paste("(", italic("Psophia crepitans"), ")"))
-fourEyed <- ~ atop(paste("Brown four-eyed opossum"), paste("(", italic("Metachirus nudicaudatus"), ")"))
-agouti <- ~ atop(paste("Black agouti"), paste("(", italic("Dasyprocta fuliginosa"), ")"))
-armadillo <- ~ atop(paste("Nine-banded armadillo"), paste("(", italic("Dasypus novemcinctus"), ")"))
-tinamou <- ~ atop(paste("Great tinamou"), paste("(", italic("Tinamus major"), ")"))
-opossum <- ~ atop(paste("Common opossum"), paste("(", italic("Didelphis marsupialis"), ")"))
-ocelot <- ~ atop(paste("Ocelot"), paste("(", italic("Leopardus pardalis"), ")"))
+peccary <- ~ atop(paste(bold("Collared peccary")), paste("(", italic("Pecari tajacu"), ")"))
+brocket <- ~ atop(paste(bold("Brocket")), paste("(", italic("Mazama sp."), ")"))
+paca <- ~ atop(paste(bold("Lowland paca")), paste("(", italic("Cuniculus paca"), ")"))
+trumpeter <- ~ atop(paste(bold("Grey-winged trumpeter")), paste("(", italic("Psophia crepitans"), ")"))
+fourEyed <- ~ atop(paste(bold("Brown four-eyed opossum")), paste("(", italic("Metachirus nudicaudatus"), ")"))
+agouti <- ~ atop(paste(bold("Black agouti")), paste("(", italic("Dasyprocta fuliginosa"), ")"))
+armadillo <- ~ atop(paste(bold("Nine-banded armadillo")), paste("(", italic("Dasypus novemcinctus"), ")"))
+tinamou <- ~ atop(paste(bold("Great tinamou")), paste("(", italic("Tinamus major"), ")"))
+opossum <- ~ atop(paste(bold("Common opossum")), paste("(", italic("Didelphis marsupialis"), ")"))
+ocelot <- ~ atop(paste(bold("Ocelot")), paste("(", italic("Leopardus pardalis"), ")"))
 
 # # rphylopic per species
 # peccPic <- get_uuid(name = "Pecari tajacu", n = 1)
