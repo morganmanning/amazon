@@ -234,7 +234,7 @@ for (i in 1:length(unique(occupancy_spatial$species))) {
         "NatArea20KMScaled" = "Natural Area (within 20km)",
         "TemperatureScaled" = "Temperature",
         "DistToComm" = "Distance to Community",
-        "Community" = "Community"
+        "Community" = "Territory"
     )
 
     # map to readable names
@@ -256,7 +256,7 @@ for (i in 1:length(unique(occupancy_spatial$species))) {
     # change title based on whether community was a covariate
     if (sd(species_data$occupancy, na.rm = TRUE) == 0) {
         plotTitle <- paste("Predicted Model-averaged Occupancy:", sp)
-        plotSubtitle <- "(Community was not a covariate in the best models)"
+        plotSubtitle <- "(Territory was not a covariate in the best models)"
     } else {
         plotTitle <- paste("Predicted Model-averaged Occupancy:", sp)
         plotSubtitle <- NULL
@@ -293,7 +293,7 @@ for (i in 1:length(unique(occupancy_spatial$species))) {
         geom_sf(data = communities_sf, aes(fill = Community), size = 3, pch = 24) +
         scale_fill_manual(
             values = colors,
-            name = "Community",
+            name = "Territory",
             guide = "none"
         ) +
         geom_text_repel(
