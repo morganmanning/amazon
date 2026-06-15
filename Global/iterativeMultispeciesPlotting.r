@@ -388,7 +388,7 @@ for (pair_file in species_pairs) {
                     linewidth = .5
                 ) +
                 labs(
-                    x = "Community",
+                    x = "Territory",
                     y = "Conditional occupancy probability",
                     title = paste0(commonNames[i], " | ", possibleInteractions[j])
                 ) +
@@ -477,7 +477,7 @@ for (pair_file in species_pairs) {
                     linewidth = .5
                 ) +
                 labs(
-                    x = "Community",
+                    x = "Territory",
                     y = paste0(
                         "Difference in mean conditional ", tolower(differenceSpecies[i]),
                         " occupancy probability"
@@ -501,7 +501,7 @@ for (pair_file in species_pairs) {
                     paste0(
                         "Difference in mean conditional ", tolower(differenceSpecies[i]),
                         " occupancy when ", tolower(possibleInteractions[j]), " is present vs. absent \n",
-                        "(Penalized community-only model)"
+                        "(Penalized territory-only model)"
                     ),
                     face = "bold",
                     size = 14
@@ -547,7 +547,7 @@ combined_plot <- plot_grid(
 combined_plot_labelled <- ggdraw() +
     draw_plot(combined_plot, 0.025, 0, 0.97, 1) +
     # draw_label(
-    #     "All Species Interactions by Community",
+    #     "All Species Interactions by Territory",
     #     x = 0.5, y = 0.98,
     #     size = 16,
     #     fontfamily = "Times",
