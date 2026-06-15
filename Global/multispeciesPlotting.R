@@ -885,7 +885,7 @@ for(i in 1:length(casualNames)){
         ),
         position = dodge, width = 0.15, linewidth = .5
     ) +
-    labs(x = "Community", 
+    labs(x = "Territory", 
     y = paste0("Conditional ", tolower(commonNames[i]), " occupancy probability")) +
     ylim(c(0, 1)) +
     theme_classic() +
@@ -904,7 +904,7 @@ for(i in 1:length(casualNames)){
 n <- length(interactionPlots)
 nCol <- floor(sqrt(n))
 p <- do.call("grid.arrange", c(interactionPlots, ncol = nCol))
-annotate_figure(p, top = text_grob(paste0(commonNames[i], " Interactions (Penalized community-only model)"),
+annotate_figure(p, top = text_grob(paste0(commonNames[i], " Interactions (Penalized territory-only model)"),
     face = "bold", size = 14
 ))
 if (length(casualNames) == 2) {
@@ -951,7 +951,7 @@ for (i in 1:length(differenceSpecies)) {
                 position = dodge, width = 0.15, linewidth = .5
             ) +
             labs(
-                x = "Community",
+                x = "Territory",
                 y = paste0("Difference in mean conditional ", tolower(differenceSpecies[i]), " occupancy probability when ", tolower(possibleInteractions[j]), " is present vs. absent")
             ) +
             ylim(c(-0.1, 1)) +
@@ -970,7 +970,7 @@ for (i in 1:length(differenceSpecies)) {
                 paste0(
                     "Difference in mean conditional ",
                     tolower(differenceSpecies[i]), " occupancy when ",
-                    tolower(possibleInteractions[j]), " is present vs. absent \n (Penalized community-only model)"
+                    tolower(possibleInteractions[j]), " is present vs. absent \n (Penalized territory-only model)"
                 ),
                 face = "bold", size = 14
             ))
@@ -989,7 +989,7 @@ for (i in 1:length(differenceSpecies)) {
     # n <- length(differencePlots)
     # nCol <- floor(sqrt(n))
     # p <- do.call("grid.arrange", c(differencePlots, ncol = nCol))
-    # annotate_figure(p, top = text_grob(paste0(differenceSpecies[i], " Interactions (Penalized community-only model)"),
+    # annotate_figure(p, top = text_grob(paste0(differenceSpecies[i], " Interactions (Penalized territory-only model)"),
     #     face = "bold", size = 14
     # ))
 
