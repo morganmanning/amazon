@@ -1851,7 +1851,7 @@ head(cameraInfo)
 # save it
 if (savePlots == "YES") {
   # table with diversity and abundance information
-  kbl(communityDiversity, col.names = c("Community", "Proportion of Natural Area (within 10 km)", 
+  kbl(communityDiversity, col.names = c("Territory", "Proportion of Natural Area (within 10 km)", 
                                         "Number of Detections", "Number of Species",
                                         "Number of Sampling Days",
                                         "Shannon Diversity Index", "Simpson Diversity Index")) %>%
@@ -1861,13 +1861,13 @@ if (savePlots == "YES") {
   # table with just diversity information
   kbl(communityDiversity[,c("Community", "NatArea10KM", "OperatingDays", 
                             "shannonIndex", "simpsonIndex")], 
-      col.names = c("Community", "Proportion of Natural Area (within 10 km)", "Number of Sampling Days", 
+      col.names = c("Territory", "Proportion of Natural Area (within 10 km)", "Number of Sampling Days", 
                     "Shannon Diversity Index", "Simpson Diversity Index")) %>%
     kable_classic(font_size = 22, html_font = "TimesNewRoman") %>%
     save_kable(file = "Global/Figures/communityDiversitySummary.png", zoom = 2)
   
   # table with camera trap information
-  kbl(cameraInfo[,1:4], col.names = c("Community", "Number of Sampling Days", 
+  kbl(cameraInfo[,1:4], col.names = c("Territory", "Number of Sampling Days", 
                                 "Sampling Start Date", "Sampling End Date")) %>%
     kable_classic(full_width = FALSE, html_font = "TimesNewRoman") %>%
     save_kable(file = "Global/Figures/siteInfo.png",
