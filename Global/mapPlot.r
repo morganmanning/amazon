@@ -138,7 +138,7 @@ SA <- south_america_sf %>%
     ) +
     theme_void() +
     scale_fill_manual(
-        name = "Community",
+        name = "Territory",
         values = c(colors, "A" = "lightyellow", "B" = "white"),
         breaks = c("Zábalo", "Remolino", "Sinangoe", "San Pablo", "Siona")
     ) +
@@ -191,7 +191,7 @@ studyArea <- south_america_sf %>%
         seed = 123
     ) +
     scale_fill_manual(
-        name = "Community",
+        name = "Territory",
         values = colors,
         breaks = c("Zábalo", "Remolino", "Sinangoe", "San Pablo", "Siona")
     ) +
@@ -277,7 +277,7 @@ natArea
 #     ) +
 #     scale_fill_manual(values = colors) +
 #     scale_color_manual(values = colors) +
-#     labs(x = "Community", y = "Proportion of natural area within 25km") +
+#     labs(x = "Territory", y = "Proportion of natural area within 25km") +
 #     theme_bw() +
 #     theme(
 #         legend.position = "none",
