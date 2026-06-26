@@ -720,15 +720,15 @@ save(
 unique(longDF$param) # verify order
 paramLabels <- data.frame(
     paramLabels = c(
-        "Community: Zábalo",
+        "Territory: Zábalo",
         "Avg. rainfall (kg/m²/s, scaled)",
         "% nat. area (10 km, scaled)",
         "Avg. temp. (°C, scaled)",
         "Distance to community (km)",
-        "Community: Remolino",
-        "Community: Sinangoe",
-        "Community: San Pablo",
-        "Community: Siona"
+        "Territory: Remolino",
+        "Territory: Sinangoe",
+        "Territory: San Pablo",
+        "Territory: Siona"
     ),
     param = c(
         "CommunityZabalo", "RainfallScaled", "NatArea10KMScaled",
@@ -1642,11 +1642,11 @@ nDaysGroupedPerSpecies
 ################################################################################
 
 # load data
-Data <- read.csv("AllIndependentRecordsFormatted.csv") 
-Traps <- read.csv("AllStationsFormatted.csv")
+Data <- read.csv("Global/Data/AllIndependentRecordsFormatted.csv") 
+Traps <- read.csv("Global/Data/AllStationsFormatted.csv")
 Data$DateTimeOriginal <- parse_date_time(Data$DateTimeOriginal, c("%Y-%m-%d", "%Y-%m-%d %H:%M:%S"))
 # load site covariates for all communities
-siteCovariate <- read.csv("AllCommunityCovariates.csv")
+siteCovariate <- read.csv("Global/Data/AllCommunityCovariates.csv")
 siteCovariate$Rainfall <- siteCovariate$Rainfall*1000 # convert to grams/m^2/s  
 
 
@@ -1922,7 +1922,7 @@ if (communities == "Global" & savePlots == "YES"){
 }
 
 
-# Make a table with the covariates included in the top models for each species
+# make a table with the covariates included in the top models for each species
 if (communities == "Global" & savePlots == "YES" & all(speciesNames == names(masterTopModels[[1]])) & length(speciesNames) == 8){
     
     for (i in 1:length(speciesNames)){

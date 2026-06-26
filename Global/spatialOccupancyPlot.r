@@ -7,7 +7,7 @@
 
 # prep
 rm(list = ls())
-setwd("~/Documents/amazon")
+# setwd("~/Documents/amazon")
 
 # load libraries
 library(tidyverse)

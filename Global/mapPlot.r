@@ -252,6 +252,8 @@ natArea <- ggplot(natStats, aes(x = Community, y = avgNat, fill = Community)) +
         size = 4, family = "Times", fontface = "bold"
     ) +
     ylab("Percent natural area within 10 km (±SD)") +
+    labs(fill = "Territory",
+        color = "Territory") +
     scale_fill_manual(values = colors) +
     ylim(c(0, 1.08)) +
     scale_y_continuous(breaks = seq(0, 1, by = 0.25)) +
